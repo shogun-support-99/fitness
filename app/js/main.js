@@ -485,7 +485,7 @@ const actions = {
 
   "start-with-exercise": (el) => {
     const exercise = store.exerciseIndex()[el.dataset.id];
-    const created = store.startWorkout(exercise ? exercise.name : undefined);
+    const created = store.startWorkout(exercise ? { name: exercise.name } : {});
     closeExerciseDetail();
     const result = store.addExerciseToWorkout(created.workout.id, el.dataset.id);
     if (result.ok) store.addSet(created.workout.id, result.entry.id, { weight: 0, reps: 0 });
@@ -556,6 +556,12 @@ const actions = {
   "import-file": (el) => {
     const file = el.files?.[0];
     if (!file) return;
+    // Importing replaces the current log. Warn before overwriting existing data.
+    const hasData = store.doc.workouts.length > 0 || store.doc.customExercises.length > 0;
+    if (hasData && !window.confirm("Import replaces your current workouts and custom exercises in this browser. Continue?")) {
+      el.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const result = store.importData(String(reader.result));
@@ -926,6 +932,13 @@ store.subscribe((event) => {
 // ── Boot ───────────────────────────────────────────────────────────────────
 
 function boot() {
+  // Register the service worker for offline support. Best-effort: if the
+  // browser or environment can't support it, the app still runs normally.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      /* offline caching is progressive enhancement */
+    });
+  }
   applyTheme();
   initPressFeedback(document, { selector: ".btn, .routine-card, .chip, .nav-item, .icon-btn, .timer-btn, .tick" });
   if (!globalThis.location.hash) globalThis.location.hash = "#/home";
