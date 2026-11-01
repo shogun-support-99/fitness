@@ -373,8 +373,14 @@ export function muscleDiagram(exercise, opts = {}) {
  * Full attribution and pose controls remain in the exercise detail sheet.
  */
 export function exerciseThumbnail(exercise) {
-  const poses = exercise?.media?.provider === "repdb" ? exercise.media.poses : null;
-  const url = poses?.start || poses?.main || poses?.peak || "";
+  const provider = exercise?.media?.provider;
+  let url = "";
+  if (provider === "repdb") {
+    const poses = exercise.media.poses;
+    url = poses?.start || poses?.main || poses?.peak || "";
+  } else if (provider === "gymvisual") {
+    url = exercise.media.gif || exercise.media.image || "";
+  }
   if (url) {
     return `<span class="exercise-thumb has-image" aria-hidden="true"><img src="${esc(url)}" alt="" loading="lazy" decoding="async" width="52" height="52" /></span>`;
   }
@@ -406,6 +412,17 @@ export function exerciseMedia(exercise, opts = {}) {
     return `<figure class="media media-file">
   <img src="${esc(opts.mediaUrl)}" alt="${name} demonstration" loading="lazy" decoding="async" width="180" height="180"/>
   <figcaption>${credit}</figcaption>
+</figure>`;
+  }
+
+  // Licensed Gym Visual media: an animated 180x180 GIF (primary) with the
+  // required attribution.
+  if (exercise?.media?.provider === "gymvisual" && exercise.media.gif) {
+    const gif = esc(exercise.media.gif);
+    const credit = esc(exercise.media.credit ?? "© Gym visual — https://gymvisual.com/");
+    return `<figure class="media media-file media-gymvisual">
+  <img src="${gif}" alt="${name} demonstration" loading="lazy" decoding="async" width="180" height="180" />
+  <figcaption><span class="media-credit">${credit}</span></figcaption>
 </figure>`;
   }
 

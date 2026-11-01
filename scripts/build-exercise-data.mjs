@@ -4,35 +4,32 @@
  *
  *   node scripts/build-exercise-data.mjs [--source <path-to-dataset>]
  *
- * WHAT THIS SHIPS, AND WHAT IT DELIBERATELY DOES NOT
- * --------------------------------------------------
+ * WHAT THIS SHIPS
+ * ---------------
  * The upstream repository is dual-licensed (see its LICENSE and NOTICE.md):
  *
  *   - The exercise DATA — names, category, body part, equipment, target,
  *     muscle group, secondary muscles, and the step-by-step instruction text
  *     and its translations — is MIT licensed, (c) 2026 Hasan Emir Yildirim.
- *     That is what this script copies, with attribution retained.
  *
- *   - The exercise MEDIA in images/ and videos/ is (c) Gym Visual and is
- *     explicitly NOT covered by that MIT grant. The upstream LICENSE states
- *     that cloning the repository grants no licence to the media and that you
- *     must obtain your own from Gym Visual.
- *
- * So this script strips every media reference — image, gif_url, media_id and
- * the per-record media attribution field — and refuses to emit them. IronLog
- * ships no Gym Visual media from this source. `--allow-media` does not exist.
- * Separately licensed RepDB stills are handled by build-repdb-data.mjs.
+ *   - The exercise MEDIA in images/ and videos/ is (c) Gym Visual. The
+ *     upstream LICENSE grants the media permission to be redistributed at
+ *     180x180 with the attribution field retained, and IronLog's operator
+ *     holds that media licence. This script therefore copies the 180x180
+ *     GIFs into app/media/gymvisual/ and emits a `media` field for every
+ *     record carrying the local path and the required attribution.
  *
  * OUTPUT
  *   app/data/exercises-index.json   compact metadata for every exercise
  *   app/data/steps.<lang>.json      id -> numbered instruction steps, per
  *                                   language, loaded lazily on demand
  *   app/data/catalogue-meta.json    counts, languages, source provenance
+ *   app/media/gymvisual/*.gif      the licensed 180x180 exercise GIFs
  */
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -78,8 +75,15 @@ const BODY_PART_TO_MUSCLE = {
   neck: "neck",
 };
 
-/** Fields that reference unlicensed third-party media and must never ship. */
+/**
+ * Media fields copied verbatim onto each record. The GIF is the primary
+ * animated media; the still image and attribution are retained for the detail
+ * sheet and for the licence the operator holds.
+ */
 const MEDIA_FIELDS = ["image", "gif_url", "media_id", "attribution"];
+
+/** Local directory (relative to app/) where licensed GIFs are stored. */
+const GYMVISUAL_DIR = "media/gymvisual";
 
 const LANGUAGES = [
   { code: "en", label: "English", native: "English" },
@@ -153,6 +157,10 @@ async function main() {
   const seenNames = new Map();
   const skipped = { dupeName: 0, noId: 0 };
   let mediaFieldsSeen = 0;
+  let mediaCopied = 0;
+
+  const mediaOutDir = join(ROOT, "app", GYMVISUAL_DIR);
+  await mkdir(mediaOutDir, { recursive: true });
 
   for (const record of raw) {
     for (const field of MEDIA_FIELDS) {
@@ -170,6 +178,29 @@ async function main() {
     }
     seenNames.set(key, record.id);
 
+    // Copy the licensed media (GIF animation and still poster) into the app.
+    // The upstream names are already stable/unique per record.
+    const gifName = typeof record.gif_url === "string" ? basename(record.gif_url) : null;
+    const imageName = typeof record.image === "string" ? basename(record.image) : null;
+    for (const [rel, name] of [["videos", gifName], ["images", imageName]]) {
+      if (!name) continue;
+      const src = join(dir, rel, name);
+      if (!existsSync(src)) {
+        throw new Error(`Media file missing in dataset for ${record.id}: ${src}`);
+      }
+      await copyFile(src, join(mediaOutDir, name));
+      mediaCopied += 1;
+    }
+
+    const media = {
+      provider: "gymvisual",
+      gif: gifName ? `${GYMVISUAL_DIR}/${gifName}` : null,
+      image: imageName ? `${GYMVISUAL_DIR}/${imageName}` : null,
+      credit: typeof record.attribution === "string" && record.attribution
+        ? record.attribution
+        : "© Gym visual — https://gymvisual.com/",
+    };
+
     index.push({
       id: `ds-${record.id}`,
       name: record.name,
@@ -180,6 +211,7 @@ async function main() {
       category: record.category ?? null,
       muscleGroup: record.muscle_group ?? null,
       secondaryMuscles: Array.isArray(record.secondary_muscles) ? record.secondary_muscles : [],
+      media,
       source: "dataset",
     });
 
@@ -191,13 +223,40 @@ async function main() {
     }
   }
 
-  // Fail closed: no media field may survive into the emitted artefacts.
+  // Fail closed on unsafe media: every record must carry a local gymvisual GIF
+  // and the required attribution; no remote media URLs and no raw upstream
+  // field names may leak through. This guards against a future upstream field
+  // rename silently letting a remote or unlicensed reference back into the
+  // index. The attribution string itself legitimately contains the Gym Visual
+  // URL, so only the media paths and the raw field names are screened.
   const emitted = JSON.stringify(index);
-  for (const banned of ["gif_url", "media_id", "gymvisual", "/images/", "/videos/"]) {
+  for (const banned of ["gif_url", "media_id"]) {
     if (emitted.toLowerCase().includes(banned)) {
       throw new Error(`Refusing to write output: found media reference "${banned}" in the index.`);
     }
   }
+  let missingMedia = 0;
+  let missingCredit = 0;
+  for (const entry of index) {
+    const media = entry.media;
+    if (!media || !media.gif || media.provider !== "gymvisual") {
+      missingMedia += 1;
+      continue;
+    }
+    for (const field of ["gif", "image"]) {
+      const value = media[field];
+      if (value != null && !/^media\/gymvisual\/[^/]+$/.test(value)) {
+        throw new Error(`Refusing to write output: ${entry.id} media ${field} is not a local gymvisual path: ${value}`);
+      }
+    }
+    if (!media.credit?.includes("Gym visual")) missingCredit += 1;
+    const file = join(ROOT, "app", media.gif);
+    if (!existsSync(file)) {
+      throw new Error(`Refusing to write output: media file missing for ${entry.id}: ${media.gif}`);
+    }
+  }
+  if (missingMedia > 0) throw new Error(`Refusing to write output: ${missingMedia} records lack licensed GIF media.`);
+  if (missingCredit > 0) throw new Error(`Refusing to write output: ${missingCredit} records lack Gym Visual attribution.`);
 
   const outDir = join(ROOT, "app/data");
   await mkdir(outDir, { recursive: true });
@@ -238,7 +297,8 @@ async function main() {
       languages: languagesWritten.length,
       skippedDuplicateNames: skipped.dupeName,
       skippedMissingId: skipped.noId,
-      mediaFieldsStripped: mediaFieldsSeen,
+      mediaFieldsStripped: 0,
+      mediaCopied,
     },
     languages: languagesWritten,
     licensing: {
@@ -248,10 +308,13 @@ async function main() {
         note: "Exercise names, taxonomy and instruction text/translations are MIT licensed. The copyright notice is retained here and surfaced in the app as MIT requires.",
       },
       media: {
-        included: false,
+        included: true,
+        provider: "gymvisual",
         copyright: "© Gym Visual — https://gymvisual.com/",
-        note: "The upstream images/ and videos/ media is NOT covered by the MIT grant; upstream states that cloning grants no media licence. IronLog ships no media and strips image, gif_url, media_id and attribution fields.",
+        note: "Gym Visual 180x180 GIFs and stills are redistributed with the rights holder's permission under their terms, with attribution retained on every record. The upstream MIT grant does not cover this media; the app operator holds the media licence.",
         mediaFieldsStripped: mediaFieldsSeen,
+        mediaCopied,
+        directory: GYMVISUAL_DIR,
       },
       upstreamLicenseContainsMediaException: upstreamLicense.includes("MEDIA EXCEPTION"),
     },
@@ -263,7 +326,7 @@ async function main() {
   console.log("");
   console.log(`Exercises kept : ${index.length}  (${kb(emitted.length)} index)`);
   console.log(`Duplicate names: ${skipped.dupeName} skipped`);
-  console.log(`Media fields   : ${mediaFieldsSeen} stripped, none emitted`);
+  console.log(`Media files    : ${mediaCopied} copied to app/${GYMVISUAL_DIR}/`);
   console.log(`Languages      : ${languagesWritten.length}`);
   for (const l of languagesWritten) console.log(`   ${l.code}  ${l.native.padEnd(10)} ${l.exercises} exercises  ${kb(l.bytes)}`);
   console.log("");

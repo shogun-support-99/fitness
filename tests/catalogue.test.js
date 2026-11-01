@@ -456,48 +456,58 @@ describe("Store catalogue integration", () => {
 
 // ── Licensing guard ────────────────────────────────────────────────────────
 //
-// The upstream repository's MIT grant covers its data and instruction text
-// only. Its images/ and videos/ are © Gym Visual and explicitly NOT licensed by
-// cloning. These tests assert against the committed artefacts so a regenerated
-// or hand-edited data file cannot quietly start redistributing media.
+// The upstream repository's MIT grant covers its data and instruction text.
+// Its images/ and videos/ are © Gym Visual and are redistributed with the
+// rights holder's permission at 180x180 with attribution; IronLog's operator
+// holds that media licence. These tests assert against the committed artefacts
+// so a regenerated or hand-edited data file cannot quietly introduce remote,
+// raw-upstream or otherwise unlicensed media references.
 
-describe("committed catalogue ships no unlicensed media", () => {
-  const MEDIA_MARKERS = ["gif_url", "media_id", "gymvisual", "/images/", "/videos/", ".gif", ".jpg", ".mp4", ".webm"];
+describe("committed catalogue media licensing", () => {
+  // The attribution string legitimately contains the Gym Visual URL, so only
+  // raw upstream field names are banned at file scope; media-path safety is
+  // enforced per record (local gymvisual paths, no scheme) above.
+  const REMOTE_MARKERS = ["gif_url", "media_id", "/images/", "/videos/"];
 
-  test("index contains no media reference", async () => {
+  test("every index record carries local licensed gymvisual media", async () => {
+    const index = JSON.parse(await read("exercises-index.json"));
+    for (const entry of index) {
+      const media = entry.media;
+      assert.ok(media, `${entry.id} must carry a media field`);
+      assert.equal(media.provider, "gymvisual");
+      assert.match(media.gif, /^media\/gymvisual\/[^/]+\.gif$/);
+      assert.match(media.image, /^media\/gymvisual\/[^/]+\.jpg$/);
+      assert.match(media.credit, /Gym visual/i, `${entry.id} must retain Gym Visual attribution`);
+      assert.ok(!/^https?:\/\//.test(media.gif));
+      assert.ok(!/^https?:\/\//.test(media.image));
+    }
+  });
+
+  test("index contains no remote or raw-upstream media fields", async () => {
     const raw = await read("exercises-index.json");
     const lower = raw.toLowerCase();
-    for (const marker of MEDIA_MARKERS) {
+    for (const marker of REMOTE_MARKERS) {
       assert.ok(!lower.includes(marker), `exercises-index.json must not contain "${marker}"`);
     }
   });
 
-  test("index records expose no media field", async () => {
-    const index = JSON.parse(await read("exercises-index.json"));
-    const banned = ["image", "gif_url", "media_id", "attribution"];
-    for (const entry of index) {
-      for (const field of banned) {
-        assert.ok(!(field in entry), `${entry.id} must not carry a "${field}" field`);
-      }
-    }
-  });
-
-  test("every language pack contains no media reference", async () => {
+  test("every language pack contains no remote media reference", async () => {
     const meta = JSON.parse(await read("catalogue-meta.json"));
     assert.ok(meta.languages.length > 0, "expected generated language metadata");
     for (const lang of meta.languages) {
       const lower = (await read(`steps.${lang.code}.json`)).toLowerCase();
-      for (const marker of MEDIA_MARKERS) {
+      for (const marker of REMOTE_MARKERS) {
         assert.ok(!lower.includes(marker), `steps.${lang.code}.json must not contain "${marker}"`);
       }
     }
   });
 
-  test("metadata records the media exception and that nothing was shipped", async () => {
+  test("metadata records the included licensed media", async () => {
     const meta = JSON.parse(await read("catalogue-meta.json"));
-    assert.equal(meta.licensing.media.included, false);
+    assert.equal(meta.licensing.media.included, true);
+    assert.equal(meta.licensing.media.provider, "gymvisual");
     assert.ok(meta.licensing.media.copyright.includes("Gym Visual"));
-    assert.ok(meta.licensing.media.mediaFieldsStripped > 0, "expected media fields to have been stripped");
+    assert.ok(meta.licensing.media.mediaCopied > 0, "expected media files to have been copied");
     assert.equal(meta.licensing.upstreamLicenseContainsMediaException, true);
   });
 

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-21T15:50:55.611Z",
+  "generatedAt": "2026-11-01T06:47:29.311Z",
   "generator": "scripts/build-exercise-data.mjs",
   "source": {
     "repository": "https://github.com/hasaneyldrm/exercises-dataset",
     "commit": "7455efae41b330c265e7cd4b78dfa848e7ce5ebd",
-    "localPath": "/home/user/exercises-dataset",
+    "localPath": "/tmp/exercises-dataset",
     "recordsRead": 1324
   },
   "counts": {
@@ -12,78 +12,79 @@
     "languages": 10,
     "skippedDuplicateNames": 8,
     "skippedMissingId": 0,
-    "mediaFieldsStripped": 5296
+    "mediaFieldsStripped": 0,
+    "mediaCopied": 2632
   },
   "languages": [
     {
       "code": "en",
       "label": "English",
+      "native": "English",
       "exercises": 1316,
-      "bytes": 636235,
-      "native": "English"
+      "bytes": 636235
     },
     {
       "code": "es",
       "label": "Spanish",
+      "native": "Español",
       "exercises": 1316,
-      "bytes": 706291,
-      "native": "Español"
+      "bytes": 706291
     },
     {
       "code": "fr",
       "label": "French",
+      "native": "Français",
       "exercises": 1316,
-      "bytes": 685120,
-      "native": "Français"
+      "bytes": 685120
     },
     {
       "code": "it",
       "label": "Italian",
+      "native": "Italiano",
       "exercises": 1316,
-      "bytes": 677452,
-      "native": "Italiano"
+      "bytes": 677452
     },
     {
       "code": "pl",
       "label": "Polish",
+      "native": "Polski",
       "exercises": 1316,
-      "bytes": 602519,
-      "native": "Polski"
+      "bytes": 602519
     },
     {
       "code": "ru",
       "label": "Russian",
+      "native": "Русский",
       "exercises": 1316,
-      "bytes": 585789,
-      "native": "Русский"
+      "bytes": 585789
     },
     {
       "code": "tr",
       "label": "Turkish",
+      "native": "Türkçe",
       "exercises": 1316,
-      "bytes": 653916,
-      "native": "Türkçe"
+      "bytes": 653916
     },
     {
       "code": "zh",
       "label": "Chinese",
+      "native": "中文",
       "exercises": 1316,
-      "bytes": 183419,
-      "native": "中文"
+      "bytes": 183419
     },
     {
       "code": "hi",
       "label": "Hindi",
+      "native": "हिन्दी",
       "exercises": 1316,
-      "bytes": 628136,
-      "native": "हिन्दी"
+      "bytes": 628136
     },
     {
       "code": "ko",
       "label": "Korean",
+      "native": "한국어",
       "exercises": 1316,
-      "bytes": 283136,
-      "native": "한국어"
+      "bytes": 283136
     }
   ],
   "licensing": {
@@ -93,10 +94,13 @@
       "note": "Exercise names, taxonomy and instruction text/translations are MIT licensed. The copyright notice is retained here and surfaced in the app as MIT requires."
     },
     "media": {
-      "included": false,
+      "included": true,
+      "provider": "gymvisual",
       "copyright": "© Gym Visual — https://gymvisual.com/",
-      "note": "The upstream images/ and videos/ media is NOT covered by the MIT grant; upstream states that cloning grants no media licence. IronLog ships no media and strips image, gif_url, media_id and attribution fields.",
-      "mediaFieldsStripped": 5296
+      "note": "Gym Visual 180x180 GIFs and stills are redistributed with the rights holder's permission under their terms, with attribution retained on every record. The upstream MIT grant does not cover this media; the app operator holds the media licence.",
+      "mediaFieldsStripped": 5296,
+      "mediaCopied": 2632,
+      "directory": "media/gymvisual"
     },
     "upstreamLicenseContainsMediaException": true
   }

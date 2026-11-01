@@ -9,32 +9,33 @@
     "recordsRead": 650
   },
   "counts": {
-    "exercises": 650,
+    "exercises": 583,
     "languages": 3,
-    "images": 1147,
-    "imageBytes": 19094940
+    "images": 1021,
+    "imageBytes": 17037582,
+    "skippedAsDuplicate": 67
   },
   "languages": [
     {
       "code": "en",
       "label": "English",
       "native": "English",
-      "exercises": 650,
-      "bytes": 238248
+      "exercises": 583,
+      "bytes": 217222
     },
     {
       "code": "de",
       "label": "German",
       "native": "Deutsch",
-      "exercises": 650,
-      "bytes": 263390
+      "exercises": 583,
+      "bytes": 240538
     },
     {
       "code": "es",
       "label": "Spanish",
       "native": "Español",
-      "exercises": 650,
-      "bytes": 268373
+      "exercises": 583,
+      "bytes": 244701
     }
   ],
   "licensing": {
@@ -52,7 +53,7 @@
     "format": "webp",
     "dimensions": "512x512",
     "localDirectory": "app/media/repdb",
-    "files": 1147,
-    "bytes": 19094940
+    "files": 1021,
+    "bytes": 17037582
   }
 }

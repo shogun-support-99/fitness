@@ -196,9 +196,11 @@ records commit/media counts in `repdb-meta.json`.
 - **Original catalogue data — MIT, © 2026 Hasan Emir Yıldırım.** Exercise names, taxonomy
   and instruction translations retain their copyright notice in `NOTICE`, generated
   metadata, Settings and relevant exercise details.
-- **Original catalogue media — © Gym Visual, NOT licensed.** Its images and videos are
-  excluded from the MIT grant. Cloning grants no media license, so the original generator
-  strips every media field and fails closed if one survives.
+- **Original catalogue media — © Gym Visual, licensed by the operator.** The images and
+  videos are excluded from the MIT grant, but IronLog's operator holds the media licence,
+  so the licensed 180×180 GIFs (and static posters) ship in `app/media/gymvisual/` with
+  attribution retained on every record. The generator copies only local referenced files
+  and fails closed on remote or raw-upstream media references.
 - **RepDB data and flat stills — RepDB Free Tier License v1.0.** Personal and commercial
   in-app use is permitted with visible attribution. **Exercise data by
   [RepDB](https://repdb.co) (repdb.co).** The full terms ship in `LICENSE-REPDB.md`.
@@ -207,7 +209,7 @@ records commit/media counts in `repdb-meta.json`.
 
 RepDB's no-standalone-redistribution term is respected by generating IronLog-specific
 indexes and lazy instruction packs for in-app use, not republishing the upstream dataset.
-CI and unit tests separately preserve the Gym Visual block and the narrow RepDB media
+CI and unit tests separately preserve the Gym Visual media block and the narrow RepDB media
 allowlist. See [`NOTICE`](./NOTICE) for the complete third-party record.
 
 ## Design
@@ -288,7 +290,10 @@ with an accessible still-image selector; stretches and holds use one **Main** po
 selector does not synthesise a paid-tier animation, and the evaluation-only premium clips
 are excluded. Images are lazy-loaded with explicit dimensions and visible RepDB credit.
 
-Entries without a licensed still retain the original diagrams from `app/js/diagrams.js`:
+Dataset entries carry the licensed 180×180 Gym Visual GIFs (with their static poster as
+the loading/fallback frame) and the required © Gym Visual credit. RepDB entries use
+their free-tier stills. Entries without licensed media retain the original diagrams from
+`app/js/diagrams.js`:
 
 - **Movement diagram** — a lever, arc, travel path and force vector. Ten movement classes
   are derived from category, muscle, equipment, target and name; the drawn load follows
@@ -296,8 +301,8 @@ Entries without a licensed still retain the original diagrams from `app/js/diagr
 - **Muscle graph** — the primary muscle at the centre, secondaries ranged on an ellipse,
   joined by linework that draws in sequence.
 
-Gym Visual's 180×180 GIFs from the other source remain excluded because their MEDIA
-EXCEPTION grants no redistribution license. If you independently hold rights to media,
+Gym Visual's 180×180 GIFs ship under the media licence held by the app operator, with the
+required attribution retained. If you independently hold rights to other media,
 `app/media/README.md` documents the override slot and required credit.
 
 ## Architecture notes
@@ -350,10 +355,10 @@ The exercise catalogue data and instruction text come from
 [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset), also MIT
 licensed (© 2026 Hasan Emir Yıldırım), and are attributed in [`NOTICE`](./NOTICE) and in the
 app itself. That project's exercise media is © Gym Visual and is **not** covered by its MIT
-grant, so none of it is redistributed here. RepDB records and flat WebP stills are used
-under the separate [RepDB Free Tier License](./LICENSE-REPDB.md), with visible attribution
-and no premium evaluation media — see [Exercise catalogue](#exercise-catalogue) and
-[`NOTICE`](./NOTICE).
+grant; it is redistributed here under a media licence held by the app operator, with
+attribution retained. RepDB records and flat WebP stills are used under the separate
+[RepDB Free Tier License](./LICENSE-REPDB.md), with visible attribution and no premium
+evaluation media — see [Exercise catalogue](#exercise-catalogue) and [`NOTICE`](./NOTICE).
 
 This is an independent project. It is not affiliated with, endorsed by, or derived from
 any other fitness product.

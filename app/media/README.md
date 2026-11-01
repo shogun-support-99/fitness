@@ -46,18 +46,20 @@ and lazy loading to avoid layout shifts.
 Entries without a RepDB still retain the original movement and muscle diagrams
 from `app/js/diagrams.js`.
 
-## Why the other dataset's GIFs are not here
+## The dataset's GIFs
 
 [`hasaneyldrm/exercises-dataset`](https://github.com/hasaneyldrm/exercises-dataset)
 has an explicit **MEDIA EXCEPTION**: its images and videos are © Gym Visual and
-cloning grants no license to them. IronLog therefore ships none of those GIFs or
-thumbnails. The MIT grant still covers that source's exercise data and
-instruction text, whose attribution is retained in [`NOTICE`](../../NOTICE).
+cloning grants no license to them. The MIT grant covers that source's exercise
+data and instruction text; the media is included here under a media licence
+held by the app operator. The licensed 180×180 GIFs (and their static posters)
+live in the `gymvisual/` subdirectory, with the required attribution retained on
+every record and in [`NOTICE`](../../NOTICE).
 
 ## Supplying your own media
 
 If you have media you are entitled to publish, place it directly in this
-directory (not in `repdb/`) named by exercise id:
+directory (not in `repdb/` or `gymvisual/`) named by exercise id:
 
 ```text
 app/media/ds-0289.gif
@@ -68,12 +70,13 @@ app/media/ds-0289.jpg
 
 Then call `exerciseMedia(exercise, { mediaUrl, mediaCredit })` with the resolved
 URL. An explicitly supplied file takes precedence over catalogue artwork. For
-Gym Visual media, a separate license is still required and the credit
-`© Gym visual — https://gymvisual.com/` is not optional.
+Gym Visual media, the credit `© Gym visual — https://gymvisual.com/` is not
+optional.
 
 ## Guards
 
-`tests/catalogue.test.js` keeps the original Gym Visual media block intact.
-`tests/repdb.test.js` checks the separate RepDB free-tier grant and assets. The
-deploy workflow allows binary exercise media only under `app/media/repdb/` and
-rejects unexpected images, videos, premium paths and missing attribution.
+`tests/catalogue.test.js` asserts every dataset record carries local, licensed
+Gym Visual media with attribution. `tests/repdb.test.js` checks the separate
+RepDB free-tier grant and assets. The deploy workflow allows binary exercise
+media only under `app/media/repdb/` and `app/media/gymvisual/` and rejects
+unexpected images, videos, premium paths and missing attribution.

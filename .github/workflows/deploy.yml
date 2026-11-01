@@ -42,20 +42,38 @@ jobs:
       - name: Verify local asset links resolve
         run: node scripts/check-links.mjs
 
-      # Gym Visual media remains excluded. RepDB's free flat WebP stills have a
-      # separate in-app licence with attribution, so they get a narrow allowlist
-      # and their own provenance/path checks instead of weakening the old guard.
+      # Gym Visual 180x180 GIFs/stills ship under a media licence held by the
+      # app operator, with attribution retained on every record. RepDB's free
+      # flat WebP stills have a separate in-app licence with attribution. Both
+      # live only in their approved directories; no remote/raw-upstream or
+      # premium/evaluation media is allowed anywhere.
       - name: Assert media licences and attribution
         run: |
           set -euo pipefail
           fail=0
 
-          echo "-- scanning the MIT data catalogue for excluded Gym Visual media --"
-          if grep -rioE 'gif_url|media_id|gymvisual|\.(gif|jpe?g|png|webp|mp4|webm)"' app/data/exercises-index.json app/data/steps.*.json; then
-            echo "::error::media reference found in the original generated catalogue"
+          echo "-- scanning the dataset catalogue for remote or raw-upstream media fields --"
+          # The required attribution string legitimately contains the Gym Visual
+          # URL, so only raw upstream field names are banned at file scope; media
+          # paths are validated per record as local media/gymvisual/* paths by
+          # the unit tests and by the directory checks below.
+          if grep -rioE 'gif_url|media_id|/images/|/videos/' app/data/exercises-index.json app/data/steps.*.json; then
+            echo "::error::remote or raw-upstream media reference found in the dataset catalogue"
             fail=1
           else
-            echo "   clean: no media references in the original index or step packs"
+            echo "   clean: catalogue records use local licensed gymvisual paths only"
+          fi
+
+          echo "-- asserting every dataset record carries local licensed gymvisual media --"
+          if grep -rioE '[^"]*"media":\{"provider":"gymvisual"' app/data/exercises-index.json >/dev/null; then
+            echo "   ok: gymvisual media provider present"
+          else
+            echo "::error::dataset records missing the gymvisual media provider"
+            fail=1
+          fi
+          if git ls-files app/media/gymvisual | grep -viE '\.(gif|jpg)$'; then
+            echo "::error::non-GIF/JPG file in gymvisual media directory"
+            fail=1
           fi
 
           echo "-- scanning RepDB app data for premium, remote or unsupported media --"
@@ -66,8 +84,8 @@ jobs:
             echo "   clean: RepDB records use local free-tier WebP stills only"
           fi
 
-          echo "-- allowing binary exercise media only in the licensed RepDB directory --"
-          if git ls-files | grep -iE '\.(gif|jpe?g|png|webp|mp4|webm|mov)$' | grep -viE '^(assets/img/|app/icons/|app/media/repdb/)' ; then
+          echo "-- allowing binary exercise media only in licensed directories --"
+          if git ls-files | grep -iE '\.(gif|jpe?g|png|webp|mp4|webm|mov)$' | grep -viE '^(assets/img/|app/icons/|app/media/repdb/|app/media/gymvisual/)' ; then
             echo "::error::unexpected binary media outside approved artwork directories"
             fail=1
           fi
@@ -84,11 +102,12 @@ jobs:
           test -f NOTICE || { echo "::error::NOTICE file missing"; fail=1; }
           test -f LICENSE-REPDB.md || { echo "::error::RepDB licence file missing"; fail=1; }
           grep -q 'hasaneyldrm/exercises-dataset' NOTICE || { echo "::error::NOTICE missing upstream credit"; fail=1; }
-          grep -q 'Gym Visual' NOTICE || { echo "::error::NOTICE missing Gym Visual media exclusion"; fail=1; }
+          grep -q 'Gym Visual' NOTICE || { echo "::error::NOTICE missing Gym Visual media notice"; fail=1; }
           grep -q 'Exercise data by RepDB' NOTICE || { echo "::error::NOTICE missing RepDB attribution"; fail=1; }
           grep -q 'Exercise data by' app/js/views/settings.js || { echo "::error::app settings lost visible RepDB attribution"; fail=1; }
           grep -q 'Hasan Emir' app/data/catalogue-meta.json || { echo "::error::generated metadata lost the MIT copyright notice"; fail=1; }
           grep -q 'RepDB/exercise-dataset' app/data/repdb-meta.json || { echo "::error::RepDB provenance missing"; fail=1; }
+          grep -q 'Gym Visual' app/data/catalogue-meta.json || { echo "::error::catalogue metadata lost the Gym Visual media notice"; fail=1; }
 
           exit $fail
 

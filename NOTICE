@@ -25,9 +25,9 @@ The derived artefacts live in `app/data/` and are produced by
 record counts, languages and the number of media fields stripped — is recorded
 in `app/data/catalogue-meta.json`.
 
-## Gym Visual exercise media — NOT redistributed
+## Gym Visual exercise media — licensed and included
 
-The upstream repository above also contains `images/` and `videos/`. Per that
+The upstream repository also contains `images/` and `videos/`. Per that
 repository's own `LICENSE` (MEDIA EXCEPTION) and `NOTICE.md`, that media is:
 
     Copyright : © Gym Visual — https://gymvisual.com/
@@ -35,11 +35,13 @@ repository's own `LICENSE` (MEDIA EXCEPTION) and `NOTICE.md`, that media is:
 
 The upstream project states that cloning its repository grants no licence to
 the media and that you must obtain your own licence directly from Gym Visual.
-Accordingly, IronLog ships **none** of it. `scripts/build-exercise-data.mjs`
-strips the `image`, `gif_url`, `media_id` and `attribution` fields from every
-record, and fails closed if any media reference appears in its output. The unit
-test `tests/catalogue.test.js` re-asserts this against the committed artefacts,
-so a future regeneration cannot silently reintroduce that media.
+IronLog's operator holds that media licence, so the 180×180 exercise GIFs
+(and their static posters) from this source **are** redistributed in
+`app/media/gymvisual/`, with the required attribution retained on every record.
+`scripts/build-exercise-data.mjs` copies only referenced local GIFs/stills,
+keeps the attribution field, and fails closed on remote or raw-upstream media
+references. The unit test `tests/catalogue.test.js` re-asserts the licensed,
+local-only shape of the media against the committed artefacts.
 
 ## RepDB exercise data and still media — Free Tier License
 

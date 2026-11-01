@@ -158,11 +158,11 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
       </div>
 
       ${/*
-        RepDB's free-tier stills are licensed for in-app use with attribution.
-        Gym Visual GIFs remain excluded. Entries without a licensed still keep
-        the original data-drawn movement diagram.
+        Licensed media: Gym Visual 180x180 GIFs (operator-held licence) and
+        RepDB's free-tier stills both render here with their attribution. Entries
+        without a licensed still keep the original data-drawn movement diagram.
       */ ""}
-      <div class="detail-visual ${exercise.media?.provider === "repdb" ? "has-media" : ""}" data-reveal="draw">
+      <div class="detail-visual ${exercise.media?.provider ? "has-media" : ""}" data-reveal="draw">
         ${exerciseMedia(exercise)}
         ${muscleDiagram(exercise) || ""}
       </div>
@@ -252,7 +252,7 @@ function renderAttribution(store, exercise) {
       Exercise data and instruction text from
       <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
       MIT licensed, © 2026 Hasan Emir Yıldırım${source?.commit ? ` · commit ${esc(String(source.commit).slice(0, 7))}` : ""}.
-      Gym Visual media from that dataset is not redistributed here.
+      Its Gym Visual GIFs are used under a licence held by the app operator (© Gym Visual).
     </p>`);
   }
   if (usesRepDB) {

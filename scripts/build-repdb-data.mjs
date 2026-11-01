@@ -212,9 +212,27 @@ async function main() {
   const steps = Object.fromEntries(LANGUAGES.map(({ code }) => [code, {}]));
   const copies = new Map();
 
+  // Dedupe against the hasaneyldrm catalogue: when both sources contain the
+  // same exercise, the hasaneyldrm record (with its Gym Visual GIF) wins so
+  // the merged library does not show the same exercise twice. The normalised
+  // names come from the already-generated exercise index when available.
+  const catalogueIndexPath = join(OUT_DATA, "exercises-index.json");
+  const catalogueNames = new Set();
+  if (existsSync(catalogueIndexPath)) {
+    const catalogue = JSON.parse(await readFile(catalogueIndexPath, "utf8"));
+    for (const entry of catalogue) {
+      if (entry?.source === "dataset" && entry.name) catalogueNames.add(normaliseName(entry.name));
+    }
+  }
+  let skippedAsDuplicate = 0;
+
   for (const record of rows) {
     if (!record.id || !record.name_en) throw new Error("Every RepDB record needs an id and English name.");
     const nameKey = normaliseName(record.name_en);
+    if (catalogueNames.has(nameKey)) {
+      skippedAsDuplicate += 1;
+      continue;
+    }
     if (ids.has(record.id) || names.has(nameKey)) throw new Error(`Duplicate RepDB record: ${record.id}`);
     ids.add(record.id);
     names.add(nameKey);
@@ -276,6 +294,7 @@ async function main() {
       languages: languageMeta.length,
       images: copies.size,
       imageBytes,
+      skippedAsDuplicate: skippedAsDuplicate,
     },
     languages: languageMeta,
     licensing: {

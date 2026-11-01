@@ -177,8 +177,8 @@ function renderCataloguePanel(store) {
       <p class="panel-hint attribution">
         Exercise names, taxonomy and step-by-step instruction text come from
         <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
-        used under the MIT licence — © 2026 Hasan Emir Yıldırım. Its Gym Visual GIFs and
-        thumbnails remain excluded because cloning grants no media licence.
+        used under the MIT licence — © 2026 Hasan Emir Yıldırım. Its Gym Visual GIFs
+        are used under a licence held by the app operator (© Gym Visual).
       </p>
       <p class="panel-hint attribution">
         Exercise data by <a href="https://repdb.co" rel="noopener noreferrer" target="_blank">RepDB (repdb.co)</a>.

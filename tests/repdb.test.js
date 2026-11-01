@@ -189,11 +189,12 @@ describe("RepDB loader and instruction routing", () => {
 });
 
 describe("committed RepDB artefacts", () => {
-  test("all 650 records have unique ids/names and valid muscle groups", async () => {
+  test("all 583 records have unique ids/names and valid muscle groups", async () => {
     const index = await readJson("repdb-index.json");
     const meta = await readJson("repdb-meta.json");
-    assert.equal(index.length, 650);
-    assert.equal(meta.counts.exercises, 650);
+    assert.equal(index.length, 583);
+    assert.equal(meta.counts.exercises, 583);
+    assert.equal(meta.counts.skippedAsDuplicate, 67, "duplicates of dataset exercises are removed");
     assert.equal(new Set(index.map((entry) => entry.id)).size, index.length);
     assert.equal(new Set(index.map((entry) => normaliseName(entry.name))).size, index.length);
     const known = new Set(MUSCLE_GROUPS);
@@ -234,7 +235,7 @@ describe("committed RepDB artefacts", () => {
     }
 
     const onDisk = (await readdir(MEDIA)).filter((name) => name.endsWith(".webp"));
-    assert.equal(references.size, 1147);
+    assert.equal(references.size, 1021);
     assert.equal(onDisk.length, references.size);
     assert.deepEqual(
       onDisk.filter((name) => !references.has(`media/repdb/${name}`)),
@@ -252,7 +253,8 @@ describe("committed RepDB artefacts", () => {
     const repdb = await readJson("repdb-index.json");
     const merged = allExercises([], [...original, ...repdb]);
     assert.equal(merged.length, 1930);
-    assert.equal(merged.filter((entry) => entry.media?.provider === "repdb").length, 650);
+    assert.equal(merged.filter((entry) => entry.media?.provider === "repdb").length, 583);
+    assert.equal(merged.filter((entry) => entry.media?.provider === "gymvisual").length, 1316);
 
     const names = new Set();
     const duplicates = [];
