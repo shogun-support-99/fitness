@@ -19,7 +19,9 @@
  * plain ES-agnostic worker code (no imports), so it needs no build step.
  */
 
-const CACHE = "ironlog-shell-v3";
+// Bumped whenever the shell's CSS or JS changes: stale-while-revalidate would
+// otherwise serve the previous build for one more load after a deploy.
+const CACHE = "ironlog-shell-v4";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
