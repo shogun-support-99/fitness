@@ -15,14 +15,13 @@ import {
   clearStepsCache,
   hasInstructions,
   loadCatalogue,
-  mergeCatalogues,
   normaliseName,
   rawDatasetId,
   stepsFor,
   stepsKey,
 } from "../app/js/catalogue.js";
 import { mapMuscle } from "../scripts/build-exercise-data.mjs";
-import { EXERCISES, allExercises, searchExercises } from "../app/js/exercises.js";
+import { allExercises, searchExercises } from "../app/js/exercises.js";
 import { Store } from "../app/js/store.js";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -105,92 +104,31 @@ describe("rawDatasetId", () => {
   });
 });
 
-describe("mergeCatalogues", () => {
+describe("allExercises over a dataset-shaped fixture", () => {
   const dataset = [
     { id: "ds-0001", name: "Push-Up", muscle: "chest", source: "dataset" },
     { id: "ds-0002", name: "Leverage Deadlift", muscle: "back", source: "dataset" },
   ];
 
-  test("appends catalogue entries after the curated ones", () => {
-    const { exercises } = mergeCatalogues(EXERCISES, dataset);
-    assert.ok(exercises.length > EXERCISES.length);
-    assert.equal(exercises[0].id, EXERCISES[0].id, "curated order is preserved first");
-  });
-
-  test("curated entry wins an exact normalised-name collision", () => {
-    const { exercises, collisions } = mergeCatalogues(EXERCISES, dataset);
-    assert.equal(collisions, 1);
-    const pushup = exercises.find((e) => normaliseName(e.name) === "push up");
-    assert.notEqual(pushup.id, "ds-0001", "the dataset duplicate must not win");
-    assert.equal(exercises.filter((e) => normaliseName(e.name) === "push up").length, 1);
-  });
-
-  test("is additive when there are no collisions", () => {
-    const { exercises, collisions } = mergeCatalogues([], dataset);
-    assert.equal(collisions, 0);
-    assert.equal(exercises.length, 2);
-  });
-
-  test("links the winning curated entry to the losing record's instructions", () => {
-    const { exercises, collisions, linked } = mergeCatalogues(EXERCISES, dataset);
-    assert.equal(collisions, 1);
-    assert.equal(linked, 1);
-    const pushup = exercises.find((e) => normaliseName(e.name) === "push up");
-    assert.equal(pushup.stepsId, "ds-0001");
-    assert.equal(pushup.id, EXERCISES.find((e) => normaliseName(e.name) === "push up").id, "id stays stable for saved workouts");
-  });
-
-  test("does not mutate the shared curated module constant", () => {
-    const before = EXERCISES.map((e) => e.stepsId ?? null);
-    mergeCatalogues(EXERCISES, dataset);
-    const after = EXERCISES.map((e) => e.stepsId ?? null);
-    assert.deepEqual(after, before);
-    assert.equal(EXERCISES.some((e) => e.stepsId), false, "EXERCISES must stay pristine");
-  });
-
-  test("links each curated winner at most once", () => {
-    const dupes = [
-      { id: "ds-1", name: "Push-Up", source: "dataset" },
-      { id: "ds-2", name: "push up", source: "dataset" },
-    ];
-    const { exercises, collisions, linked } = mergeCatalogues(EXERCISES, dupes);
-    assert.equal(collisions, 2);
-    assert.equal(linked, 1, "the second duplicate must not overwrite the first link");
-    const pushup = exercises.find((e) => normaliseName(e.name) === "push up");
-    assert.equal(pushup.stepsId, "ds-1");
-  });
-
-  test("defaults keep the library usable with no catalogue at all", () => {
-    assert.equal(allExercises([]).length, EXERCISES.length);
-    assert.equal(mergeCatalogues(EXERCISES).exercises.length, EXERCISES.length);
-    assert.equal(mergeCatalogues(EXERCISES, null).collisions, 0);
-  });
-
-  test("skips malformed catalogue records", () => {
-    const { exercises } = mergeCatalogues([], [null, {}, { id: "ds-x" }, { name: "No id" }, dataset[1]]);
-    assert.equal(exercises.length, 1);
-    assert.equal(exercises[0].id, "ds-0002");
-  });
-
-  test("custom exercises are always addressable under their own id", () => {
+  test("custom exercises stay addressable under their own id", () => {
     const custom = [{ id: "custom-1", name: "My Own Move", muscle: "back", equipment: "other", custom: true }];
     const merged = allExercises(custom, dataset);
     const index = Object.fromEntries(merged.map((e) => [e.id, e]));
     assert.ok(index["custom-1"], "the custom entry survives the merge");
     assert.ok(index["ds-0002"], "catalogue entries survive alongside it");
-    assert.ok(index[EXERCISES[0].id], "curated entries survive alongside it");
   });
 
-  test("a custom exercise never evicts a curated or catalogue entry", () => {
-    // Name-based dedupe applies between the curated library and the catalogue
-    // only. A user's own entry is keyed by id, so creating "Push-Up" adds their
-    // version rather than silently hiding the built-in one — deleting a
-    // duplicate is easy, recovering a vanished exercise is not.
-    const custom = [{ id: "custom-2", name: "Push-Up", muscle: "chest", equipment: "other", custom: true }];
+  test("a custom entry with a dataset id overrides it", () => {
+    const custom = [{ id: "ds-0001", name: "My Push", muscle: "chest", equipment: "other", custom: true }];
     const merged = allExercises(custom, dataset);
-    const hits = merged.filter((e) => normaliseName(e.name) === "push up");
-    assert.equal(hits.length, 2);
-    assert.deepEqual(hits.map((e) => e.id).sort(), ["custom-2", EXERCISES.find((e) => normaliseName(e.name) === "push up").id].sort());
+    const index = Object.fromEntries(merged.map((e) => [e.id, e]));
+    assert.equal(index["ds-0001"].name, "My Push");
+    assert.equal(merged.length, 2);
+  });
+
+  test("skips malformed custom entries", () => {
+    const merged = allExercises([null, undefined, { name: "no id" }, { id: "" }], dataset);
+    assert.equal(merged.length, 2);
   });
 });
 
@@ -389,12 +327,12 @@ describe("availableLanguages", () => {
 });
 
 describe("Store catalogue integration", () => {
-  test("exercises() works before the catalogue loads", () => {
+  test("exercises() is empty before the catalogue loads", () => {
     const store = new Store();
     assert.equal(store.catalogueState, "idle");
     assert.equal(store.catalogueReady, false);
-    assert.equal(store.exercises().length, EXERCISES.length);
-    assert.ok(store.exerciseIndex()["bench-press"]);
+    assert.equal(store.exercises().length, 0);
+    assert.equal(store.exerciseIndex()["bench-press"], undefined);
   });
 
   test("merges the catalogue and announces readiness", async () => {
@@ -415,14 +353,14 @@ describe("Store catalogue integration", () => {
     assert.ok(store.exerciseIndex()["ds-0002"], "catalogue ids are resolvable");
   });
 
-  test("stays on the curated library when the fetch fails", async () => {
+  test("stays empty when the fetch fails", async () => {
     const store = new Store();
     stubFetch({});
     const ok = await store.loadCatalogue("");
     assert.equal(ok, false);
     assert.equal(store.catalogueState, "unavailable");
     assert.equal(store.catalogueReady, false);
-    assert.equal(store.exercises().length, EXERCISES.length);
+    assert.equal(store.exercises().length, 0);
   });
 
   test("does not start a second concurrent load", async () => {
@@ -535,21 +473,13 @@ describe("committed catalogue media licensing", () => {
     assert.deepEqual(unknown.map((e) => `${e.id}:${e.muscle}`).slice(0, 5), []);
   });
 
-  test("curated staples that win a collision stay linked to real instructions", async () => {
+  test("every dataset exercise resolves its own instructions", async () => {
     const index = JSON.parse(await read("exercises-index.json"));
     const steps = JSON.parse(await read("steps.en.json"));
-    const merged = allExercises([], index);
 
-    const linked = merged.filter((e) => e.stepsId);
-    assert.ok(linked.length >= 15, `expected the curated staples to be linked, got ${linked.length}`);
-
-    // The whole point of the link: those instructions must actually resolve.
-    const broken = linked.filter((e) => !Array.isArray(steps[rawDatasetId(e.stepsId)]));
-    assert.deepEqual(broken.map((e) => `${e.id}->${e.stepsId}`), []);
-
-    // And a linked curated entry must be recognised as having instructions.
-    assert.ok(linked.every((e) => hasInstructions(e)));
-    assert.equal(linked.every((e) => e.id.startsWith("ds-")), false, "links belong to curated entries, not catalogue ones");
+    const withSteps = index.filter((e) => Array.isArray(steps[rawDatasetId(e.id)]));
+    assert.ok(withSteps.length > 1200, `expected most catalogue entries to have English steps, got ${withSteps.length}`);
+    assert.ok(withSteps.every((e) => hasInstructions(e)));
   });
 
   test("no exercise is duplicated by name in the merged library", async () => {

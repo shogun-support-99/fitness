@@ -34,67 +34,6 @@ export function normaliseName(name) {
 }
 
 /**
- * Merge the curated starter library with the external catalogue.
- *
- * The curated entry wins an exact normalised-name collision: its display name
- * is cleaner, it carries the barbell flag used for plate maths, and existing
- * saved workouts keep resolving to a stable id. Everything else is appended.
- *
- * A collision is not a dead end though. The losing catalogue record still owns
- * step-by-step instructions the curated entry does not have, so the winner is
- * linked to it via `stepsId` and those instructions remain reachable. The link
- * points at data only — never at media.
- *
- * Collided entries are shallow-copied rather than mutated, because the curated
- * array is a module-level constant shared by every caller.
- *
- * @param {object[]} curated
- * @param {object[]} dataset
- * @returns {{exercises: object[], collisions: number, linked: number}}
- */
-export function mergeCatalogues(curated = [], dataset = []) {
-  const byName = new Map();
-  curated.forEach((e, i) => {
-    const key = normaliseName(e.name);
-    if (key) byName.set(key, i);
-  });
-
-  const merged = curated.slice();
-  let collisions = 0;
-  let linked = 0;
-
-  for (const e of dataset ?? []) {
-    if (!e || typeof e.id !== "string" || !e.name) continue;
-    const key = normaliseName(e.name);
-    const curatedPosition = byName.get(key);
-
-    if (curatedPosition !== undefined) {
-      collisions += 1;
-      const winner = merged[curatedPosition];
-      let enriched = winner;
-      let changed = false;
-
-      // Only curated/custom-shaped records need an instruction link. Catalogue
-      // records already resolve through their own ids, and existing ids must
-      // stay stable for workouts saved before a second source was added.
-      if (!winner.stepsId && winner.source !== "dataset") {
-        enriched = { ...enriched, stepsId: e.id };
-        linked += 1;
-        changed = true;
-      }
-
-      if (changed) merged[curatedPosition] = enriched;
-      continue;
-    }
-
-    byName.set(key, merged.length);
-    merged.push(e);
-  }
-
-  return { exercises: merged, collisions, linked };
-}
-
-/**
  * Fetch and parse JSON, returning null rather than throwing so a missing or
  * malformed file degrades to "curated library only" instead of a blank app.
  */

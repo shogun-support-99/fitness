@@ -7,7 +7,6 @@ import assert from "node:assert/strict";
 import { test, describe, beforeEach } from "node:test";
 
 import { STORAGE_KEY, Store, defaultWorkoutName, memoryStorage } from "../app/js/store.js";
-import { EXERCISES } from "../app/js/exercises.js";
 
 let storage;
 let store;
@@ -27,9 +26,9 @@ describe("construction", () => {
     assert.equal(store.settings.restSeconds, 120);
   });
 
-  test("exposes the full built-in library", () => {
-    assert.equal(store.exercises().length, EXERCISES.length);
-    assert.ok(store.getExercise("bench-press").name === "Bench Press");
+  test("starts empty until the catalogue is loaded", () => {
+    assert.equal(store.exercises().length, 0);
+    assert.equal(store.getExercise("bench-press"), null);
   });
 
   test("recovers from a corrupt stored payload instead of throwing", () => {
@@ -363,7 +362,7 @@ describe("custom exercises", () => {
     const result = store.addCustomExercise({ name: "Landmine Press", muscle: "shoulders", equipment: "barbell" });
     assert.ok(result.ok);
     assert.equal(result.exercise.custom, true);
-    assert.equal(store.exercises().length, EXERCISES.length + 1);
+    assert.equal(store.exercises().length, 1);
   });
 
   test("rejects an empty name", () => {
@@ -377,18 +376,16 @@ describe("custom exercises", () => {
     assert.equal(result.exercise.id, "custom-zercher-squat");
   });
 
-  test("does not collide with a built-in id", () => {
+  test("gets its own id rather than colliding with a catalogue name", () => {
     const result = store.addCustomExercise({ name: "Deadlift" });
     assert.ok(result.ok);
-    assert.notEqual(result.exercise.id, "deadlift");
-    // The built-in keeps its own identity.
-    assert.equal(store.getExercise("deadlift").custom, undefined);
+    assert.ok(result.exercise.id.startsWith("custom-"));
   });
 
-  test("overrides a built-in when the id matches exactly", () => {
+  test("a custom entry with a given id is resolvable by that id", () => {
     store.doc.customExercises.push({ id: "bench-press", name: "My Bench", muscle: "chest", equipment: "barbell", custom: true });
     assert.equal(store.getExercise("bench-press").name, "My Bench");
-    assert.equal(store.exercises().length, EXERCISES.length);
+    assert.equal(store.exercises().length, 1);
   });
 
   test("removes a custom exercise", () => {

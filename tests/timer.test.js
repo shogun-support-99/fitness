@@ -5,11 +5,13 @@
 
 import assert from "node:assert/strict";
 import { test, describe } from "node:test";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 import { RestTimer, formatElapsed, formatSeconds } from "../app/js/timer.js";
 import {
-  EXERCISES,
-  EXERCISE_INDEX,
+  EQUIPMENT,
   MUSCLE_GROUPS,
   allExercises,
   makeExerciseId,
@@ -17,6 +19,8 @@ import {
 } from "../app/js/exercises.js";
 import { parseHash, ROUTES } from "../app/js/router.js";
 import { esc } from "../app/js/ui.js";
+
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 // ── Fake clock ───────────────────────────────────────────────────────────
 
@@ -271,106 +275,112 @@ describe("formatElapsed", () => {
 
 // ── Exercise library ─────────────────────────────────────────────────────
 
-describe("exercise library", () => {
-  test("every exercise has a unique id", () => {
-    const ids = EXERCISES.map((e) => e.id);
+describe("dataset exercise library", () => {
+  test("every exercise has a unique id", async () => {
+    const index = JSON.parse(await readFile(join(ROOT, "app/data/exercises-index.json"), "utf8"));
+    const ids = index.map((e) => e.id);
     assert.equal(new Set(ids).size, ids.length);
   });
 
-  test("every exercise declares a known muscle group and equipment", () => {
-    for (const e of EXERCISES) {
+  test("every exercise declares a known muscle group and equipment", async () => {
+    const index = JSON.parse(await readFile(join(ROOT, "app/data/exercises-index.json"), "utf8"));
+    for (const e of index) {
       assert.ok(MUSCLE_GROUPS.includes(e.muscle), `${e.id}: unknown muscle "${e.muscle}"`);
-      assert.ok(
-        ["barbell", "dumbbell", "machine", "cable", "kettlebell", "bodyweight", "band", "other"].includes(e.equipment),
-        `${e.id}: unknown equipment "${e.equipment}"`,
-      );
+      assert.ok(EQUIPMENT.includes(e.equipment), `${e.id}: unknown equipment "${e.equipment}"`);
     }
   });
 
-  test("every exercise has a non-empty name", () => {
-    for (const e of EXERCISES) {
+  test("every exercise has a non-empty name", async () => {
+    const index = JSON.parse(await readFile(join(ROOT, "app/data/exercises-index.json"), "utf8"));
+    for (const e of index) {
       assert.ok(e.name.trim().length > 0, `${e.id} has no name`);
     }
   });
 
-  test("the index maps every id back to its exercise", () => {
-    assert.equal(Object.keys(EXERCISE_INDEX).length, EXERCISES.length);
-    assert.equal(EXERCISE_INDEX["overhead-press"].name, "Overhead Press");
-  });
-
-  test("covers the main movement patterns", () => {
-    for (const id of ["bench-press", "deadlift", "back-squat", "overhead-press", "pull-up"]) {
-      assert.ok(EXERCISE_INDEX[id], `missing staple lift ${id}`);
-    }
+  test("the catalogue is the sole built-in source", async () => {
+    const index = JSON.parse(await readFile(join(ROOT, "app/data/exercises-index.json"), "utf8"));
+    assert.ok(index.length >= 1300, `expected a large catalogue, got ${index.length}`);
+    assert.ok(index.every((e) => e.source === "dataset"));
   });
 });
 
 describe("allExercises", () => {
-  test("returns the built-ins when there are no customs", () => {
-    assert.equal(allExercises([]).length, EXERCISES.length);
-    assert.equal(allExercises().length, EXERCISES.length);
+  const dataset = [
+    { id: "ds-0001", name: "Push-Up", muscle: "chest", equipment: "bodyweight", source: "dataset" },
+    { id: "ds-0002", name: "Leverage Deadlift", muscle: "back", equipment: "leverage machine", source: "dataset" },
+  ];
+
+  test("returns only the catalogue when there are no customs", () => {
+    assert.equal(allExercises([], dataset).length, 2);
+    assert.equal(allExercises([]).length, 0);
   });
 
   test("appends custom exercises", () => {
-    const merged = allExercises([{ id: "custom-x", name: "X", muscle: "core", equipment: "other", custom: true }]);
-    assert.equal(merged.length, EXERCISES.length + 1);
+    const merged = allExercises([{ id: "custom-x", name: "X", muscle: "core", equipment: "other", custom: true }], dataset);
+    assert.equal(merged.length, 3);
   });
 
-  test("lets a custom entry override a built-in with the same id", () => {
-    const merged = allExercises([{ id: "bench-press", name: "My Bench", muscle: "chest", equipment: "barbell", custom: true }]);
-    assert.equal(merged.length, EXERCISES.length);
-    assert.equal(merged.find((e) => e.id === "bench-press").name, "My Bench");
+  test("lets a custom entry override a catalogue entry with the same id", () => {
+    const merged = allExercises([{ id: "ds-0001", name: "My Push", muscle: "chest", equipment: "bodyweight", custom: true }], dataset);
+    assert.equal(merged.length, 2);
+    assert.equal(merged.find((e) => e.id === "ds-0001").name, "My Push");
   });
 
   test("ignores malformed custom entries", () => {
-    const merged = allExercises([null, undefined, { name: "no id" }, { id: "" }]);
-    assert.equal(merged.length, EXERCISES.length);
+    const merged = allExercises([null, undefined, { name: "no id" }, { id: "" }], dataset);
+    assert.equal(merged.length, 2);
   });
 });
 
 describe("searchExercises", () => {
+  const merged = [
+    { id: "ds-a", name: "Barbell Bench Press", muscle: "chest", equipment: "barbell", target: "pectorals", source: "dataset" },
+    { id: "ds-b", name: "Incline Dumbbell Press", muscle: "chest", equipment: "dumbbell", target: "pectorals", source: "dataset" },
+    { id: "ds-c", name: "Leverage Shrug", muscle: "back", equipment: "leverage machine", target: "traps", source: "dataset" },
+  ];
+
   test("returns everything for an empty query", () => {
-    assert.equal(searchExercises(EXERCISES, "").length, EXERCISES.length);
-    assert.equal(searchExercises(EXERCISES, "   ").length, EXERCISES.length);
-    assert.equal(searchExercises(EXERCISES, null).length, EXERCISES.length);
+    assert.equal(searchExercises(merged, "").length, 3);
+    assert.equal(searchExercises(merged, "   ").length, 3);
+    assert.equal(searchExercises(merged, null).length, 3);
   });
 
   test("matches case-insensitively on name", () => {
-    const results = searchExercises(EXERCISES, "BENCH");
-    assert.ok(results.some((e) => e.id === "bench-press"));
+    const results = searchExercises(merged, "BENCH");
+    assert.ok(results.some((e) => e.id === "ds-a"));
   });
 
   test("matches on muscle group", () => {
-    const results = searchExercises(EXERCISES, "hamstrings");
-    assert.ok(results.length > 0);
-    assert.ok(results.every((e) => e.muscle === "hamstrings" || e.name.toLowerCase().includes("hamstrings")));
+    const results = searchExercises(merged, "back");
+    assert.ok(results.some((e) => e.id === "ds-c"));
+    assert.ok(results.every((e) => e.muscle === "back" || e.name.toLowerCase().includes("back")));
   });
 
   test("matches on equipment", () => {
-    const results = searchExercises(EXERCISES, "kettlebell");
-    assert.ok(results.some((e) => e.id === "kettlebell-swing"));
+    const results = searchExercises(merged, "dumbbell");
+    assert.ok(results.some((e) => e.id === "ds-b"));
   });
 
   test("filters by muscle group", () => {
-    const results = searchExercises(EXERCISES, "", "chest");
-    assert.ok(results.length > 0);
+    const results = searchExercises(merged, "", "chest");
+    assert.equal(results.length, 2);
     assert.ok(results.every((e) => e.muscle === "chest"));
   });
 
   test("combines a query with a muscle filter", () => {
-    const results = searchExercises(EXERCISES, "press", "chest");
+    const results = searchExercises(merged, "press", "chest");
     assert.ok(results.every((e) => e.muscle === "chest"));
     assert.ok(results.every((e) => e.name.toLowerCase().includes("press")));
   });
 
   test("returns nothing for an unmatched query", () => {
-    assert.deepEqual(searchExercises(EXERCISES, "zzzznotreal"), []);
+    assert.deepEqual(searchExercises(merged, "zzzznotreal"), []);
   });
 
   test("does not mutate the input list", () => {
-    const before = EXERCISES.length;
-    searchExercises(EXERCISES, "press");
-    assert.equal(EXERCISES.length, before);
+    const before = merged.length;
+    searchExercises(merged, "press");
+    assert.equal(merged.length, before);
   });
 });
 
