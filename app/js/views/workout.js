@@ -179,7 +179,7 @@ function renderSetRow(entry, set, index, previous, units) {
       <span class="set-onerm" role="cell">${oneRm > 0 ? compactNumber(oneRm) : "—"}</span>
       <span role="cell">
         <button class="tick ${set.done ? "is-on" : ""}" role="checkbox" aria-checked="${set.done}"
-                data-action="toggle-set" data-entry="${eid}" data-set="${sid}"
+                data-action="toggle-set" data-entry="${eid}" data-set="${sid}" data-focus-key="tick-${sid}"
                 aria-label="Mark set ${index + 1} ${set.done ? "not done" : "done"}">
           ${icon("check")}
         </button>
@@ -248,7 +248,7 @@ export function renderPickerRow(exercise) {
 function renderSummaryModal() {
   return `
     <div class="sheet" id="summary-modal" hidden>
-      <div class="sheet-backdrop"></div>
+      <div class="sheet-backdrop" data-action="dismiss-summary"></div>
       <div class="sheet-panel sheet-panel-sm" role="dialog" aria-modal="true" aria-label="Workout summary">
         <div id="summary-content"></div>
       </div>

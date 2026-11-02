@@ -29,7 +29,7 @@ import { renderHome } from "./views/home.js";
 import { renderWorkout, renderPickerRow, PICKER_CAP } from "./views/workout.js";
 import { renderHistory } from "./views/history.js";
 import { renderStats } from "./views/stats.js";
-import { renderLibrary, renderLibraryRow, renderExerciseDetail, RESULT_CAP } from "./views/library.js";
+import { renderLibrary, renderLibraryRow, renderExerciseDetail, renderCustomSheet, RESULT_CAP } from "./views/library.js";
 import { renderSettings } from "./views/settings.js";
 
 const store = new Store();
@@ -115,6 +115,15 @@ function render(navigation = router.current) {
 
   const view = VIEWS[navigation.route] ?? VIEWS.home;
   const routeChanged = lastRenderedRoute !== null && lastRenderedRoute !== navigation.route;
+
+  // A route change replaces the outlet, taking any sheet in it with it. Drop the
+  // detail state and the scroll lock too: left behind, the lock freezes the page
+  // and the next render on the library route reopens a sheet nobody asked for.
+  if (routeChanged) {
+    detailState = { exercise: null, stepsState: "idle", stepsResult: null };
+    document.body.classList.remove("sheet-open");
+  }
+
   outlet.innerHTML = view(navigation.params);
   lastRenderedRoute = navigation.route;
 
@@ -348,6 +357,10 @@ const actions = {
     const set = entry?.sets.find((s) => s.id === el.dataset.set);
     if (!set) return;
 
+    // The logger repaints after a tick, so remember which control the user was
+    // on; restoreFocus() puts them back on it instead of dropping focus to the body.
+    el.dataset.focusKey = `tick-${el.dataset.set}`;
+
     const next = !set.done;
     store.updateSet(active.id, el.dataset.entry, el.dataset.set, { done: next });
 
@@ -472,6 +485,9 @@ const actions = {
   "start-with-exercise": (el) => {
     const exercise = store.exerciseIndex()[el.dataset.id];
     const created = store.startWorkout(exercise ? { name: exercise.name } : {});
+    // The button only renders while idle, but a second tab can start a session
+    // first. Without this guard the next line dereferences an undefined workout.
+    if (!created.ok) return toast(created.error, { tone: "danger" });
     closeExerciseDetail();
     const result = store.addExerciseToWorkout(created.workout.id, el.dataset.id);
     if (result.ok) store.addSet(created.workout.id, result.entry.id, { weight: 0, reps: 0 });
@@ -483,6 +499,13 @@ const actions = {
   "open-custom-exercise": () => {
     closeSheet("exercise-picker");
     closeExerciseDetail();
+    // The form is mounted once for the whole app, so a message left by the last
+    // attempt would still be on screen the next time it opens.
+    const stale = $('[data-role="custom-error"]');
+    if (stale) {
+      stale.textContent = "";
+      stale.hidden = true;
+    }
     openSheet("custom-exercise-sheet");
   },
   "close-custom-exercise": () => closeSheet("custom-exercise-sheet"),
@@ -498,6 +521,8 @@ const actions = {
       }
       return;
     }
+    // Long-lived form: clear the fields or the next exercise starts pre-filled.
+    el.reset();
     closeSheet("custom-exercise-sheet");
     render();
     toast(`"${result.exercise.name}" added to your library`);
@@ -874,7 +899,12 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   const open = $(".sheet:not([hidden])");
-  if (open) closeSheet(open.id);
+  if (!open) return;
+  // Sheets that carry state need their own close path: the detail sheet owns
+  // detailState, and dismissing the summary is what navigates home afterwards.
+  if (open.id === "exercise-detail-sheet") return closeExerciseDetail();
+  if (open.id === "summary-modal") return actions["dismiss-summary"]();
+  closeSheet(open.id);
 });
 
 // Rest timer ticks update only the timer bar, never a full re-render.
@@ -926,6 +956,11 @@ function boot() {
     });
   }
   applyTheme();
+  // Mounted once for the whole app, because three different routes offer the
+  // "create custom exercise" action and only one view ever rendered the form.
+  if (!$("#custom-exercise-sheet")) {
+    document.body.insertAdjacentHTML("beforeend", renderCustomSheet());
+  }
   initPressFeedback(document, { selector: ".btn, .routine-card, .chip, .nav-item, .icon-btn, .timer-btn, .tick" });
   if (!globalThis.location.hash) globalThis.location.hash = "#/home";
   router.start();

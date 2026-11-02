@@ -39,7 +39,8 @@ export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
       <div class="search-bar">
         ${icon("search")}
         <input type="search" id="library-search" placeholder="Search ${all.length} exercises…"
-               value="${esc(query)}" autocomplete="off" data-action="library-search" />
+               value="${esc(query)}" autocomplete="off" data-action="library-search"
+               data-focus-key="library-search" />
         ${query ? `<button class="icon-btn" data-action="clear-search" aria-label="Clear search">${icon("back")}</button>` : ""}
       </div>
 
@@ -69,7 +70,6 @@ export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
         <ul class="library-list">${shown.map((e) => renderLibraryRow(e)).join("")}</ul>`}
     </section>
 
-    ${renderCustomSheet()}
     ${renderDetailSheet()}
   `;
 }
@@ -253,7 +253,12 @@ function renderAttribution(store, exercise) {
   return credits.join("");
 }
 
-function renderCustomSheet() {
+/**
+ * The custom-exercise form is app-wide: the library header, the settings page
+ * and the logger's picker footer all offer it, so main.js mounts this once on
+ * the body rather than baking it into a single view's markup.
+ */
+export function renderCustomSheet() {
   return `
     <div class="sheet" id="custom-exercise-sheet" hidden>
       <div class="sheet-backdrop" data-action="close-custom-exercise"></div>

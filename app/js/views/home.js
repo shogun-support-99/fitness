@@ -34,7 +34,7 @@ export function renderHome(store) {
       ${active ? renderActiveBanner(active, store.settings.units) : renderStartPanel(store, lastSevenDays.length)}
 
       <div class="tile-grid">
-        ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: "kg", hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-sky" })}
+        ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-sky" })}
         ${statTile({ label: "Workouts", value: String(completed.length), hint: "all time", tone: "tone-violet" })}
         ${statTile({ label: "Best streak", value: `${streak.best}`, unit: "d", hint: `${streak.activeDays} active days`, tone: "tone-orange" })}
       </div>
@@ -177,7 +177,6 @@ function renderStartPanel(store, weekCount) {
           <span class="goal-caption">${weekCount >= 3 ? "Goal complete — nice work" : "3-session momentum goal"}</span>
         </div>
         <span class="hero-spark hero-spark-one" aria-hidden="true">${icon("bolt")}</span>
-        <span class="hero-spark hero-spark-two" aria-hidden="true">${icon("trophy")}</span>
       </section>
       <section class="routine-section" aria-labelledby="home-routines-title">
         <div class="section-title-row"><div><span class="section-label">Jump straight in</span><h2 id="home-routines-title">Choose your routine</h2></div><a class="link" href="#/workout">View all ${icon("chevron")}</a></div>

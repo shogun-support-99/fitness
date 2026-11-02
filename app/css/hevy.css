@@ -490,3 +490,157 @@ textarea:focus {
   color: var(--pill-positive-ink);
   font-weight: 600;
 }
+
+/* ── Home: weekly momentum ───────────────────────────────────────────────
+   This block's markup survived the redesign but its rules did not, so the ring
+   painted with SVG's default black fill and the caption, dots and sparks stacked
+   into the panel's flex column. Restored here, in the layer that loads last. */
+
+.training-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+}
+
+.training-hero .start-panel-copy {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.hero-goal {
+  grid-column: 2;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.goal-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 128px;
+  aspect-ratio: 1;
+}
+
+.goal-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.goal-ring circle {
+  fill: none;
+  stroke-width: 7;
+}
+
+.goal-ring-track {
+  stroke: var(--rule);
+}
+
+.goal-ring-value {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: var(--goal-offset, 100);
+  transition: stroke-dashoffset 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.goal-value {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.goal-value strong {
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.goal-value strong small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--faint);
+}
+
+.goal-value > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.goal-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.goal-dots > span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--control);
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.goal-dots > span.is-reached {
+  background: var(--positive);
+  color: #ffffff;
+}
+
+.goal-dots .icon {
+  width: 11px;
+  height: 11px;
+}
+
+.goal-caption {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* The sparks are decoration, not content: take them out of the flow so they
+   never claim a row beneath the copy. */
+.hero-spark {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--data-pale);
+  color: var(--accent);
+  pointer-events: none;
+}
+
+.hero-spark .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.hero-spark-one {
+  top: 14px;
+  right: 14px;
+}
+
+@media (max-width: 720px) {
+  .training-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-goal {
+    grid-column: 1;
+  }
+
+  .hero-spark {
+    display: none;
+  }
+}
