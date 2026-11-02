@@ -97,7 +97,9 @@ function renderTimerBar(timer) {
   const pct = Math.round((timer.progress ?? 0) * 100);
   // "Urgent" is the last fifth of the rest. Deriving it here keeps the view the
   // only place that knows what the numbers mean; CSS just responds to the flag.
-  const urgent = pct <= 20 ? "1" : "0";
+  // pct is progress through the countdown, so urgency is the HIGH end: the
+  // inverted test painted every fresh rest timer amber from the first second.
+  const urgent = pct >= 80 ? "1" : "0";
 
   return `
     <div class="timer-bar" role="timer" aria-live="polite" data-urgent="${urgent}" style="--timer-pct:${pct}">
