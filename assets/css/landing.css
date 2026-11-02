@@ -35,34 +35,34 @@
 :root {
   color-scheme: light;
 
-  --blue: #008cff;
-  --blue-hover: #0b7bde;
-  --blue-press: #0a6bbf;
-  --blue-soft: #e8f4ff;
-  --blue-ink: #0066bf;
+  --blue: #e05a1b;
+  --blue-hover: #c94d12;
+  --blue-press: #b0430e;
+  --blue-soft: #fdeee3;
+  --blue-ink: #c04a0f;
 
-  --ink: #16181c;
-  --ink-2: #3f444c;
-  --muted: #767d87;
-  --faint: #9aa0a9;
+  --ink: #1b1917;
+  --ink-2: #45403a;
+  --muted: #7a746c;
+  --faint: #9c968c;
 
   --bg: #ffffff;
-  --tint: #f7f8fa;
+  --tint: #f6f4f1;
   --surface: #ffffff;
-  --pill: #f1f2f4;
-  --pill-hover: #e7e9ec;
+  --pill: #edeae4;
+  --pill-hover: #e5e0d7;
 
-  --line: #ebedf0;
-  --line-strong: #dfe2e6;
+  --line: #e9e5dd;
+  --line-strong: #dcd6ca;
 
-  --green: #2fbf5b;
-  --green-soft: #e9f9ee;
-  --green-ink: #17793a;
-  --red: #ff4b4b;
-  --amber: #f7c700;
+  --green: #2e8b4f;
+  --green-soft: #e9f4eb;
+  --green-ink: #1a6b3a;
+  --red: #cd3a34;
+  --amber: #d99a06;
 
-  --dark: #0e1013;
-  --dark-2: #171a1f;
+  --dark: #141210;
+  --dark-2: #1c1a17;
 
   --r-sm: 8px;
   --r: 12px;
