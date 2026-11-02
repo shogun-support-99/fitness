@@ -120,7 +120,8 @@ media.
 ├── index.html                 # Landing page
 ├── assets/
 │   ├── css/landing.css        # Landing design system
-│   ├── js/landing.js          # Native scroll scenes, counters, live sample/rest
+│   ├── css/tailwind.css       # Compiled Tailwind layer: motion + block components
+│   ├── js/landing.js          # Menu, preview tabs, reveal-on-scroll
 │   └── img/                   # Logo and OG cover (inline SVG, no CDN)
 ├── app/                       # The application
 │   ├── index.html             # App shell: sidebar, workspace top bar, outlet
@@ -150,6 +151,21 @@ media.
 ├── tests/                     # Node test-runner suites
 └── .github/workflows/deploy.yml
 ```
+
+## Building the CSS
+
+The site is served as plain static files with no build step at runtime. Tailwind is an
+authoring tool only: `src/tailwind.css` is compiled ahead of time and the output is
+committed, so GitHub Pages serves it directly and the service worker precaches it.
+
+```sh
+npm install
+npm run build:css     # rewrites assets/css/tailwind.css
+```
+
+Preflight is disabled, so Tailwind contributes utilities, keyframes and the document
+block components (`feature-row`, `notion-callout`, toggle rows) without resetting the
+hand-written design system.
 
 ## Exercise catalogue
 

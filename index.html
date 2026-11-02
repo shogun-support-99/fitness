@@ -22,6 +22,7 @@
     <link rel="preload" href="fonts/Figtree-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="assets/css/landing.css" />
+    <link rel="stylesheet" href="assets/css/tailwind.css" />
     <script>
       document.documentElement.classList.remove("no-js");
       document.documentElement.classList.add("js");
@@ -102,11 +103,10 @@
       <section class="hero" id="top">
         <div class="shell hero-grid">
           <div class="hero-copy">
-            <p class="badge"><span class="badge-dot" aria-hidden="true"></span> Free · No account · Works offline</p>
             <h1>Track every set.<br /><span class="accent-text">Get stronger.</span></h1>
             <p class="lede">
-              IronLog is the training log that keeps last week's numbers in front of you. Tap a
-              set, beat it, rest, repeat — and watch the records fall.
+              IronLog is a free training log that keeps last week's numbers in front of you. No
+              account and no server — tap a set, beat it, rest, repeat.
             </p>
             <div class="hero-actions">
               <a class="btn btn-primary btn-lg" href="./app/">
@@ -200,8 +200,7 @@
 
       <section class="section" id="features">
         <div class="shell">
-          <header class="section-head" data-reveal>
-            <p class="eyebrow">Built for the work between sets</p>
+          <header class="split-head" data-reveal>
             <h2>Everything a session needs. Nothing it doesn't.</h2>
             <p class="section-lede">
               The log is the whole product: fast entry, honest numbers, and the next set already
@@ -209,45 +208,49 @@
             </p>
           </header>
 
-          <div class="feature-grid">
-            <article class="card feature-card" data-reveal>
-              <span class="feature-icon"><svg><use href="#i-plus" /></svg></span>
+          <div class="feature-list" data-reveal>
+            <article class="feature-row">
               <h3>Log a set in three taps</h3>
-              <p>Weight and reps are prefilled from last week. Tick the set and the timer starts on its own.</p>
+              <p>Weight and reps are prefilled from last week. Tick the set and the rest timer starts on its own.</p>
+              <span class="feature-meta">3 taps</span>
             </article>
-            <article class="card feature-card" data-reveal>
-              <span class="feature-icon"><svg><use href="#i-timer" /></svg></span>
+            <article class="feature-row">
               <h3>A rest timer that survives reloads</h3>
               <p>Two minutes, or whatever you preset. Add fifteen seconds mid-count, switch tabs, and it is still counting.</p>
+              <span class="feature-meta">presets · +15s</span>
             </article>
-            <article class="card feature-card" data-reveal>
-              <span class="feature-icon"><svg><use href="#i-trophy" /></svg></span>
+            <article class="feature-row">
               <h3>Records you can name</h3>
-              <p>Heaviest weight, most reps and best estimated 1RM are tracked separately. The summary names which fell.</p>
+              <p>Heaviest weight, most reps and best estimated 1RM are tracked separately, so the summary can tell you which one fell.</p>
+              <span class="feature-meta">3 per lift</span>
             </article>
-            <article class="card feature-card" data-reveal>
-              <span class="feature-icon"><svg><use href="#i-chart" /></svg></span>
+            <article class="feature-row">
               <h3>Progress without a chart library</h3>
-              <p>Weekly volume, muscle balance, lifetime totals and a training-day streak — all inline SVG, all instant.</p>
+              <p>Weekly volume, muscle balance, lifetime totals and a training-day streak, drawn inline from your own log.</p>
+              <span class="feature-meta">4 views</span>
             </article>
-            <article class="card feature-card" data-reveal>
-              <span class="feature-icon"><svg><use href="#i-search" /></svg></span>
+            <article class="feature-row">
               <h3>Find the right lift at the rack</h3>
               <p>Search 1,406 exercises by muscle and equipment, with written instructions and licensed demonstrations.</p>
+              <span class="feature-meta">1,406</span>
             </article>
-            <article class="card feature-card" data-reveal>
-              <span class="feature-icon"><svg><use href="#i-offline" /></svg></span>
+            <article class="feature-row">
               <h3>Offline by default</h3>
               <p>Install it once. It opens on a basement wifi bar and keeps working when the screen locks mid-set.</p>
+              <span class="feature-meta">no network</span>
             </article>
           </div>
+
+          <aside class="notion-callout mt-4 animate-rise" data-reveal>
+            <svg class="notion-callout-mark" aria-hidden="true"><use href="#i-check" /></svg>
+            <p><strong>The log is the product.</strong> There is no feed to scroll and nothing to buy: every screen is a set you own.</p>
+          </aside>
         </div>
       </section>
 
       <section class="section section-tint" id="workout">
         <div class="shell showcase">
           <div class="showcase-copy" data-reveal>
-            <p class="eyebrow">The logging screen</p>
             <h2>One screen. The whole session.</h2>
             <p class="section-lede">
               Previous performance sits beside the field you are about to type in, so progressive
@@ -329,8 +332,7 @@
 
       <section class="section" id="routines">
         <div class="shell">
-          <header class="section-head" data-reveal>
-            <p class="eyebrow">Reusable routines</p>
+          <header class="split-head" data-reveal>
             <h2>Start on the split you already run.</h2>
             <p class="section-lede">
               Push, pull, legs and full body are ready to go, or repeat your last session with every
@@ -339,25 +341,25 @@
           </header>
 
           <div class="routine-grid">
-            <article class="card routine-card" data-reveal>
+            <article class="routine-card" data-reveal>
               <span class="routine-tag">Chest · shoulders · triceps</span>
               <h3>Push</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </article>
-            <article class="card routine-card" data-reveal>
+            <article class="routine-card" data-reveal>
               <span class="routine-tag">Back · biceps</span>
               <h3>Pull</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </article>
-            <article class="card routine-card" data-reveal>
+            <article class="routine-card" data-reveal>
               <span class="routine-tag">Quads · hamstrings · calves</span>
               <h3>Legs</h3>
               <p>5 exercises · 17 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </article>
-            <article class="card routine-card" data-reveal>
+            <article class="routine-card" data-reveal>
               <span class="routine-tag">Whole body</span>
               <h3>Full body</h3>
               <p>6 exercises · 18 sets</p>
@@ -405,9 +407,9 @@
 
       <section class="section" id="faq">
         <div class="shell faq-shell">
-          <header class="section-head" data-reveal>
-            <p class="eyebrow">Worth knowing</p>
+          <header class="split-head" data-reveal>
             <h2>Questions, answered plainly.</h2>
+            <p class="section-lede">The short answers, without the marketing.</p>
           </header>
 
           <div class="faq-list">

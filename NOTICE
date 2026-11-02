@@ -52,6 +52,21 @@ The default credit for user-supplied Gym Visual media remains
 `© Gym visual — https://gymvisual.com/`; supplying a file does not bypass the
 need for that separate licence.
 
+## Build-time CSS tooling — Tailwind CSS (MIT)
+
+`assets/css/tailwind.css` is generated ahead of time from `src/tailwind.css` by
+Tailwind CSS and committed, so serving the site needs no build step and the page
+still makes no third-party request. Tailwind supplies utilities, keyframes and
+the block components only; its preflight reset is disabled.
+
+    Project  : https://github.com/tailwindlabs/tailwindcss
+    Licence  : MIT
+    Copyright: Copyright (c) Tailwind Labs, Inc.
+
+No Tailwind runtime or CDN script is shipped or fetched. The toolchain is a
+development dependency listed in `package.json` and is absent from the deployed
+files.
+
 ## Type — SIL Open Font License 1.1
 
 All faces are self-hosted from `fonts/` so that the site makes no request to

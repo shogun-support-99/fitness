@@ -19,7 +19,7 @@
  * plain ES-agnostic worker code (no imports), so it needs no build step.
  */
 
-const CACHE = "ironlog-shell-v2";
+const CACHE = "ironlog-shell-v3";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -29,6 +29,7 @@ const PRECACHE = [
   "./css/app.css",
   "./css/kinetic.css",
   "./css/hevy.css",
+  "../assets/css/tailwind.css",
   "./js/main.js",
   "./js/store.js",
   "./js/timer.js",

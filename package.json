@@ -1,0 +1,16 @@
+{
+  "name": "ironlog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A private, offline-first strength training log. Static site, no build required to serve; Tailwind is compiled ahead of time into committed CSS.",
+  "type": "module",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/tailwind.css -o ./assets/css/tailwind.css --minify",
+    "test": "node --test \"tests/*.test.js\"",
+    "check": "node scripts/check-links.mjs"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  },
+  "license": "MIT"
+}
