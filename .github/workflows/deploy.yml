@@ -43,10 +43,9 @@ jobs:
         run: node scripts/check-links.mjs
 
       # Gym Visual 180x180 GIFs/stills ship under a media licence held by the
-      # app operator, with attribution retained on every record. RepDB's free
-      # flat WebP stills have a separate in-app licence with attribution. Both
-      # live only in their approved directories; no remote/raw-upstream or
-      # premium/evaluation media is allowed anywhere.
+      # app operator, with attribution retained on every record. They live only
+      # in their approved directory; no remote/raw-upstream or premium media is
+      # allowed anywhere.
       - name: Assert media licences and attribution
         run: |
           set -euo pipefail
@@ -76,21 +75,17 @@ jobs:
             fail=1
           fi
 
-          echo "-- scanning RepDB app data for premium, remote or unsupported media --"
-          if grep -rioE 'gif_url|media_id|gymvisual|premium-samples|images/flat|https?://|\.(gif|jpe?g|png|mp4|webm|mov)"' app/data/repdb-index.json app/data/repdb-steps.*.json; then
-            echo "::error::unsupported media reference found in RepDB app data"
+          echo "-- asserting the retired RepDB catalogue leaves no residue --"
+          if git ls-files | grep -i 'repdb'; then
+            echo "::error::RepDB files are no longer part of the app"
             fail=1
           else
-            echo "   clean: RepDB records use local free-tier WebP stills only"
+            echo "   clean: built-in library and MIT dataset only"
           fi
 
           echo "-- allowing binary exercise media only in licensed directories --"
-          if git ls-files | grep -iE '\.(gif|jpe?g|png|webp|mp4|webm|mov)$' | grep -viE '^(assets/img/|app/icons/|app/media/repdb/|app/media/gymvisual/)' ; then
+          if git ls-files | grep -iE '\.(gif|jpe?g|png|webp|mp4|webm|mov)$' | grep -viE '^(assets/img/|app/icons/|app/media/gymvisual/)' ; then
             echo "::error::unexpected binary media outside approved artwork directories"
-            fail=1
-          fi
-          if git ls-files app/media/repdb | grep -viE '\.webp$'; then
-            echo "::error::non-WebP file in RepDB media directory"
             fail=1
           fi
           if git ls-files | grep -i 'premium-samples'; then
@@ -100,13 +95,9 @@ jobs:
 
           echo "-- asserting attribution and provenance are present --"
           test -f NOTICE || { echo "::error::NOTICE file missing"; fail=1; }
-          test -f LICENSE-REPDB.md || { echo "::error::RepDB licence file missing"; fail=1; }
           grep -q 'hasaneyldrm/exercises-dataset' NOTICE || { echo "::error::NOTICE missing upstream credit"; fail=1; }
           grep -q 'Gym Visual' NOTICE || { echo "::error::NOTICE missing Gym Visual media notice"; fail=1; }
-          grep -q 'Exercise data by RepDB' NOTICE || { echo "::error::NOTICE missing RepDB attribution"; fail=1; }
-          grep -q 'Exercise data by' app/js/views/settings.js || { echo "::error::app settings lost visible RepDB attribution"; fail=1; }
           grep -q 'Hasan Emir' app/data/catalogue-meta.json || { echo "::error::generated metadata lost the MIT copyright notice"; fail=1; }
-          grep -q 'RepDB/exercise-dataset' app/data/repdb-meta.json || { echo "::error::RepDB provenance missing"; fail=1; }
           grep -q 'Gym Visual' app/data/catalogue-meta.json || { echo "::error::catalogue metadata lost the Gym Visual media notice"; fail=1; }
 
           exit $fail

@@ -2940,21 +2940,6 @@ select {
   grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
 }
 
-.media-repdb {
-  width: 100%;
-}
-
-.media-repdb img {
-  max-width: 220px;
-  background: #f4f3f1;
-}
-
-.media-repdb figcaption {
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-}
-
 .media-credit a {
   color: inherit;
   text-decoration: underline;

@@ -47,16 +47,16 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   reps, and highest estimated 1RM. The session summary names exactly which you broke.
 - **Progress views** — weekly volume bars, muscle-group balance, lifetime totals, and a
   training-day streak. Charts are inline SVG, so no charting library loads.
-- **Exercise library** — **1,930 unique exercises**: 90 curated staples, a 1,316-record
-  MIT data catalogue and 650 illustrated RepDB records, with name collisions resolved
-  without breaking saved exercise IDs. Search is relevance-ranked and grouped by muscle
-  and equipment. Custom exercises persist alongside them.
-- **Step-by-step instructions across 11 languages** — English, Spanish, French, Italian,
-  Polish, Russian, Turkish, Chinese, Hindi, Korean and German, depending on the source.
-  Each source/language pack downloads only when needed, with English fallback.
+- **Exercise library** — **1,406 unique exercises**: 90 curated staples plus a 1,316-record
+  MIT data catalogue, with name collisions resolved without breaking saved exercise IDs.
+  Search is relevance-ranked and grouped by muscle and equipment. Custom exercises
+  persist alongside them.
+- **Step-by-step instructions across 10 languages** — English, Spanish, French, Italian,
+  Polish, Russian, Turkish, Chinese, Hindi and Korean. Each language pack downloads only
+  when needed, with English fallback.
 - **Exercise detail** — target muscle, secondary muscles, body part and equipment, written
-  instructions, plus licensed RepDB start/peak illustrations or an original movement
-  diagram when no licensed still is available.
+  instructions, plus a licensed Gym Visual animation or an original movement diagram when
+  no licensed media is available.
 - **Reusable routines** — start empty, repeat your last workout with its sets and weights
   prefilled, or use Push, Pull, Legs and Full body routines from Home or Workout.
 - **Focused navigation** — Home, Workout, Exercises and Profile tabs on mobile, with
@@ -110,7 +110,8 @@ The tests cover the behaviour that is easy to get subtly wrong: Epley rounding w
 binary-float drift, personal records ignoring unticked and incomplete sessions, streak
 logic across missed days, ISO week bucketing, corrupt-payload recovery, storage quota
 failure, timer completion semantics, source-specific instruction routing, merged-library
-ID stability, and the provenance/licensing checks for every committed RepDB WebP.
+ID stability, and the provenance/licensing checks for every committed piece of licensed
+media.
 
 ## Project layout
 
@@ -129,10 +130,7 @@ ID stability, and the provenance/licensing checks for every committed RepDB WebP
 │   ├── data/                  # Generated exercise catalogue (see below)
 │   │   ├── exercises-index.json   # metadata for 1,316 MIT data records
 │   │   ├── steps.<lang>.json      # original instructions, lazy-loaded
-│   │   ├── catalogue-meta.json    # original provenance and licensing record
-│   │   ├── repdb-index.json       # 650 illustrated RepDB records
-│   │   ├── repdb-steps.<lang>.json# RepDB EN / DE / ES instructions
-│   │   └── repdb-meta.json        # RepDB provenance, media and license record
+│   │   └── catalogue-meta.json    # original provenance and licensing record
 │   └── js/
 │       ├── main.js            # Bootstrap, render loop, event delegation
 │       ├── store.js           # Persistence (injected storage)
@@ -145,12 +143,9 @@ ID stability, and the provenance/licensing checks for every committed RepDB WebP
 │       └── views/             # home, routines, workout, history, stats, library, settings
 ├── scripts/
 │   ├── build-exercise-data.mjs    # Regenerates the original MIT data catalogue
-│   ├── build-repdb-data.mjs       # Generates RepDB app data + copies licensed stills
 │   ├── check-links.mjs            # CI check: every local link resolves
 │   └── setup-github.sh            # One-shot repo/profile makeover
-├── fonts/                     # Self-hosted Geist + Geist Mono (SIL OFL) and their licence
-├── app/media/repdb/           # 1,147 licensed 512px WebP start/peak/main stills
-├── LICENSE-REPDB.md           # Full RepDB Free Tier License
+├── fonts/                     # Self-hosted Figtree + Geist Mono (SIL OFL) and their licences
 ├── NOTICE                     # Third-party data/media attribution and exclusions
 ├── tests/                     # Node test-runner suites
 └── .github/workflows/deploy.yml
@@ -158,38 +153,28 @@ ID stability, and the provenance/licensing checks for every committed RepDB WebP
 
 ## Exercise catalogue
 
-The library combines three sources:
+The library combines two sources:
 
 | Source | Count | Ships as |
 | --- | --- | --- |
 | Curated starter library | 90 | inline in `app/js/exercises.js` |
 | [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) | 1,316 | MIT data/instructions in generated JSON |
-| [RepDB/exercise-dataset](https://github.com/RepDB/exercise-dataset) | 650 | app records, EN/DE/ES steps and 1,147 licensed WebP stills |
-| **Merged library** | **1,930** | 126 name collisions resolved without changing existing IDs |
+| **Merged library** | **1,406** | 126 name collisions resolved without changing existing IDs |
 
-RepDB contributes 542 new exercise names. Its other 108 records attach their licensed
-illustrations to matching curated or existing catalogue entries rather than creating
-duplicates. Existing IDs and instruction links stay stable for saved workouts.
-
-Both catalogues are fetched after first paint rather than imported, and a failed fetch
-leaves the curated library fully working. Instruction text is split by source and language
-and loaded only when an exercise detail needs it — not as one up-front multi-megabyte
-bundle. German joins the original ten languages; sources without a requested translation
-fall back to English.
+The catalogue is fetched after first paint rather than imported, and a failed fetch leaves
+the curated library fully working. Instruction text is split by language and loaded only
+when an exercise detail needs it — not as one up-front multi-megabyte bundle. Sources
+without a requested translation fall back to English.
 
 ### Regenerating
 
 ```bash
 git clone https://github.com/hasaneyldrm/exercises-dataset.git
-git clone https://github.com/RepDB/exercise-dataset.git
 node scripts/build-exercise-data.mjs --source /path/to/exercises-dataset
-node scripts/build-repdb-data.mjs --source /path/to/exercise-dataset
 ```
 
-The original generator maps taxonomy, dedupes by normalised name and records provenance
-in `catalogue-meta.json`. The RepDB generator validates the free-tier license, emits only
-app-specific data files, copies referenced free flat stills, excludes premium samples and
-records commit/media counts in `repdb-meta.json`.
+The generator maps taxonomy, dedupes by normalised name and records provenance in
+`catalogue-meta.json`.
 
 ### Licensing — source-specific data and media
 
@@ -201,22 +186,15 @@ records commit/media counts in `repdb-meta.json`.
   so the licensed 180×180 GIFs (and static posters) ship in `app/media/gymvisual/` with
   attribution retained on every record. The generator copies only local referenced files
   and fails closed on remote or raw-upstream media references.
-- **RepDB data and flat stills — RepDB Free Tier License v1.0.** Personal and commercial
-  in-app use is permitted with visible attribution. **Exercise data by
-  [RepDB](https://repdb.co) (repdb.co).** The full terms ship in `LICENSE-REPDB.md`.
-- **RepDB premium animations — evaluation only, not included.** No `premium-samples/`,
-  paid-tier animation, raw upstream dataset, viewer or API is copied into this project.
-
-RepDB's no-standalone-redistribution term is respected by generating IronLog-specific
-indexes and lazy instruction packs for in-app use, not republishing the upstream dataset.
-CI and unit tests separately preserve the Gym Visual media block and the narrow RepDB media
+CI and unit tests preserve the Gym Visual media block and the licensed-media directory
 allowlist. See [`NOTICE`](./NOTICE) for the complete third-party record.
 
 ## Design
 
-The app and landing page share a bright, focused training-product system inspired by
-Hevy's public interface patterns, implemented with IronLog's own markup, local-first
-architecture and licensed media. The workflow centres on reusable routines, an empty
+The app and landing page share one bright, focused training-product system, built on the
+patterns of Hevy's public front end — Figtree, a single blue action colour (#008CFF),
+near-white ground, soft grey pill secondaries, 16px cards, green completed sets and blue
+tabs — implemented with IronLog's own markup, local-first architecture and licensed media. The workflow centres on reusable routines, an empty
 workout, previous-performance columns, completed-set checks, automatic rest and a clear
 session summary rather than on decorative dashboards.
 
@@ -284,16 +262,10 @@ accumulate leaks on detached nodes. There is no animation runtime or third-party
 
 ## Exercise visuals
 
-Illustrated entries use RepDB's original 512×512 flat WebP stills under its attribution-
-required free-tier in-app license. Most exercises have **Start** and **Peak** positions,
-with an accessible still-image selector; stretches and holds use one **Main** pose. The
-selector does not synthesise a paid-tier animation, and the evaluation-only premium clips
-are excluded. Images are lazy-loaded with explicit dimensions and visible RepDB credit.
-
 Dataset entries carry the licensed 180×180 Gym Visual GIFs (with their static poster as
-the loading/fallback frame) and the required © Gym Visual credit. RepDB entries use
-their free-tier stills. Entries without licensed media retain the original diagrams from
-`app/js/diagrams.js`:
+the loading/fallback frame) and the required © Gym Visual credit. Images are lazy-loaded
+with explicit dimensions. Entries without licensed media retain the original diagrams
+from `app/js/diagrams.js`:
 
 - **Movement diagram** — a lever, arc, travel path and force vector. Ten movement classes
   are derived from category, muscle, equipment, target and name; the drawn load follows
@@ -356,9 +328,8 @@ The exercise catalogue data and instruction text come from
 licensed (© 2026 Hasan Emir Yıldırım), and are attributed in [`NOTICE`](./NOTICE) and in the
 app itself. That project's exercise media is © Gym Visual and is **not** covered by its MIT
 grant; it is redistributed here under a media licence held by the app operator, with
-attribution retained. RepDB records and flat WebP stills are used under the separate
-[RepDB Free Tier License](./LICENSE-REPDB.md), with visible attribution and no premium
-evaluation media — see [Exercise catalogue](#exercise-catalogue) and [`NOTICE`](./NOTICE).
+attribution retained. See [Exercise catalogue](#exercise-catalogue) and
+[`NOTICE`](./NOTICE).
 
 This is an independent project. It is not affiliated with, endorsed by, or derived from
 any other fitness product.

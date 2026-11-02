@@ -571,6 +571,6 @@ describe("committed catalogue media licensing", () => {
     assert.match(notice, /MIT/);
     assert.match(notice, /Hasan Emir/i);
     assert.match(notice, /Gym Visual/);
-    assert.match(notice, /NOT redistributed/i);
+    assert.match(notice, /operator holds that media licence/i);
   });
 });

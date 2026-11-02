@@ -151,9 +151,7 @@ function renderCataloguePanel(store) {
   const state = store.catalogueState;
   const counts = meta?.counts ?? {};
   const source = meta?.sources?.dataset ?? meta?.source ?? {};
-  const repdbSource = meta?.sources?.repdb ?? meta?.repdb?.source ?? {};
   const commit = source.commit ? String(source.commit).slice(0, 7) : null;
-  const repdbCommit = repdbSource.commit ? String(repdbSource.commit).slice(0, 7) : null;
 
   const stateLine =
     state === "ready"
@@ -171,19 +169,12 @@ function renderCataloguePanel(store) {
         <div><dt>Status</dt><dd>${esc(stateLine)}</dd></div>
         <div><dt>Languages</dt><dd>${counts.languages ?? availableLanguages(meta).length}</dd></div>
         ${commit ? `<div><dt>Data commit</dt><dd>${esc(commit)}</dd></div>` : ""}
-        ${repdbCommit ? `<div><dt>RepDB commit</dt><dd>${esc(repdbCommit)}</dd></div>` : ""}
-        ${counts.repdbImages ? `<div><dt>Licensed stills</dt><dd>${counts.repdbImages} WebP</dd></div>` : ""}
       </dl>
       <p class="panel-hint attribution">
         Exercise names, taxonomy and step-by-step instruction text come from
         <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
         used under the MIT licence — © 2026 Hasan Emir Yıldırım. Its Gym Visual GIFs
         are used under a licence held by the app operator (© Gym Visual).
-      </p>
-      <p class="panel-hint attribution">
-        Exercise data by <a href="https://repdb.co" rel="noopener noreferrer" target="_blank">RepDB (repdb.co)</a>.
-        RepDB's free-tier records and 512px WebP illustrations are used in-app with attribution
-        under the RepDB Free Tier License. Premium evaluation animations are not included.
       </p>
     </section>`;
 }

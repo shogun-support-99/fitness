@@ -29,3 +29,4 @@ npm-debug.log*
 
 # Design-skill working files (dealt directions; not part of the site)
 .taste-skill/
+/freebuff-sites-build/

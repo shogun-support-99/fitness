@@ -19,7 +19,7 @@
  * plain ES-agnostic worker code (no imports), so it needs no build step.
  */
 
-const CACHE = "ironlog-shell-v1";
+const CACHE = "ironlog-shell-v2";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -28,7 +28,7 @@ const PRECACHE = [
   "./manifest.json",
   "./css/app.css",
   "./css/kinetic.css",
-  "./css/vibrant.css",
+  "./css/hevy.css",
   "./js/main.js",
   "./js/store.js",
   "./js/timer.js",
@@ -47,6 +47,8 @@ const PRECACHE = [
   "./js/views/settings.js",
   "./js/views/routines.js",
   "../assets/img/logo.svg",
+  "../fonts/Figtree-Variable.woff2",
+  "../fonts/Figtree-Variable-latinext.woff2",
   "../fonts/Geist-Variable.woff2",
   "../fonts/GeistMono-Variable.woff2",
 ];

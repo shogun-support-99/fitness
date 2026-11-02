@@ -362,40 +362,13 @@ describe("exerciseMedia", () => {
     const html = exerciseMedia({ ...bench, name: '"><script>' }, { mediaUrl: "media/x.gif" });
     assert.doesNotMatch(html, /<script/);
   });
-  test("renders RepDB start and peak stills with visible attribution", () => {
-    const html = exerciseMedia({
-      ...bench,
-      media: {
-        provider: "repdb",
-        poses: { start: "media/repdb/bench-start.webp", peak: "media/repdb/bench-peak.webp" },
-      },
-    });
-    assert.match(html, /media-repdb/);
-    assert.match(html, /src="media\/repdb\/bench-start\.webp"/);
-    assert.match(html, /data-peak="media\/repdb\/bench-peak\.webp"/);
-    assert.match(html, /data-action="set-exercise-pose"/);
-    assert.match(html, /Exercise data by <a href="https:\/\/repdb\.co"/);
-    assert.match(html, /RepDB \(repdb\.co\)/);
-    assert.match(html, /width="512" height="512"/);
-  });
-
-  test("handles a RepDB single-pose stretch without empty controls", () => {
-    const html = exerciseMedia({
-      ...bench,
-      media: { provider: "repdb", poses: { main: "media/repdb/stretch-main.webp" } },
-    });
-    assert.match(html, /alt="Barbell Bench Press illustration"/);
-    assert.doesNotMatch(html, /set-exercise-pose/);
-    assert.doesNotMatch(html, /undefined/);
-  });
-
   test("an explicitly supplied licensed file still takes precedence", () => {
     const html = exerciseMedia(
-      { ...bench, media: { provider: "repdb", poses: { main: "media/repdb/x.webp" } } },
+      { ...bench, media: { provider: "gymvisual", gif: "media/gymvisual/x.gif" } },
       { mediaUrl: "media/own.webp", mediaCredit: "Filmed by the author" },
     );
     assert.match(html, /media\/own\.webp/);
-    assert.doesNotMatch(html, /media-repdb/);
+    assert.doesNotMatch(html, /media\/gymvisual\/x\.gif/);
   });
 });
 

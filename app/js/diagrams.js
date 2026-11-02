@@ -9,7 +9,7 @@
  * repository does not grant you any license to the media". IronLog therefore
  * ships none of it. See NOTICE and app/media/README.md.
  *
- * For entries without a licensed RepDB still, original vector geometry is drawn from the
+ * Where no licensed catalogue media exists, original vector geometry is drawn from the
  * dataset's own MIT-licensed fields (category, muscle, equipment, target,
  * secondaryMuscles). It is deliberately NOT a picture of a person. The craft
  * floor bans figure-bearing illustration as amateur while naming "crisp vector
@@ -367,20 +367,16 @@ export function muscleDiagram(exercise, opts = {}) {
 /**
  * Compact decorative artwork for exercise lists and the live logger.
  *
- * RepDB's licensed local stills are reused at list size; entries without one
+ * Licensed Gym Visual animations are reused at list size; entries without media
  * get the same small local dumbbell mark. The adjacent exercise name supplies
  * the accessible label, so the thumbnail itself is hidden from assistive tech.
  * Full attribution and pose controls remain in the exercise detail sheet.
  */
 export function exerciseThumbnail(exercise) {
-  const provider = exercise?.media?.provider;
-  let url = "";
-  if (provider === "repdb") {
-    const poses = exercise.media.poses;
-    url = poses?.start || poses?.main || poses?.peak || "";
-  } else if (provider === "gymvisual") {
-    url = exercise.media.gif || exercise.media.image || "";
-  }
+  const url =
+    exercise?.media?.provider === "gymvisual"
+      ? exercise.media.gif || exercise.media.image || ""
+      : "";
   if (url) {
     return `<span class="exercise-thumb has-image" aria-hidden="true"><img src="${esc(url)}" alt="" loading="lazy" decoding="async" width="52" height="52" /></span>`;
   }
@@ -392,11 +388,11 @@ export function exerciseThumbnail(exercise) {
  *
  * The slot resolves in this order:
  *   1. an explicitly supplied licensed file at app/media/<id>.<ext>
- *   2. RepDB's local free-tier start/peak/main stills, with visible attribution
+ *   2. the catalogue's licensed Gym Visual animation, with its attribution
  *   3. the original drawn movement diagram above
  *
  * User-supplied media keeps the caller's credit, defaulting to the attribution
- * Gym Visual requires. RepDB paths come only from the validated generator.
+ * Gym Visual requires.
  *
  * @param {object} exercise
  * @param {object} [opts]
@@ -424,30 +420,6 @@ export function exerciseMedia(exercise, opts = {}) {
   <img src="${gif}" alt="${name} demonstration" loading="lazy" decoding="async" width="180" height="180" />
   <figcaption><span class="media-credit">${credit}</span></figcaption>
 </figure>`;
-  }
-
-  const poses = exercise?.media?.provider === "repdb" ? exercise.media.poses : null;
-  if (poses) {
-    const initialPose = poses.start ? "start" : poses.main ? "main" : "peak";
-    const initialUrl = poses[initialPose];
-    if (initialUrl) {
-      const initialLabel = initialPose === "main" ? "illustration" : `${initialPose} position`;
-      const poseButtons = poses.start && poses.peak
-        ? `<span class="media-poses" role="group" aria-label="Exercise illustration pose">
-    <button type="button" data-action="set-exercise-pose" data-pose="start" aria-pressed="true">Start</button>
-    <button type="button" data-action="set-exercise-pose" data-pose="peak" aria-pressed="false">Peak</button>
-  </span>`
-        : "";
-      return `<figure class="media media-file media-repdb" data-repdb-media
-  data-start="${esc(poses.start ?? "")}" data-peak="${esc(poses.peak ?? "")}" data-main="${esc(poses.main ?? "")}">
-  <img src="${esc(initialUrl)}" alt="${name} ${initialLabel}" loading="lazy" decoding="async" width="512" height="512"
-       data-role="exercise-pose-image" data-pose="${initialPose}" />
-  <figcaption>
-    <span class="media-credit">Exercise data by <a href="https://repdb.co" target="_blank" rel="noopener noreferrer">RepDB (repdb.co)</a></span>
-    ${poseButtons}
-  </figcaption>
-</figure>`;
-    }
   }
 
   return `<figure class="media media-drawn">

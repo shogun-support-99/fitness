@@ -1,0 +1,492 @@
+/* ==========================================================================
+   IronLog — product theme
+
+   The app's visual layer, rebuilt on Hevy's public interface language: Figtree,
+   one blue action colour (#008CFF), near-white ground, soft grey secondary
+   controls, 16px cards, 12px inputs, green completed sets and blue tabs.
+   Loaded last, so it settles the tokens every earlier layer consumes and then
+   only re-skins the components that carry the look.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Figtree";
+  src: url("../../fonts/Figtree-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("../../fonts/Figtree-Variable-latinext.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  color-scheme: light;
+
+  --hx-font: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: var(--hx-font);
+  --font-display: var(--hx-font);
+
+  --ground: #f5f6f8;
+  --surface: #ffffff;
+  --raised: #eff1f4;
+  --sunken: #f7f8fa;
+
+  --border: #e6e8ec;
+  --border-control: #d8dce1;
+  --rule: #eef0f3;
+
+  --text: #16181c;
+  --text-secondary: #3f444c;
+  --muted: #767d87;
+  --faint: #9aa0a9;
+
+  --accent: #008cff;
+  --accent-hover: #0b7bde;
+  --accent-ink: #ffffff;
+  --control: #f1f2f4;
+  --control-ink: #16181c;
+
+  --data: #008cff;
+  --data-pale: #e8f4ff;
+  --data-ink: #0066bf;
+
+  --positive: #1f9d4d;
+  --negative: #d93a3f;
+  --warning: #8a5f00;
+  --done-bg: #e9f9ee;
+  --done-tick: #2fbf5b;
+
+  --pill-positive-bg: #e9f9ee;
+  --pill-positive-ink: #17793a;
+  --pill-negative-bg: #fdecec;
+  --pill-negative-ink: #a12227;
+  --pill-warning-bg: #fff6d6;
+  --pill-warning-ink: #6d4b00;
+  --pill-neutral-bg: #f1f2f4;
+  --pill-neutral-ink: #4a4f57;
+
+  --chart-1: #008cff;
+  --chart-2: #b9bfc7;
+  --chart-3: #008cff;
+  --gridline: #e9ebef;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
+  --rail-width: 248px;
+  --row-height: 46px;
+  --control-height: 44px;
+
+  --shadow-float: 0 18px 44px rgba(16, 24, 40, 0.16);
+  --shadow-menu: 0 8px 24px rgba(16, 24, 40, 0.12);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ground: #000000;
+  --surface: #161618;
+  --raised: #1c1c1e;
+  --sunken: #101012;
+
+  --border: #2c2c2e;
+  --border-control: #3a3a3c;
+  --rule: #262629;
+
+  --text: #f5f5f7;
+  --text-secondary: #d2d4d8;
+  --muted: #9a9da4;
+  --faint: #7c7f86;
+
+  --accent: #008cff;
+  --accent-hover: #33a3ff;
+  --control: #1c1c1e;
+  --control-ink: #f5f5f7;
+
+  --data: #4aa8ff;
+  --data-pale: #0f2740;
+  --data-ink: #9dcaff;
+
+  --positive: #5ad17f;
+  --negative: #ff6b6b;
+  --warning: #e5b65a;
+  --done-bg: #12301f;
+  --done-tick: #61d345;
+
+  --pill-positive-bg: #12301f;
+  --pill-positive-ink: #7fe0a0;
+  --pill-negative-bg: #35181a;
+  --pill-negative-ink: #ff9aa0;
+  --pill-warning-bg: #33280d;
+  --pill-warning-ink: #f0c872;
+  --pill-neutral-bg: #1f2023;
+  --pill-neutral-ink: #c3c6cc;
+
+  --chart-1: #4aa8ff;
+  --chart-2: #6b7078;
+  --chart-3: #4aa8ff;
+  --gridline: #26262a;
+}
+
+/* ── Type ──────────────────────────────────────────────────────────────── */
+
+body,
+.app-topbar,
+.sidebar,
+.main,
+button,
+input,
+select,
+textarea {
+  font-family: var(--hx-font);
+}
+
+body {
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.006em;
+}
+
+h1,
+h2,
+h3,
+.section-title,
+.view-title,
+.panel-title {
+  letter-spacing: -0.026em;
+  font-weight: 700;
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+
+.brand-name {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.brand-mark {
+  color: var(--accent);
+}
+
+.nav-item {
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.nav-item:hover {
+  background: var(--control);
+}
+
+.nav-item.is-active,
+.nav-item[aria-current="page"] {
+  background: var(--data-pale);
+  color: var(--data-ink);
+}
+
+.nav-item.is-active .nav-icon,
+.nav-item[aria-current="page"] .nav-icon {
+  color: var(--accent);
+}
+
+.nav-active-line {
+  display: none;
+}
+
+.app-topbar {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.topbar-mark {
+  color: var(--accent);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+
+.btn {
+  border: 0;
+  border-radius: var(--radius-control);
+  min-height: var(--control-height);
+  padding: 0 16px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background-color 0.16s ease, color 0.16s ease, transform 0.12s ease,
+    box-shadow 0.16s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-outline {
+  background: var(--control);
+  color: var(--control-ink);
+  border: 0;
+}
+
+.btn-outline:hover {
+  background: var(--raised);
+}
+
+.btn-sub {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.btn-sub:hover {
+  color: var(--text);
+  background: var(--control);
+}
+
+.btn-small,
+.btn-sm {
+  min-height: 36px;
+  padding: 0 13px;
+  font-size: 13.5px;
+  border-radius: 10px;
+}
+
+.btn-lg {
+  min-height: 50px;
+  padding: 0 22px;
+  font-size: 15.5px;
+  border-radius: 14px;
+}
+
+.btn-wide {
+  width: 100%;
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--negative);
+  border: 1px solid color-mix(in srgb, var(--negative) 32%, transparent);
+}
+
+.btn-danger-ghost:hover {
+  background: var(--pill-negative-bg);
+}
+
+.icon-btn {
+  border-radius: 10px;
+  background: var(--control);
+  color: var(--text-secondary);
+}
+
+.icon-btn:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.timer-btn {
+  border-radius: 10px;
+  background: var(--control);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Chips, pills, segments ────────────────────────────────────────────── */
+
+.chip {
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--control);
+  color: var(--text-secondary);
+  padding: 7px 13px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.chip:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.chip.is-active,
+.chip[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.pill {
+  border-radius: var(--radius-pill);
+  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.pill-data {
+  background: var(--data-pale);
+  color: var(--data-ink);
+}
+
+.pill-custom {
+  background: var(--pill-neutral-bg);
+  color: var(--pill-neutral-ink);
+  font-style: normal;
+}
+
+.pill-live {
+  background: var(--pill-positive-bg);
+  color: var(--pill-positive-ink);
+}
+
+.segmented {
+  border-radius: var(--radius-control);
+  background: var(--control);
+  padding: 4px;
+  gap: 4px;
+}
+
+.segment {
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 8px 14px;
+}
+
+.segment.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
+}
+
+/* ── Surfaces ──────────────────────────────────────────────────────────── */
+
+.panel,
+.card,
+.routine-card,
+.profile-settings,
+.session-card {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.routine-card {
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.routine-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+select,
+textarea {
+  border-radius: 10px;
+  border: 1px solid var(--border-control);
+  background: var(--surface);
+  min-height: 42px;
+  padding: 0 12px;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* ── Logging surface ───────────────────────────────────────────────────── */
+
+.set-row {
+  border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums;
+}
+
+.set-row.is-done {
+  background: var(--done-bg);
+  border-radius: 10px;
+}
+
+.set-head {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.exercise-thumb {
+  border-radius: 10px;
+  background: var(--control);
+}
+
+.logger-finish {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+}
+
+.tabbar,
+.mobile-tabbar {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.tabbar a,
+.mobile-tabbar a {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--faint);
+}
+
+.tabbar a.is-active,
+.mobile-tabbar a.is-active,
+.tabbar a[aria-current="page"],
+.mobile-tabbar a[aria-current="page"] {
+  color: var(--accent);
+}
+
+/* ── Readouts ──────────────────────────────────────────────────────────── */
+
+.goal-value,
+.progress-total,
+.ledger-number,
+.stat-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.local-status {
+  border-radius: var(--radius-pill);
+  background: var(--pill-positive-bg);
+  color: var(--pill-positive-ink);
+  font-weight: 600;
+}

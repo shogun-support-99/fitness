@@ -442,20 +442,6 @@ const actions = {
     filterLibraryList();
   },
 
-  "set-exercise-pose": (el) => {
-    const figure = el.closest("[data-repdb-media]");
-    const pose = el.dataset.pose;
-    const url = figure?.dataset?.[pose];
-    const image = figure?.querySelector('[data-role="exercise-pose-image"]');
-    if (!url || !image) return;
-    image.src = url;
-    image.dataset.pose = pose;
-    image.alt = `${detailState.exercise?.name ?? "Exercise"} ${pose} position`;
-    figure.querySelectorAll("[data-action='set-exercise-pose']").forEach((button) => {
-      button.setAttribute("aria-pressed", String(button === el));
-    });
-  },
-
   // Custom exercises
   "open-exercise": (el) => openExerciseDetail(el.dataset.id),
   "close-exercise-detail": () => closeExerciseDetail(),

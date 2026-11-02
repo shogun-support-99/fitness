@@ -1,8 +1,7 @@
 # Third-party notices
 
 IronLog redistributes third-party **exercise data** and the specifically licensed
-**RepDB free-tier still illustrations** described below. Gym Visual media and
-RepDB premium evaluation animations are not redistributed.
+**Gym Visual media** described below. Nothing outside those grants is redistributed.
 
 ## Exercise catalogue data — MIT
 
@@ -43,51 +42,19 @@ keeps the attribution field, and fails closed on remote or raw-upstream media
 references. The unit test `tests/catalogue.test.js` re-asserts the licensed,
 local-only shape of the media against the committed artefacts.
 
-## RepDB exercise data and still media — Free Tier License
-
-IronLog also includes app-specific exercise records, instruction text and
-512×512 WebP still illustrations from:
-
-    Repository : https://github.com/RepDB/exercise-dataset
-    Homepage   : https://repdb.co
-    Licence    : RepDB Free Tier License v1.0
-    Copyright  : © 2026 Sergei Argutin (RepDB)
-    Attribution: Exercise data by RepDB (repdb.co)
-
-The full licence is retained in `LICENSE-REPDB.md`. Its principal conditions
-for this integration are:
-
-- Personal and commercial use **inside applications** is permitted with visible
-  attribution. IronLog displays the required RepDB link in **Settings →
-  Exercise catalogue**, on illustrated exercise details, and in `README.md`.
-- The data may not be republished, resold or repackaged as a standalone
-  dataset, dataset repository or API. IronLog generates only its own app index
-  and lazy-loaded instruction packs; it does not copy the upstream raw dataset,
-  viewer, repository or API.
-- Free-tier flat WebP stills may be used in the app. The 1,147 referenced files
-  in `app/media/repdb/` are unmodified byte-for-byte copies, not generative-AI
-  derivatives.
-- `premium-samples/` and all paid-tier preview animations are evaluation-only
-  and are **not included**. No GIF or video from RepDB is shipped.
-
-`scripts/build-repdb-data.mjs` validates the licence and every media path,
-copies only referenced `images/flat/*.webp` files, and records provenance and
-counts in `app/data/repdb-meta.json`. `tests/repdb.test.js` verifies every
-committed record, instruction pack and media file.
-
 ## Original movement diagrams and user-supplied media
 
-Entries without a licensed still use original vector geometry drawn by
+Entries without licensed media use original vector geometry drawn by
 `app/js/diagrams.js` from exercise metadata. These diagrams are not derived
-from third-party artwork. `app/media/README.md` documents the RepDB media slot
-and how a downstream user can supply media they independently hold rights to.
+from third-party artwork. `app/media/README.md` documents how a downstream user
+can supply media they independently hold rights to.
 The default credit for user-supplied Gym Visual media remains
 `© Gym visual — https://gymvisual.com/`; supplying a file does not bypass the
 need for that separate licence.
 
 ## Type — SIL Open Font License 1.1
 
-Both faces are self-hosted from `fonts/` so that the site makes no request to
+All faces are self-hosted from `fonts/` so that the site makes no request to
 any third party, including for its type:
 
     Typeface   : Geist and Geist Mono (variable)
@@ -98,11 +65,20 @@ any third party, including for its type:
 The full licence text ships alongside the font files at `fonts/OFL-Geist.txt`.
 Files: `fonts/Geist-Variable.woff2`, `fonts/GeistMono-Variable.woff2`.
 
+    Typeface   : Figtree (variable)
+    Source     : https://github.com/erikdkennedy/figtree
+    Licence    : SIL Open Font License, Version 1.1
+    Copyright  : Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figtree)
+
+The full licence text ships alongside the font files at `fonts/OFL-Figtree.txt`.
+Files: `fonts/Figtree-Variable.woff2`, `fonts/Figtree-Variable-latinext.woff2`.
+
 The OFL permits bundling and redistribution with software, requires the
 copyright and licence notices to remain with the font files, and forbids selling
 the fonts on their own or releasing derivatives under a different name. None of
 those conditions are infringed here: the notices are retained in this file and
-in `fonts/OFL-Geist.txt`, the fonts are not sold, and they are unmodified.
+in `fonts/OFL-Geist.txt` and `fonts/OFL-Figtree.txt`, the fonts are not sold,
+and they are unmodified.
 
 ## Agent skills used during development
 

@@ -86,11 +86,9 @@ export function renderLibraryRow(exercise) {
           <span class="library-name">
             ${esc(exercise.name)}
             ${exercise.custom ? `<em class="pill pill-custom">custom</em>` : ""}
-            ${exercise.media?.provider === "repdb"
-              ? `<em class="pill pill-data">illustrated</em>`
-              : exercise.source === "dataset" || exercise.source === "repdb"
-                ? `<em class="pill pill-data">catalogue</em>`
-                : ""}
+            ${exercise.source === "dataset" || exercise.media?.provider
+              ? `<em class="pill pill-data">catalogue</em>`
+              : ""}
           </span>
           <span class="library-meta">
             ${muscleBadge(exercise.muscle)}
@@ -158,9 +156,9 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
       </div>
 
       ${/*
-        Licensed media: Gym Visual 180x180 GIFs (operator-held licence) and
-        RepDB's free-tier stills both render here with their attribution. Entries
-        without a licensed still keep the original data-drawn movement diagram.
+        Licensed media: Gym Visual 180x180 GIFs (operator-held licence) render
+        here with their attribution. Entries without licensed media keep the
+        original data-drawn movement diagram.
       */ ""}
       <div class="detail-visual ${exercise.media?.provider ? "has-media" : ""}" data-reveal="draw">
         ${exerciseMedia(exercise)}
@@ -239,10 +237,7 @@ function renderInstructions(exercise, { languages, currentLang, stepsResult, ste
 function renderAttribution(store, exercise) {
   const meta = store?.catalogueMeta;
   const source = meta?.sources?.dataset ?? meta?.source;
-  const repdbSource = meta?.sources?.repdb ?? meta?.repdb?.source;
   const stepsId = String(exercise?.stepsId ?? "");
-  const usesRepDB =
-    exercise?.source === "repdb" || exercise?.media?.provider === "repdb" || stepsId.startsWith("repdb-");
   const usesDataset = exercise?.source === "dataset" || stepsId.startsWith("ds-");
   const credits = [];
 
@@ -253,14 +248,6 @@ function renderAttribution(store, exercise) {
       <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
       MIT licensed, © 2026 Hasan Emir Yıldırım${source?.commit ? ` · commit ${esc(String(source.commit).slice(0, 7))}` : ""}.
       Its Gym Visual GIFs are used under a licence held by the app operator (© Gym Visual).
-    </p>`);
-  }
-  if (usesRepDB) {
-    credits.push(`
-    <p class="detail-attribution">
-      Exercise data by <a href="https://repdb.co" rel="noopener noreferrer" target="_blank">RepDB (repdb.co)</a>,
-      free-tier in-app use with attribution${repdbSource?.commit ? ` · commit ${esc(String(repdbSource.commit).slice(0, 7))}` : ""}.
-      Premium evaluation animations are not included.
     </p>`);
   }
   return credits.join("");
