@@ -65,8 +65,7 @@ export class Store {
 
     /**
      * External catalogue state. Empty until loadCatalogue() resolves, so every
-     * code path that reads exercises() works against the curated starter
-     * library alone if the fetch never completes.
+     * code path that reads exercises() works before the catalogue loads.
      */
     this.catalogue = [];
     this.catalogueMeta = null;
@@ -78,7 +77,7 @@ export class Store {
    * Fetch and merge the external exercise catalogue.
    *
    * Resolves to true when the catalogue became available. Never throws: a
-   * missing or malformed payload leaves the curated library in place and sets
+   * missing or malformed payload leaves the library empty and sets
    * catalogueState to "unavailable" so the UI can say so honestly.
    *
    * @param {string} [base] directory holding app/data, relative to the page

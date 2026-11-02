@@ -1,10 +1,11 @@
 /**
  * IronLog — external exercise catalogue loader.
  *
- * IronLog ships a curated starter library inline (exercises.js) plus one
- * fetched catalogue: MIT-licensed data from hasaneyldrm/exercises-dataset.
+ * IronLog's exercise library is this fetched catalogue: MIT-licensed data
+ * from hasaneyldrm/exercises-dataset.
  * Fetching rather than importing keeps the index off the critical
- * first-paint path, and the curated library still works if the request fails.
+ * first-paint path; if the request fails the app runs with only the user's
+ * custom exercises until it retries.
  *
  * Instruction text is split by language and loaded only when an exercise
  * detail is opened. Ten languages are available without downloading every
@@ -35,7 +36,7 @@ export function normaliseName(name) {
 
 /**
  * Fetch and parse JSON, returning null rather than throwing so a missing or
- * malformed file degrades to "curated library only" instead of a blank app.
+ * malformed file degrades to a blank exercise library instead of crashing.
  */
 async function fetchJson(path, { timeoutMs = 15000 } = {}) {
   const controller = typeof AbortController === "function" ? new AbortController() : null;
@@ -101,7 +102,7 @@ export function clearStepsCache() {
 
 /**
  * Whether an exercise has catalogue instructions to show. True for catalogue
- * entries, and for a curated entry that won a name collision and was therefore
+ * entries, and for a catalogue entry that was merged.
  * linked to the losing record's instructions via stepsId.
  */
 export function hasInstructions(exercise) {
@@ -120,7 +121,7 @@ export function stepsKey(exercise) {
  * Returns { steps, language, fellBack } — falls back to English when the
  * requested pack is missing or has no entry for that exercise.
  *
- * Accepts either an id string or an exercise object, so a linked curated entry
+ * Accepts either an id string or an exercise object.
  * transparently resolves through its stepsId.
  */
 export async function stepsFor(exerciseOrId, lang = "en", base = "") {
