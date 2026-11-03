@@ -80,15 +80,12 @@ export function renderLibraryRow(exercise) {
     : "";
   return `
     <li class="library-row" data-muscle="${esc(exercise.muscle)}">
-      <button class="library-open" data-action="open-exercise" data-id="${esc(exercise.id)}">
+      <button class="library-open transition-colors duration-200 hover:bg-[var(--sunken)]" data-action="open-exercise" data-id="${esc(exercise.id)}">
         ${exerciseThumbnail(exercise)}
         <span class="library-main">
           <span class="library-name">
             ${esc(exercise.name)}
             ${exercise.custom ? `<em class="pill pill-custom">custom</em>` : ""}
-            ${exercise.source === "dataset" || exercise.media?.provider
-              ? `<em class="pill pill-data">catalogue</em>`
-              : ""}
           </span>
           <span class="library-meta">
             ${muscleBadge(exercise.muscle)}

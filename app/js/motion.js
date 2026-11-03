@@ -102,18 +102,15 @@ export function initReveals(root, { selector = "[data-reveal]", stagger = 55 } =
 
   const finish = (el) => {
     el.classList.add("is-revealed");
-    el.style.removeProperty("--reveal-delay");
   };
 
   if (prefersReducedMotion() || typeof IntersectionObserver === "undefined") {
-    els.forEach(finish);
+    els.forEach((el) => {
+      finish(el);
+      el.style.removeProperty("--reveal-delay");
+    });
     return () => {};
   }
-
-  els.forEach((el) => {
-    const variant = revealVariant(el);
-    el.classList.add(`reveal-${variant}`);
-  });
 
   const io = new IntersectionObserver(
     (entries) => {
@@ -125,12 +122,38 @@ export function initReveals(root, { selector = "[data-reveal]", stagger = 55 } =
         el.style.setProperty("--reveal-delay", `${i * stagger}ms`);
         finish(el);
         io.unobserve(el);
+        // Keep the delay for the length of the animation, then clear it so a
+        // later interaction cannot re-delay the element.
+        window.setTimeout(() => el.style.removeProperty("--reveal-delay"), 1200);
       });
     },
     { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
   );
 
-  els.forEach((el) => io.observe(el));
+  const viewportHeight =
+    typeof window !== "undefined" ? window.innerHeight || 0 : Number.POSITIVE_INFINITY;
+
+  els.forEach((el) => {
+    const variant = revealVariant(el);
+    el.classList.add(`reveal-${variant}`);
+
+    // Above-the-fold content should animate as the page opens, not wait for a
+    // scroll that may never happen. Decide synchronously, before the first
+    // paint, so there is no flash of visible content being hidden again.
+    let inView = true;
+    if (typeof el.getBoundingClientRect === "function") {
+      const rect = el.getBoundingClientRect();
+      inView = rect.top < viewportHeight && rect.bottom > 0;
+    }
+    if (inView) {
+      finish(el);
+      return;
+    }
+
+    // Stagger by DOM order within a batch so a list arrives as a sequence.
+    el.style.setProperty("--reveal-delay", "0ms");
+    io.observe(el);
+  });
   return () => io.disconnect();
 }
 
@@ -379,7 +402,10 @@ export function initTicker(root, { selector = "[data-ticker]", speed = 46 } = {}
       track.after(clone);
     }
     const items = track.children.length || 1;
-    track.style.setProperty("--ticker-duration", `${Math.max(12, items * speed / 6)}s`);
+    // Set the duration on the container, not the original track: the clone is a
+    // sibling, so a custom property set on the track never reached it and the
+    // two halves of the loop ran at different speeds (the visible jump).
+    el.style.setProperty("--ticker-duration", `${Math.max(12, (items * speed) / 6)}s`);
     el.classList.add("ticker-running");
 
     const pause = () => el.classList.add("ticker-paused");

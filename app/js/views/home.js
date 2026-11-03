@@ -24,22 +24,24 @@ export function renderHome(store) {
 
   return `
     <section class="view view-home">
-      <header class="view-head">
+      <header class="view-head motion-safe:animate-fade-down">
         <div>
           <h1>Home</h1>
           <p class="view-subline">${esc(homeSubline(streak, completed))}</p>
         </div>
       </header>
 
+      ${renderTicker(store, completed)}
+
       ${active ? renderActiveBanner(active, store.settings.units) : renderStartPanel(store, lastSevenDays.length)}
 
       <div class="tile-grid">
         ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-sky" })}
-        ${statTile({ label: "Workouts", value: String(completed.length), hint: "all time", tone: "tone-violet" })}
-        ${statTile({ label: "Best streak", value: `${streak.best}`, unit: "d", hint: `${streak.activeDays} active days`, tone: "tone-orange" })}
+        ${statTile({ label: "Workouts", value: String(completed.length), countTo: completed.length, hint: "all time", tone: "tone-violet" })}
+        ${statTile({ label: "Best streak", value: `${streak.best}`, countTo: streak.best, unit: "d", hint: `${streak.activeDays} active days`, tone: "tone-orange" })}
       </div>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head">
           <h2>Recent sessions</h2>
           ${completed.length > 0 ? `<a class="link" href="#/history">View all ${icon("chevron")}</a>` : ""}
@@ -151,10 +153,10 @@ function renderStartPanel(store, weekCount) {
   const goalProgress = Math.min(100, Math.round((weekCount / 3) * 100));
   return `
     <div class="home-training-grid">
-      <section class="start-panel training-hero" data-tilt data-reveal="rise">
+      <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-reveal="rise">
         <div class="start-panel-copy">
           <span class="energy-badge">${icon("bolt")} Training mode</span>
-          <h2>Small sets. <span>Big momentum.</span></h2>
+          <h2>Small sets. <span class="text-gradient motion-safe:animate-gradient-pan">Big momentum.</span></h2>
           <p>Pick a routine, beat your previous numbers, and let every completed set move you forward.</p>
           <div class="hero-actions">
             <button class="btn btn-primary btn-lg" data-action="start-workout">
@@ -164,7 +166,7 @@ function renderStartPanel(store, weekCount) {
           </div>
         </div>
         <div class="hero-goal" style="--goal-offset:${100 - goalProgress}">
-          <div class="goal-ring" role="img" aria-label="${weekCount} of 3 weekly momentum sessions completed">
+          <div class="goal-ring motion-safe:animate-breathe" role="img" aria-label="${weekCount} of 3 weekly momentum sessions completed">
             <svg viewBox="0 0 120 120" aria-hidden="true">
               <circle class="goal-ring-track" cx="60" cy="60" r="50" pathLength="100" />
               <circle class="goal-ring-value" cx="60" cy="60" r="50" pathLength="100" />
@@ -176,7 +178,7 @@ function renderStartPanel(store, weekCount) {
           </div>
           <span class="goal-caption">${weekCount >= 3 ? "Goal complete — nice work" : "3-session momentum goal"}</span>
         </div>
-        <span class="hero-spark hero-spark-one" aria-hidden="true">${icon("bolt")}</span>
+        <span class="hero-spark hero-spark-one motion-safe:animate-float" aria-hidden="true">${icon("bolt")}</span>
       </section>
       <section class="routine-section" aria-labelledby="home-routines-title">
         <div class="section-title-row"><div><span class="section-label">Jump straight in</span><h2 id="home-routines-title">Choose your routine</h2></div><a class="link" href="#/workout">View all ${icon("chevron")}</a></div>

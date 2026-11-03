@@ -31,6 +31,7 @@ import { renderHistory } from "./views/history.js";
 import { renderStats } from "./views/stats.js";
 import { renderLibrary, renderLibraryRow, renderExerciseDetail, renderCustomSheet, RESULT_CAP } from "./views/library.js";
 import { renderSettings } from "./views/settings.js";
+import { routineExerciseIds } from "./views/routines.js";
 
 const store = new Store();
 let elapsedTimer = null;
@@ -268,11 +269,9 @@ const actions = {
     const splitName = el.dataset.split || "Workout";
     if (muscles.length === 0) return startEmpty(`${splitName} workout`);
 
-    // One solid compound per requested muscle group, from the built-in library.
-    const picks = muscles
-      .map((m) => store.exercises().find((e) => e.muscle === m && !e.custom))
-      .filter(Boolean)
-      .map((e) => e.id);
+    // One familiar compound per requested muscle group, resolved from the
+    // catalogue by name with an alphabetical fallback.
+    const picks = routineExerciseIds(store.exercises(), muscles);
     if (picks.length === 0) return startEmpty(`${splitName} workout`);
 
     const result = store.startWorkout({ name: `${splitName} workout`, exerciseIds: picks });
@@ -937,7 +936,18 @@ store.subscribe((event) => {
   // under the user's cursor.
   if (event.type === "catalogue:ready") {
     const route = parseHash(location.hash).route;
-    if (route === "library") {
+    // Home's ticker and routine counts, Settings' status line, History's exercise
+    // names and the statistics board all resolve through the catalogue. Repaint
+    // whichever of them is visible when the fetch lands, but never a logger with
+    // a live session: that would pull the inputs out from under the user.
+    const usesCatalogue =
+      route === "library" ||
+      route === "home" ||
+      route === "settings" ||
+      route === "history" ||
+      route === "stats" ||
+      (route === "workout" && !store.activeWorkout());
+    if (usesCatalogue) {
       render();
     } else if ($("#exercise-picker") && !$("#exercise-picker").hidden) {
       filterPicker();
@@ -967,7 +977,7 @@ function boot() {
 
   /**
    * Kick off the external catalogue load without awaiting it. The app is fully
-   * usable from the curated starter library in the meantime; when the fetch
+   * usable while it loads; custom exercises are available immediately; when the fetch
    * resolves the subscriber above repaints the library or picker. Data files are
    * resolved relative to this page (app/index.html -> app/data/).
    */

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
   <title id="title">IronLog — Log workouts. Get stronger.</title>
-  <desc id="description">A bright workout tracker with routines, previous performance, rest timers and progress. 1,930 exercises, 11 instruction languages, no accounts.</desc>
+  <desc id="description">A bright workout tracker with routines, previous performance, rest timers and progress. 1,316 exercises, 10 instruction languages, no accounts.</desc>
   <rect width="1200" height="630" fill="#f6f4f1"/>
   <circle cx="1128" cy="42" r="260" fill="#fdeee3"/>
 
@@ -23,10 +23,10 @@
   </text>
 
   <g transform="translate(70 492)" font-family="Inter, Helvetica Neue, Arial, sans-serif">
-    <text y="0" fill="#1b1917" font-size="25" font-weight="700">1,930</text>
+    <text y="0" fill="#1b1917" font-size="25" font-weight="700">1,316</text>
     <text y="27" fill="#7a746c" font-size="15">exercises</text>
     <line x1="132" y1="-18" x2="132" y2="30" stroke="#e2dcd0"/>
-    <text x="164" y="0" fill="#1b1917" font-size="25" font-weight="700">11</text>
+    <text x="164" y="0" fill="#1b1917" font-size="25" font-weight="700">10</text>
     <text x="164" y="27" fill="#7a746c" font-size="15">instruction languages</text>
     <line x1="380" y1="-18" x2="380" y2="30" stroke="#e2dcd0"/>
     <text x="412" y="0" fill="#1b1917" font-size="25" font-weight="700">0</text>

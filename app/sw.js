@@ -21,7 +21,7 @@
 
 // Bumped whenever the shell's CSS or JS changes: stale-while-revalidate would
 // otherwise serve the previous build for one more load after a deploy.
-const CACHE = "ironlog-shell-v4";
+const CACHE = "ironlog-shell-v5";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -50,6 +50,9 @@ const PRECACHE = [
   "./js/views/settings.js",
   "./js/views/routines.js",
   "../assets/img/logo.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/apple-touch-icon.png",
   "../fonts/Figtree-Variable.woff2",
   "../fonts/Figtree-Variable-latinext.woff2",
   "../fonts/Geist-Variable.woff2",

@@ -41,7 +41,7 @@ export function renderHistory(store, { openId = null } = {}) {
       ${groups
         .map(
           ([month, workouts]) => `
-        <section class="month-group">
+        <section class="month-group" data-reveal="rise">
           <h2 class="month-title">${esc(month)}</h2>
           <ul class="history-list">
             ${workouts.map((w) => renderHistoryCard(w, index, units, w.id === openId)).join("")}
@@ -77,7 +77,7 @@ function renderHistoryCard(workout, index, units, open) {
 
   return `
     <li class="history-item ${open ? "is-open" : ""}">
-      <button class="history-head" data-action="toggle-history" data-id="${esc(workout.id)}" aria-expanded="${open}">
+      <button class="history-head transition-colors duration-200" data-action="toggle-history" data-id="${esc(workout.id)}" aria-expanded="${open}">
         <span class="history-date">
           <strong>${Number.isNaN(started.getTime()) ? "—" : started.getDate()}</strong>
           <span>${Number.isNaN(started.getTime()) ? "" : started.toLocaleDateString("en-GB", { month: "short" })}</span>

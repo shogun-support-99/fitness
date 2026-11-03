@@ -82,8 +82,11 @@
   }
 
   .feature-meta {
+    grid-column: 2;
     grid-row: 1 / span 2;
     align-self: center;
+    justify-self: end;
+    text-align: right;
     font-size: 12.5px;
     font-weight: 600;
     color: #9aa0a9;
@@ -158,6 +161,314 @@
   .routine-card .routine-link {
     color: #0066bf;
   }
+
+  /* ── Training surfaces ─────────────────────────────────────────────────
+     Small, reusable pieces the views already emit but no layer styled. They
+     are defined here, in the Tailwind component layer, so the tokens and the
+     motion utilities stay in one place. */
+
+  .energy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 8px;
+    border-radius: 999px;
+    background: var(--data-pale, #fdeee3);
+    color: var(--data-ink, #b9440e);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .energy-badge .icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .exercise-label {
+    display: block;
+    font-family: var(--mono, ui-monospace, monospace);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint, #9c968c);
+  }
+
+  .workout-launch {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .launch-mark {
+    position: absolute;
+    right: -14px;
+    bottom: -22px;
+    width: 148px;
+    height: 148px;
+    color: var(--data, #e05a1b);
+    opacity: 0.07;
+    pointer-events: none;
+    transform: rotate(-12deg);
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .workout-launch:hover .launch-mark,
+  .workout-launch:focus-within .launch-mark {
+    transform: rotate(-4deg) scale(1.06);
+    opacity: 0.11;
+  }
+
+  .routine-card {
+    position: relative;
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+    /* Shared by the landing page and the app, so it must follow the active
+       theme instead of pinning a light surface (white-on-white in dark mode). */
+    background: var(--sunken, #f7f8fa);
+  }
+
+  .routine-card:hover,
+  .routine-card:focus-visible {
+    background: var(--raised, #eef0f3);
+  }
+
+  /* Settings controls: the segmented control shares its width between options
+     instead of leaving a long empty track after the last label. */
+  .segmented {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .segmented .segment,
+  .segmented button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    white-space: nowrap;
+    transition:
+      background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .segmented .segment:hover,
+  .segmented button:hover {
+    color: var(--text, #1b1917);
+  }
+
+  .segmented .segment.is-active,
+  .segmented button.is-active {
+    transform: translateY(-1px);
+  }
+
+  /* Toggle rows read as one sentence: control, then label and explanation. */
+  .toggle-row {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .toggle-row > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .toggle-row em {
+    font-style: normal;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--muted, #7a746c);
+  }
+
+  .toggle-row input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent, #e05a1b);
+    cursor: pointer;
+  }
+
+  .tile-value em {
+    margin-left: 5px;
+    color: var(--muted, #7a746c);
+  }
+
+  /* Muscle badges: one hue per group, so the library scans by movement instead
+     of repeating the same grey pill 1,316 times. color-mix keeps the tint and
+     ink legible in both themes; the plain token pair is the fallback. */
+  .badge[class*="badge-"] {
+    background: var(--raised, #efede9);
+    color: var(--muted, #7a746c);
+    border: 0;
+  }
+
+  .badge-chest { --muscle-h: 12; }
+  .badge-back { --muscle-h: 214; }
+  .badge-shoulders { --muscle-h: 34; }
+  .badge-biceps { --muscle-h: 268; }
+  .badge-triceps { --muscle-h: 176; }
+  .badge-forearms { --muscle-h: 192; }
+  .badge-quads { --muscle-h: 142; }
+  .badge-hamstrings { --muscle-h: 96; }
+  .badge-glutes { --muscle-h: 330; }
+  .badge-calves { --muscle-h: 200; }
+  .badge-core { --muscle-h: 248; }
+  .badge-cardio { --muscle-h: 44; }
+  .badge-neck { --muscle-h: 220; }
+  .badge-other { --muscle-h: 220; }
+
+  @supports (background: color-mix(in oklab, red 10%, white)) {
+    .badge[class*="badge-"] {
+      background: color-mix(in oklab, hsl(var(--muscle-h, 220) 78% 52%) 16%, var(--surface, #fff));
+      color: color-mix(in oklab, hsl(var(--muscle-h, 220) 72% 46%) 84%, var(--text, #000));
+    }
+  }
+
+  .routine-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-family: var(--mono, ui-monospace, monospace);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--faint, #9c968c);
+    text-transform: uppercase;
+  }
+
+  .routine-shine {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 48%,
+      transparent 100%
+    );
+    transform: translateX(-140%) skewX(-18deg);
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .routine-card:hover .routine-shine,
+  .routine-card:focus-visible .routine-shine {
+    opacity: 1;
+    animation: sheen 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .showcase-art {
+    position: relative;
+    perspective: 1200px;
+  }
+
+  .showcase-art .panel-mock {
+    transition:
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform: rotateY(-6deg) rotateX(2deg);
+    box-shadow: 0 30px 70px -36px rgba(23, 34, 44, 0.4);
+  }
+
+  .showcase-art:hover .panel-mock {
+    transform: rotateY(0deg) rotateX(0deg) translateY(-4px);
+    box-shadow: 0 38px 84px -38px rgba(23, 34, 44, 0.48);
+  }
+
+  .footer-fine {
+    color: var(--faint, #9c968c);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  .dg-links,
+  .dg-static {
+    pointer-events: none;
+  }
+
+  .media-drawn,
+  .media-file,
+  .media-gymvisual {
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--sunken, #faf8f5);
+  }
+
+  .view-history,
+  .view-library,
+  .view-settings,
+  .view-stats,
+  .view-workout-hub {
+    display: block;
+  }
+}
+
+@layer utilities {
+  /* Sequential entrances without inline styles: apply one class per child. */
+  .stagger-1 { animation-delay: 60ms; }
+  .stagger-2 { animation-delay: 120ms; }
+  .stagger-3 { animation-delay: 180ms; }
+  .stagger-4 { animation-delay: 240ms; }
+  .stagger-5 { animation-delay: 300ms; }
+  .stagger-6 { animation-delay: 360ms; }
+  .stagger-7 { animation-delay: 420ms; }
+  .stagger-8 { animation-delay: 480ms; }
+
+  .hover-lift {
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px -22px rgba(23, 34, 44, 0.32);
+  }
+
+  .hover-lift:active {
+    transform: translateY(-1px) scale(0.995);
+  }
+
+  .text-gradient {
+    background-image: linear-gradient(120deg, #e05a1b 0%, #f08a3c 45%, #e05a1b 100%);
+    background-size: 220% 220%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* A hover/focus sheen shared by cards and primary actions. */
+  .sheen-host {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sheen-host::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.45) 48%,
+      transparent 100%
+    );
+    transform: translateX(-140%) skewX(-18deg);
+    pointer-events: none;
+  }
+
+  .sheen-host:hover::after,
+  .sheen-host:focus-visible::after {
+    animation: sheen 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 
 @media (max-width: 860px) {
@@ -178,8 +489,10 @@
   }
 
   .feature-meta {
+    grid-column: 1;
     grid-row: auto;
     justify-self: start;
+    text-align: left;
     color: #767d87;
   }
 }
@@ -189,5 +502,22 @@
   .faq-item,
   .routine-card {
     transition: none;
+  }
+
+  /* Tailwind's own animation utilities disappear too, so the utilities added
+     for decoration can never outrank the user's preference. The authored app
+     motion lives in app.css and guards itself the same way. */
+  [class*="animate-"],
+  .hover-lift,
+  .sheen-host,
+  .routine-shine,
+  .showcase-art .panel-mock {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
   }
 }

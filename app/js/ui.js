@@ -61,11 +61,18 @@ export function emptyState({ icon: iconName = "info", title, body, action = "" }
     </div>`;
 }
 
-export function statTile({ label, value, unit = "", hint = "", tone = "" }) {
+export function statTile({ label, value, unit = "", hint = "", tone = "", countTo = null }) {
+  // A real count can roll like an odometer; a formatted figure (12.4k) cannot,
+  // because the digits are no longer the value. `countTo` is opt-in for that
+  // reason, and motion.js settles the text immediately under reduced motion.
+  const canCount = countTo !== null && countTo !== undefined && Number.isFinite(Number(countTo));
+  const figure = canCount
+    ? `<span class="odo" data-count-to="${esc(countTo)}" data-count-decimals="0">${esc(value)}</span>`
+    : esc(value);
   return `
-    <div class="tile ${tone}">
+    <div class="tile ${tone} hover-lift" data-reveal="rise">
       <span class="tile-label">${esc(label)}</span>
-      <span class="tile-value">${esc(value)}${unit ? `<em>${esc(unit)}</em>` : ""}</span>
+      <span class="tile-value">${figure}${unit ? `<em>${esc(unit)}</em>` : ""}</span>
       ${hint ? `<span class="tile-hint">${esc(hint)}</span>` : ""}
     </div>`;
 }

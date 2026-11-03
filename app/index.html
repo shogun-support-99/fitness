@@ -10,10 +10,24 @@
     />
     <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)" />
-    <link rel="canonical" href="./" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="IronLog" />
+    <meta property="og:title" content="IronLog — Strength training log" />
+    <meta
+      property="og:description"
+      content="Track exercises, sets, volume, rest and personal records offline. No account, no server, no tracking."
+    />
+    <meta property="og:url" content="https://shogun-support-99.github.io/fitness/app/" />
+    <meta property="og:image" content="https://shogun-support-99.github.io/fitness/assets/img/og-cover.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://shogun-support-99.github.io/fitness/app/" />
+    <link rel="sitemap" type="application/xml" href="../sitemap.xml" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="icon" href="../assets/img/logo.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="../assets/img/logo.svg" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
 
     <!-- Both faces are self-hosted under the SIL Open Font License, so the
          page makes no third-party request. Preloading keeps weights, reps and
@@ -43,7 +57,7 @@
     <div class="shell">
       <aside class="sidebar" aria-label="Primary">
         <a class="brand" href="#/home" aria-label="IronLog home">
-          <span class="brand-mark" aria-hidden="true">
+          <span class="brand-mark motion-safe:animate-pop" aria-hidden="true">
             <svg viewBox="0 0 32 32">
               <path d="M16 2 28.5 9v14L16 30 3.5 23V9Z" fill="currentColor" opacity="0.95"/>
               <path d="M9.5 13.5C14.5 9.5 20.5 10.7 23.8 16.7" fill="none" stroke="#ff5a1f" stroke-width="2.6" stroke-linecap="round"/>
@@ -55,37 +69,37 @@
 
         <nav class="nav">
           <span class="nav-active-line" aria-hidden="true"></span>
-          <a class="nav-item" data-route="home" href="#/home" aria-label="Home">
+          <a class="nav-item transition-transform duration-200 hover:translate-x-1" data-route="home" href="#/home" aria-label="Home">
             <span class="nav-icon" aria-hidden="true">
               <svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5" /></svg>
             </span>
             Home
           </a>
-          <a class="nav-item" data-route="workout" href="#/workout" aria-label="Workout">
+          <a class="nav-item transition-transform duration-200 hover:translate-x-1" data-route="workout" href="#/workout" aria-label="Workout">
             <span class="nav-icon" aria-hidden="true">
               <svg class="icon" viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" /></svg>
             </span>
             Workout
           </a>
-          <a class="nav-item" data-route="library" href="#/library" aria-label="Exercises">
+          <a class="nav-item transition-transform duration-200 hover:translate-x-1" data-route="library" href="#/library" aria-label="Exercises">
             <span class="nav-icon" aria-hidden="true">
               <svg class="icon" viewBox="0 0 24 24"><path d="M4 5.5h7v13H4zM13 5.5h7v13h-7z" /></svg>
             </span>
             Exercises
           </a>
-          <a class="nav-item" data-route="stats" href="#/stats" aria-label="Profile">
+          <a class="nav-item transition-transform duration-200 hover:translate-x-1" data-route="stats" href="#/stats" aria-label="Profile">
             <span class="nav-icon" aria-hidden="true">
               <svg class="icon" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8c.7-4 3.1-6 7-6s6.3 2 7 6" /></svg>
             </span>
             Profile
           </a>
-          <a class="nav-item nav-item-secondary" data-route="history" href="#/history" aria-label="History">
+          <a class="nav-item nav-item-secondary transition-transform duration-200 hover:translate-x-1" data-route="history" href="#/history" aria-label="History">
             <span class="nav-icon" aria-hidden="true">
               <svg class="icon" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1M3.5 4.5V10h5.5M12 7.5V12l3 1.8" /></svg>
             </span>
             History
           </a>
-          <a class="nav-item nav-item-secondary" data-route="settings" href="#/settings" aria-label="Settings">
+          <a class="nav-item nav-item-secondary transition-transform duration-200 hover:translate-x-1" data-route="settings" href="#/settings" aria-label="Settings">
             <span class="nav-icon" aria-hidden="true">
               <svg class="icon" viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Zm8.4-3.2 1.9-1.5-1.9-3.3-2.3.7a7.6 7.6 0 0 0-1.6-.9L14.1 4h-4l-.4 2.5c-.6.2-1.1.5-1.6.9l-2.3-.7-1.9 3.3 1.9 1.5a7.9 7.9 0 0 0 0 1.8L3.9 15l1.9 3.3 2.3-.7c.5.4 1 .7 1.6.9l.4 2.5h4l.4-2.5c.6-.2 1.1-.5 1.6-.9l2.3.7 1.9-3.3-1.9-1.5a7.9 7.9 0 0 0 0-1.8Z" /></svg>
             </span>
@@ -102,7 +116,7 @@
       <div class="workspace">
         <header class="app-topbar">
           <a class="topbar-context" href="#/home" aria-label="IronLog home">
-            <svg class="topbar-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <svg class="topbar-mark motion-safe:animate-pop" viewBox="0 0 32 32" aria-hidden="true">
               <path d="M16 2 28.5 9v14L16 30 3.5 23V9Z" fill="currentColor" opacity="0.95"/>
               <path d="M9.5 13.5C14.5 9.5 20.5 10.7 23.8 16.7" fill="none" stroke="#ff5a1f" stroke-width="2.6" stroke-linecap="round"/>
               <circle cx="9.5" cy="13.5" r="2.3" fill="#ff5a1f"/>
@@ -110,7 +124,7 @@
             <span>IronLog</span>
           </a>
           <div class="topbar-actions">
-            <span class="local-status"><span aria-hidden="true"></span>Saved locally</span>
+            <span class="local-status"><span class="motion-safe:animate-blink-soft" aria-hidden="true"></span>Saved locally</span>
             <a class="topbar-about" href="../">About <span aria-hidden="true">↗</span></a>
             <a class="topbar-settings" href="#/settings" aria-label="Open settings">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Zm8.4-3.2 1.9-1.5-1.9-3.3-2.3.7a7.6 7.6 0 0 0-1.6-.9L14.1 4h-4l-.4 2.5c-.6.2-1.1.5-1.6.9l-2.3-.7-1.9 3.3 1.9 1.5a7.9 7.9 0 0 0 0 1.8L3.9 15l1.9 3.3 2.3-.7c.5.4 1 .7 1.6.9l.4 2.5h4l.4-2.5c.6-.2 1.1-.5 1.6-.9l2.3.7 1.9-3.3-1.9-1.5a7.9 7.9 0 0 0 0-1.8Z" /></svg>

@@ -47,10 +47,9 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   reps, and highest estimated 1RM. The session summary names exactly which you broke.
 - **Progress views** — weekly volume bars, muscle-group balance, lifetime totals, and a
   training-day streak. Charts are inline SVG, so no charting library loads.
-- **Exercise library** — **1,406 unique exercises**: 90 curated staples plus a 1,316-record
-  MIT data catalogue, with name collisions resolved without breaking saved exercise IDs.
-  Search is relevance-ranked and grouped by muscle and equipment. Custom exercises
-  persist alongside them.
+- **Exercise library** — **1,316 exercises** from a single MIT data catalogue, deduplicated
+  by normalised name so saved exercise IDs never change. Search is relevance-ranked and
+  grouped by muscle and equipment. Custom exercises persist alongside them.
 - **Step-by-step instructions across 10 languages** — English, Spanish, French, Italian,
   Polish, Russian, Turkish, Chinese, Hindi and Korean. Each language pack downloads only
   when needed, with English fallback.
@@ -61,6 +60,11 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   prefilled, or use Push, Pull, Legs and Full body routines from Home or Workout.
 - **Focused navigation** — Home, Workout, Exercises and Profile tabs on mobile, with
   History and Settings alongside them on larger screens.
+- **Motion with a job** — Tailwind-compiled keyframes and utilities handle entrances,
+  floating accents, sheens and reveals, while the authored app motion still runs on
+  `IntersectionObserver` and yields entirely to `prefers-reduced-motion`.
+- **Installable PWA** — a manifest with 192/512 maskable icons and shortcuts to Workout
+  and Library, plus a service worker that precaches the shell for offline use.
 - **Export, import, erase** — your whole history is one JSON document.
 
 ## Try it
@@ -169,18 +173,18 @@ hand-written design system.
 
 ## Exercise catalogue
 
-The library combines two sources:
+The library has a single source:
 
 | Source | Count | Ships as |
 | --- | --- | --- |
-| Curated starter library | 90 | inline in `app/js/exercises.js` |
 | [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) | 1,316 | MIT data/instructions in generated JSON |
-| **Merged library** | **1,406** | 126 name collisions resolved without changing existing IDs |
 
-The catalogue is fetched after first paint rather than imported, and a failed fetch leaves
-the curated library fully working. Instruction text is split by language and loaded only
-when an exercise detail needs it — not as one up-front multi-megabyte bundle. Sources
-without a requested translation fall back to English.
+The generator drops duplicate names (8 skipped) and records the provenance in
+`catalogue-meta.json`. The catalogue is fetched after first paint rather than imported;
+a failed fetch is reported honestly in Settings and leaves custom exercises usable.
+Instruction text is split by language and loaded only when an exercise detail needs it —
+not as one up-front multi-megabyte bundle. Sources without a requested translation fall
+back to English.
 
 ### Regenerating
 
@@ -295,8 +299,9 @@ required attribution retained. If you independently hold rights to other media,
 
 ## Architecture notes
 
-- **No build step.** Plain ES modules loaded by the browser. Nothing to compile, bundle
-  or version, so deployment cannot fail on a toolchain change.
+- **No runtime build step.** Plain ES modules are loaded by the browser; the only compiled
+  artefact is the Tailwind CSS file, which is committed so deployment cannot fail on a
+  toolchain change.
 - **No runtime dependencies.** No framework, no charting library, no icon font, no
   webfont. The only requests a page makes are for its own files.
 - **Views are pure functions of state.** Each view returns an HTML string from the store;

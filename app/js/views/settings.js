@@ -24,7 +24,7 @@ export function renderSettings(store) {
         <a class="link" href="#/stats">${icon("user")} Profile</a>
       </header>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>Units</h2></div>
         <div class="segmented" role="radiogroup" aria-label="Weight units">
           ${["kg", "lb"]
@@ -39,7 +39,7 @@ export function renderSettings(store) {
         <p class="panel-hint">Applies to labels and new entries. Existing numbers are left as you typed them.</p>
       </section>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>${icon("timer")} Rest timer</h2></div>
         <div class="chip-row">
           ${REST_PRESETS.map(
@@ -57,7 +57,7 @@ export function renderSettings(store) {
         </label>
       </section>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>Appearance</h2></div>
         <div class="segmented" role="radiogroup" aria-label="Appearance">
           ${[
@@ -79,7 +79,7 @@ export function renderSettings(store) {
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>Your data</h2></div>
         <dl class="fact-list">
           <div><dt>Workouts stored</dt><dd>${workoutCount}</dd></div>
@@ -105,7 +105,7 @@ export function renderSettings(store) {
       ${renderLanguagePanel(store)}
       ${renderCataloguePanel(store)}
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>About</h2></div>
         <p class="panel-hint">
           IronLog is an offline-first strength training log: exercises, sets, volume,
@@ -124,7 +124,7 @@ function renderLanguagePanel(store) {
   if (languages.length <= 1) return "";
 
   return `
-    <section class="panel">
+    <section class="panel" data-reveal="rise">
       <div class="panel-head"><h2>Instruction language</h2></div>
       <div class="chip-row">
         ${languages
@@ -163,7 +163,7 @@ function renderCataloguePanel(store) {
           : "Catalogue not loaded yet.";
 
   return `
-    <section class="panel">
+    <section class="panel" data-reveal="rise">
       <div class="panel-head"><h2>Exercise catalogue</h2></div>
       <dl class="fact-list">
         <div><dt>Status</dt><dd>${esc(stateLine)}</dd></div>

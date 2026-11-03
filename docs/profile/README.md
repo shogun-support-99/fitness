@@ -19,9 +19,9 @@
 
 **I build fast, private web tools that don't need a backend.**
 
-[![IronLog — live app](https://img.shields.io/badge/IronLog-open_the_app-c6f24e?style=for-the-badge&labelColor=0a0c0f)](https://shogun-support-99.github.io/fitness/app/)
-[![Landing page](https://img.shields.io/badge/site-landing_page-1a2230?style=for-the-badge&labelColor=0a0c0f)](https://shogun-support-99.github.io/fitness/)
-![License](https://img.shields.io/badge/license-MIT-f4c430?style=for-the-badge&labelColor=0a0c0f)
+[![IronLog — live app](https://img.shields.io/badge/IronLog-open_the_app-e05a1b?style=for-the-badge&labelColor=1b1917)](https://shogun-support-99.github.io/fitness/app/)
+[![Landing page](https://img.shields.io/badge/site-landing_page-2b2622?style=for-the-badge&labelColor=1b1917)](https://shogun-support-99.github.io/fitness/)
+![License](https://img.shields.io/badge/license-MIT-e05a1b?style=for-the-badge&labelColor=1b1917)
 
 </div>
 
@@ -48,7 +48,7 @@ What makes it interesting is what it *doesn't* have:
 - **No tracking.** Nothing leaves the device. Your history lives in local storage and
   exports to a single JSON file.
 
-It ships with 170 unit tests on the Node built-in test runner, and every push to `main`
+It ships with 304 unit tests on the Node built-in test runner, and every push to `main`
 redeploys itself through GitHub Actions.
 
 ## 🧰 How I work
@@ -66,8 +66,8 @@ redeploys itself through GitHub Actions.
 
 <div align="center">
 
-<img src="https://github-readme-stats.vercel.com/api?username=shogun-support-99&show_icons=true&hide_border=true&bg_color=0a0c0f&title_color=c6f24e&icon_color=6cc4ff&text_color=a9b6c6&rank_icon=github" alt="GitHub stats" height="160" />
-<img src="https://github-readme-stats.vercel.com/api/top-langs/?username=shogun-support-99&layout=compact&hide_border=true&bg_color=0a0c0f&title_color=c6f24e&text_color=a9b6c6&langs_count=6" alt="Top languages" height="160" />
+<img src="https://github-readme-stats.vercel.app/api?username=shogun-support-99&show_icons=true&hide_border=true&bg_color=0a0c0f&title_color=e05a1b&icon_color=f08a3c&text_color=a9b6c6&rank_icon=github" alt="GitHub stats" height="160" />
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=shogun-support-99&layout=compact&hide_border=true&bg_color=0a0c0f&title_color=e05a1b&text_color=a9b6c6&langs_count=6" alt="Top languages" height="160" />
 
 </div>
 

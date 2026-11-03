@@ -59,12 +59,12 @@ export function renderStats(store) {
       <div class="section-title-row"><h2>Statistics</h2><span class="panel-note">All time</span></div>
       <div class="tile-grid tile-grid-4">
         ${statTile({ label: "Total volume", value: compactNumber(life.volume), unit: units, tone: "tone-sky" })}
-        ${statTile({ label: "Total sets", value: compactNumber(life.sets), tone: "tone-violet" })}
-        ${statTile({ label: "Time training", value: String(life.hours), unit: "h", tone: "tone-mint" })}
-        ${statTile({ label: "Current streak", value: String(streak.current), unit: "d", hint: `best ${streak.best}d`, tone: "tone-orange" })}
+        ${statTile({ label: "Total sets", value: compactNumber(life.sets), countTo: life.sets, tone: "tone-violet" })}
+        ${statTile({ label: "Time training", value: String(life.hours), countTo: life.hours, unit: "h", tone: "tone-mint" })}
+        ${statTile({ label: "Current streak", value: String(streak.current), countTo: streak.current, unit: "d", hint: `best ${streak.best}d`, tone: "tone-orange" })}
       </div>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>Weekly volume</h2><span class="panel-note">last ${weeks.length} ${weeks.length === 1 ? "week" : "weeks"}</span></div>
         ${barChart(
           weeks.map((w) => ({
@@ -77,12 +77,12 @@ export function renderStats(store) {
         )}
       </section>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>Muscle balance</h2><span class="panel-note">sets per group</span></div>
         ${distributionBars(muscleDistribution(completed, index))}
       </section>
 
-      <section class="panel">
+      <section class="panel" data-reveal="rise">
         <div class="panel-head">
           <h2>${icon("trophy")} Personal records</h2>
           <span class="panel-note">${records.size} tracked</span>

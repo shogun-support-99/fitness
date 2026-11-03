@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shogun-support-99.github.io/fitness/sitemap.xml

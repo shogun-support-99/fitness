@@ -755,10 +755,6 @@
     color: var(--data);
   }
 
-  .ticker {
-    display: none;
-  }
-
   .session-list,
   .library-list,
   .history-list,

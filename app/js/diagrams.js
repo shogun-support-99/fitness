@@ -254,7 +254,7 @@ function loadShape(shape, equipment = "") {
 /**
  * Render a movement diagram for an exercise.
  *
- * @param {object} exercise  a catalogue or curated exercise record
+ * @param {object} exercise  a catalogue or custom exercise record
  * @param {object} [opts]
  * @param {number} [opts.size]      rendered box size in px (viewBox is fixed)
  * @param {boolean} [opts.animate]  emit animation classes (default true)

@@ -117,7 +117,7 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
   const previous = store.previousPerformance(entry.exerciseId);
 
   return `
-    <article class="exercise-card" data-entry="${esc(entry.id)}" data-muscle="${esc(exercise?.muscle ?? "other")}" style="--exercise-order:${exerciseIndex}">
+    <article class="exercise-card motion-safe:animate-fade-up" data-entry="${esc(entry.id)}" data-muscle="${esc(exercise?.muscle ?? "other")}" style="--exercise-order:${exerciseIndex};animation-delay:calc(var(--exercise-order) * 60ms)">
       <header class="exercise-head">
         ${exercise ? exerciseThumbnail(exercise) : ""}
         <div>
@@ -195,7 +195,7 @@ function renderSetRow(entry, set, index, previous, units) {
 function renderPicker(store) {
   const exercises = store.exercises();
   const muscles = [...new Set(exercises.map((e) => e.muscle))].sort();
-  // The catalogue holds ~1,900 entries; render a capped, ranked slice and let
+  // The catalogue holds 1,316 entries; render a capped, ranked slice and let
   // search narrow it rather than building every row up front.
   const shown = exercises.slice(0, PICKER_CAP);
   return `
