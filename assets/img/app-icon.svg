@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="IronLog">
+  <title>IronLog app icon</title>
+  <rect width="64" height="64" rx="14" fill="#0f2a1d"/>
+  <path fill="#f7f5ed" fill-rule="evenodd" d="M52.3 25.1A22 22 0 1 1 38.9 11.7L52.3 25.1ZM39 32a7 7 0 1 1-14 0 7 7 0 1 1 14 0Z"/>
+  <path fill="#f6e016" d="M38.9 11.7 52.3 25.1 48.9 28.4 35.6 15.1Z"/>
+</svg>

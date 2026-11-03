@@ -1,11 +1,11 @@
 /**
  * IronLog — Exercise library view.
  *
- * With the external catalogue merged in the library holds around 1,900
- * entries, so results are relevance-ranked and capped; rendering every row on
- * an empty search would cost more than the interaction is worth. A detail
- * sheet shows the taxonomy plus step-by-step instructions, which are fetched
- * per language on demand rather than shipped inline.
+ * With the dataset catalogue merged in the library holds 1,316 entries, so
+ * results are relevance-ranked and capped; rendering every row on an empty
+ * search would cost more than the interaction is worth. A detail sheet shows
+ * the taxonomy plus step-by-step instructions, which are fetched per language
+ * on demand rather than shipped inline.
  */
 
 import { EQUIPMENT, MUSCLE_GROUPS, searchExercises } from "../exercises.js";

@@ -7,11 +7,11 @@
       name="description"
       content="IronLog is a free, private strength-training log. Log sets with last week's numbers in view, run the rest timer, follow personal records and keep everything in your browser."
     />
-    <meta name="theme-color" content="#f6f4f1" />
+    <meta name="theme-color" content="#f2f1ec" />
     <meta property="og:title" content="IronLog — Track every set. Get stronger." />
     <meta
       property="og:description"
-      content="A private, offline-capable training log with 1,316 exercises and no account."
+      content="A private, offline-capable training log with 1,316 exercises, 2,632 GIF demos and no account."
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="IronLog" />
@@ -20,12 +20,12 @@
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="IronLog — Log workouts. Get stronger." />
+    <meta property="og:image:alt" content="IronLog — Track every set. Get stronger." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="IronLog — Track every set. Get stronger." />
     <meta
       name="twitter:description"
-      content="A private, offline-capable training log with 1,316 exercises and no account."
+      content="A private, offline-capable training log with 1,316 exercises, 2,632 GIF demos and no account."
     />
     <meta name="twitter:image" content="https://shogun-support-99.github.io/fitness/assets/img/og-cover.png" />
     <title>IronLog — Track every set. Get stronger.</title>
@@ -35,8 +35,8 @@
     <link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png" />
     <link rel="preload" href="fonts/Figtree-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="assets/css/landing.css" />
     <link rel="stylesheet" href="assets/css/tailwind.css" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
     <script>
       document.documentElement.classList.remove("no-js");
       document.documentElement.classList.add("js");
@@ -78,10 +78,9 @@
     <header class="site-header" data-header>
       <div class="shell header-inner">
         <a class="brand" href="#top" aria-label="IronLog home">
-          <svg class="brand-icon" viewBox="0 0 32 32" aria-hidden="true">
-            <path d="M16 2 28.5 9v14L16 30 3.5 23V9Z" fill="currentColor" opacity="0.95"/>
-            <path d="M9.5 13.5C14.5 9.5 20.5 10.7 23.8 16.7" fill="none" stroke="#e05a1b" stroke-width="2.6" stroke-linecap="round"/>
-            <circle cx="9.5" cy="13.5" r="2.3" fill="#e05a1b"/>
+          <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+            <path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" />
           </svg>
           <span>IronLog</span>
         </a>
@@ -95,7 +94,6 @@
         </nav>
 
         <div class="header-actions">
-          <a class="btn btn-ghost btn-sm header-ghost" href="#privacy">Why free?</a>
           <a class="btn btn-primary btn-sm" href="./app/">Open IronLog</a>
           <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" data-nav-toggle>
             <span class="nav-toggle-bars" aria-hidden="true"><span></span><span></span></span>
@@ -119,98 +117,90 @@
       <section class="hero" id="top">
         <div class="shell hero-grid">
           <div class="hero-copy motion-safe:animate-fade-up">
-            <h1>Track every set.<br /><span class="accent-text text-gradient motion-safe:animate-gradient-pan">Get stronger.</span></h1>
-            <p class="lede motion-safe:animate-fade-up stagger-2">
-              IronLog is a free training log that keeps last week's numbers in front of you. No
-              account and no server — tap a set, beat it, rest, repeat.
+            <p class="eyebrow">Offline-first strength log</p>
+            <h1>Track every set.<br /><mark class="hl">Get stronger.</mark></h1>
+            <p class="lede">
+              IronLog keeps last week's numbers in front of you. No account and no
+              server — tap a set, beat it, rest, repeat.
             </p>
-            <div class="hero-actions motion-safe:animate-fade-up stagger-3">
-              <a class="btn btn-primary btn-lg sheen-host" href="./app/">
+            <div class="hero-actions">
+              <a class="btn btn-primary btn-lg" href="./app/">
                 Start logging
                 <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
               </a>
               <a class="btn btn-secondary btn-lg" href="#features">See how it works</a>
             </div>
-            <ul class="hero-proof motion-safe:animate-fade-up stagger-4">
+            <ul class="hero-proof">
               <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> 1,316 exercises</li>
-              <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> 10 languages</li>
+              <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> 2,632 GIF demos</li>
               <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Stored in your browser</li>
             </ul>
           </div>
 
           <div class="hero-art" aria-hidden="true">
-            <svg class="squiggle squiggle-a motion-safe:animate-drift" viewBox="0 0 420 300" fill="none">
-              <path d="M2 210C70 210 96 96 150 96c58 0 58 108 118 108 52 0 66-72 148-72" stroke="#e05a1b" stroke-width="3" stroke-linecap="round" />
+            <svg class="plate-watermark" viewBox="0 0 64 64">
+              <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
             </svg>
 
-            <div class="device motion-safe:animate-float">
-              <div class="device-notch"></div>
-              <div class="screen">
-                <div class="screen-status"><span>9:41</span><span class="screen-status-dots"><i></i><i></i><i></i></span></div>
-                <div class="screen-bar">
-                  <span class="screen-back"><svg><use href="#i-back" /></svg></span>
-                  <strong>Log workout</strong>
-                  <span class="screen-finish">Finish</span>
+            <div class="folder-stack">
+              <div class="folder folder-back">
+                <span class="folder-tab"></span>
+                <div class="folder-edge-stats">
+                  <span>Volume</span>
+                  <strong>12,480 kg</strong>
                 </div>
-                <div class="screen-stats">
-                  <div><span>Duration</span><strong>1h 13m</strong></div>
-                  <div><span>Volume</span><strong>9,250 kg</strong></div>
-                  <div><span>Sets</span><strong>18</strong></div>
-                </div>
+              </div>
 
-                <div class="screen-exercise">
-                  <div class="screen-exercise-head">
+              <div class="folder folder-mid">
+                <span class="folder-tab"></span>
+                <div class="folder-strip">
+                  <span class="folder-strip-line"></span>
+                  <span class="folder-strip-line"></span>
+                  <span class="folder-strip-line short"></span>
+                </div>
+              </div>
+
+              <div class="folder folder-front">
+                <span class="folder-tab folder-tab-signal"></span>
+                <div class="front-head">
+                  <strong>IronLog</strong>
+                  <span>live session</span>
+                </div>
+                <div class="front-totals">
+                  <div><span>Volume</span><strong>6,140 kg</strong></div>
+                  <div><span>Sets</span><strong>14</strong></div>
+                  <div><span>Records</span><strong>2</strong></div>
+                </div>
+                <div class="front-exercise">
+                  <div class="front-exercise-head">
                     <span class="avatar">BP</span>
-                    <strong>Bench Press (Barbell)</strong>
-                    <span class="screen-kebab">⋮</span>
+                    <strong>Barbell Bench Press</strong>
                   </div>
-                  <p class="screen-hint">Increase the weights next time.</p>
-
-                  <div class="set-row set-row-head">
-                    <span>Set</span><span>Previous</span><span>kg</span><span>Reps</span><span></span>
+                  <div class="front-list">
+                    <div class="front-set is-done"><span>1</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
+                    <div class="front-set is-done"><span>2</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
+                    <div class="front-set is-done"><span>3</span><b>82.5 kg</b><span>× 6</span><i><svg><use href="#i-check" /></svg></i></div>
+                    <div class="front-set"><span>4</span><b>82.5 kg</b><span>× 6</span><i class="is-idle"></i></div>
                   </div>
-                  <div class="set-row is-done">
-                    <span class="set-index">1</span><span class="set-prev">72.5 × 8</span><span class="set-val">80</span><span class="set-val">8</span>
-                    <span class="set-tick"><svg><use href="#i-check" /></svg></span>
-                  </div>
-                  <div class="set-row is-done">
-                    <span class="set-index">2</span><span class="set-prev">72.5 × 8</span><span class="set-val">80</span><span class="set-val">7</span>
-                    <span class="set-tick"><svg><use href="#i-check" /></svg></span>
-                  </div>
-                  <div class="set-row">
-                    <span class="set-index">3</span><span class="set-prev">72.5 × 8</span><span class="set-val is-empty">kg</span><span class="set-val is-empty">reps</span>
-                    <span class="set-tick is-idle"></span>
-                  </div>
-
-                  <div class="screen-rest">
-                    <span class="rest-label"><svg><use href="#i-timer" /></svg> Rest</span>
+                  <div class="front-rest">
+                    <svg><use href="#i-timer" /></svg>
+                    <span>Rest</span>
                     <strong>01:24</strong>
-                    <span class="rest-add">+15s</span>
+                    <span class="front-rest-bar"><i></i></span>
                   </div>
                 </div>
-
-                <div class="screen-tabbar"><span class="is-on">Workout</span><span>History</span><span>Profile</span></div>
               </div>
             </div>
-
-            <div class="float-card">
-              <span class="float-icon"><svg><use href="#i-trophy" /></svg></span>
-              <div><strong>New PR</strong><span>Bench Press · 100 kg</span></div>
-            </div>
-
-            <svg class="squiggle squiggle-b" viewBox="0 0 260 200" fill="none">
-              <path d="M4 176C56 176 46 88 96 88s44 76 96 76" stroke="#e05a1b" stroke-width="3" stroke-linecap="round" />
-            </svg>
           </div>
         </div>
       </section>
 
-      <section class="stats-band motion-safe:animate-fade-up" aria-label="IronLog in numbers">
+      <section class="stats-band" aria-label="IronLog in numbers">
         <div class="shell stats-grid">
           <div class="stat"><strong>1,316</strong><span>exercises with instructions</span></div>
+          <div class="stat"><strong>2,632</strong><span>GIF demos from Gym Visual</span></div>
           <div class="stat"><strong>10</strong><span>instruction languages</span></div>
           <div class="stat"><strong>0</strong><span>accounts, servers or trackers</span></div>
-          <div class="stat"><strong>3</strong><span>record types tracked per lift</span></div>
         </div>
       </section>
 
@@ -247,8 +237,8 @@
             </article>
             <article class="feature-row">
               <h3>Find the right lift at the rack</h3>
-              <p>Search 1,316 exercises by muscle and equipment, with written instructions and licensed demonstrations.</p>
-              <span class="feature-meta">1,316</span>
+              <p>Search the 1,316-exercise dataset by muscle and equipment, with written instructions and 2,632 licensed GIF demos.</p>
+              <span class="feature-meta">1,316 entries</span>
             </article>
             <article class="feature-row">
               <h3>Offline by default</h3>
@@ -257,7 +247,7 @@
             </article>
           </div>
 
-          <aside class="notion-callout mt-4 animate-rise" data-reveal>
+          <aside class="notion-callout" data-reveal>
             <svg class="notion-callout-mark" aria-hidden="true"><use href="#i-check" /></svg>
             <p><strong>The log is the product.</strong> There is no feed to scroll and nothing to buy: every screen is a set you own.</p>
           </aside>
@@ -316,12 +306,13 @@
           </div>
 
           <div class="showcase-art" aria-hidden="true">
-            <div class="panel-mock motion-safe:animate-float-slow">
-              <div class="panel-mock-head">
-                <span class="panel-mock-dots"><i></i><i></i><i></i></span>
-                <span class="panel-mock-title">IronLog — live session</span>
+            <div class="ledger-mock">
+              <div class="ledger-mock-head">
+                <span class="ledger-mock-mark"><svg viewBox="0 0 64 64"><path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" /><path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" /></svg></span>
+                <span class="ledger-mock-title">IronLog — live session</span>
+                <span class="ledger-mock-live"><i></i>Saved locally</span>
               </div>
-              <div class="panel-mock-body">
+              <div class="ledger-mock-body">
                 <div class="mock-totals">
                   <div><span>Duration</span><strong>00:42:18</strong></div>
                   <div><span>Volume</span><strong>6,140 kg</strong></div>
@@ -342,6 +333,7 @@
                 </div>
               </div>
             </div>
+            <span class="showcase-note">The whole session: one sheet.</span>
           </div>
         </div>
       </section>
@@ -357,25 +349,25 @@
           </header>
 
           <div class="routine-grid">
-            <a class="routine-card hover-lift sheen-host" href="./app/#/workout" data-reveal aria-label="Start the Push routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Push routine in IronLog">
               <span class="routine-tag">Chest · shoulders · triceps</span>
               <h3>Push</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift sheen-host" href="./app/#/workout" data-reveal aria-label="Start the Pull routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Pull routine in IronLog">
               <span class="routine-tag">Back · biceps</span>
               <h3>Pull</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift sheen-host" href="./app/#/workout" data-reveal aria-label="Start the Legs routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Legs routine in IronLog">
               <span class="routine-tag">Quads · hamstrings · calves</span>
               <h3>Legs</h3>
               <p>5 exercises · 17 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift sheen-host" href="./app/#/workout" data-reveal aria-label="Start the Full body routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Full body routine in IronLog">
               <span class="routine-tag">Whole body</span>
               <h3>Full body</h3>
               <p>6 exercises · 18 sets</p>
@@ -443,7 +435,7 @@
             </details>
             <details class="faq-item" data-reveal>
               <summary>Which exercises are included?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
-              <p>1,316 MIT-licensed exercises sourced from the public exercises-dataset, each with a gym visual demo and steps across 10 instruction languages. You can add your own.</p>
+              <p>1,316 MIT-licensed exercises from the public exercises-dataset, each with a Gym Visual demo and steps across 10 instruction languages. You can add your own.</p>
             </details>
             <details class="faq-item" data-reveal>
               <summary>Can I move my log to another device?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
@@ -453,16 +445,16 @@
         </div>
       </section>
 
-      <section class="final-cta bg-mesh-warm">
+      <section class="final-cta">
         <div class="shell final-inner" data-reveal>
-          <h2 class="text-gradient motion-safe:animate-gradient-pan">Your next session is one tap away.</h2>
+          <h2>Your next session is one tap away.</h2>
           <p>No account. No install step required. Just the log.</p>
           <div class="final-actions">
-            <a class="btn btn-light btn-lg sheen-host" href="./app/">
+            <a class="btn btn-signal btn-lg" href="./app/">
               Open IronLog
               <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
             </a>
-            <a class="btn btn-outline-light btn-lg" href="#features">Read the features</a>
+            <a class="btn btn-outline-signal btn-lg" href="#features">Read the features</a>
           </div>
         </div>
       </section>
@@ -472,10 +464,9 @@
       <div class="shell footer-top">
         <div class="footer-brand">
           <a class="brand" href="#top" aria-label="IronLog home">
-            <svg class="brand-icon" viewBox="0 0 32 32" aria-hidden="true">
-              <path d="M16 2 28.5 9v14L16 30 3.5 23V9Z" fill="currentColor" opacity="0.95"/>
-              <path d="M9.5 13.5C14.5 9.5 20.5 10.7 23.8 16.7" fill="none" stroke="#e05a1b" stroke-width="2.6" stroke-linecap="round"/>
-              <circle cx="9.5" cy="13.5" r="2.3" fill="#e05a1b"/>
+            <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+              <path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" />
             </svg>
             <span>IronLog</span>
           </a>

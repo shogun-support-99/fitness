@@ -36,9 +36,9 @@ export function renderHome(store) {
       ${active ? renderActiveBanner(active, store.settings.units) : renderStartPanel(store, lastSevenDays.length)}
 
       <div class="tile-grid">
-        ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-sky" })}
-        ${statTile({ label: "Workouts", value: String(completed.length), countTo: completed.length, hint: "all time", tone: "tone-violet" })}
-        ${statTile({ label: "Best streak", value: `${streak.best}`, countTo: streak.best, unit: "d", hint: `${streak.activeDays} active days`, tone: "tone-orange" })}
+        ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-data" })}
+        ${statTile({ label: "Workouts", value: String(completed.length), countTo: completed.length, hint: "all time" })}
+        ${statTile({ label: "Best streak", value: `${streak.best}`, countTo: streak.best, unit: "d", hint: `${streak.activeDays} active days` })}
       </div>
 
       <section class="panel" data-reveal="rise">
@@ -156,13 +156,13 @@ function renderStartPanel(store, weekCount) {
       <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-reveal="rise">
         <div class="start-panel-copy">
           <span class="energy-badge">${icon("bolt")} Training mode</span>
-          <h2>Small sets. <span class="text-gradient motion-safe:animate-gradient-pan">Big momentum.</span></h2>
+          <h2>Small sets. <span class="text-gradient">Big momentum.</span></h2>
           <p>Pick a routine, beat your previous numbers, and let every completed set move you forward.</p>
           <div class="hero-actions">
             <button class="btn btn-primary btn-lg" data-action="start-workout">
               ${icon("play")} Start empty workout ${icon("chevron")}
             </button>
-            ${template ? `<button class="btn btn-sub" data-action="repeat-last">${icon("history")} Repeat last <span class="btn-sub">${esc(template.exercises.length)} ${template.exercises.length === 1 ? "exercise" : "exercises"}</span></button>` : ""}
+            ${template ? `<button class="btn btn-sub" data-action="repeat-last">${icon("history")} Repeat last <span class="btn-sub-note">${esc(template.exercises.length)} ${template.exercises.length === 1 ? "exercise" : "exercises"}</span></button>` : ""}
           </div>
         </div>
         <div class="hero-goal" style="--goal-offset:${100 - goalProgress}">
@@ -178,7 +178,6 @@ function renderStartPanel(store, weekCount) {
           </div>
           <span class="goal-caption">${weekCount >= 3 ? "Goal complete — nice work" : "3-session momentum goal"}</span>
         </div>
-        <span class="hero-spark hero-spark-one motion-safe:animate-float" aria-hidden="true">${icon("bolt")}</span>
       </section>
       <section class="routine-section" aria-labelledby="home-routines-title">
         <div class="section-title-row"><div><span class="section-label">Jump straight in</span><h2 id="home-routines-title">Choose your routine</h2></div><a class="link" href="#/workout">View all ${icon("chevron")}</a></div>

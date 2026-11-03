@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-02T11:02:32.912Z",
+  "generatedAt": "2026-11-03T11:18:30.470Z",
   "generator": "scripts/build-exercise-data.mjs",
   "source": {
     "repository": "https://github.com/hasaneyldrm/exercises-dataset",
     "commit": "7455efae41b330c265e7cd4b78dfa848e7ce5ebd",
-    "localPath": "/tmp/exercises-dataset",
+    "localPath": null,
     "recordsRead": 1324
   },
   "counts": {

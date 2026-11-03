@@ -106,6 +106,29 @@ if (revealables.length) {
   }
 }
 
+/* ── Scroll spy ────────────────────────────────────────────────────────── */
+
+const spyLinks = [...doc.querySelectorAll(".site-nav a")];
+const spySections = spyLinks
+  .map((link) => doc.querySelector(link.getAttribute("href")))
+  .filter(Boolean);
+
+if (spyLinks.length && spySections.length && "IntersectionObserver" in window) {
+  const spy = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const id = `#${entry.target.id}`;
+        spyLinks.forEach((link) => {
+          link.classList.toggle("is-on", link.getAttribute("href") === id);
+        });
+      });
+    },
+    { rootMargin: "-40% 0px -55% 0px", threshold: 0 },
+  );
+  spySections.forEach((section) => spy.observe(section));
+}
+
 /* ── Footer year ───────────────────────────────────────────────────────── */
 
 doc.querySelectorAll("[data-year]").forEach((el) => {

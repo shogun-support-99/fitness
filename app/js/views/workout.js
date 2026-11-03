@@ -25,13 +25,15 @@ export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
           <div><h1>Workout</h1><p class="view-subline">Build a session or start from a routine.</p></div>
         </header>
         <section class="quick-start-panel workout-launch" data-reveal="rise">
-          <div>
+          <div class="quick-start-copy">
             <span class="energy-badge">${icon("bolt")} Build your session</span>
             <h2>What are we training today?</h2>
             <p>Start with a blank log or jump into a routine below. Your previous numbers will be waiting.</p>
           </div>
           <button class="btn btn-primary btn-lg" data-action="start-workout">${icon("plus")} Start empty workout ${icon("chevron")}</button>
-          <span class="launch-mark" aria-hidden="true">${icon("dumbbell")}</span>
+          <svg class="hero-plate" viewBox="0 0 64 64" aria-hidden="true">
+            <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+          </svg>
         </section>
         <section class="routine-section" aria-labelledby="workout-routines-title">
           <div class="section-title-row"><h2 id="workout-routines-title">Routines</h2><a class="link" href="#/library">Explore exercises ${icon("chevron")}</a></div>

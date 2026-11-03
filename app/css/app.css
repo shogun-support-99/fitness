@@ -52,70 +52,76 @@
 :root {
   color-scheme: light;
 
-  /* Grounds. The stone is one level off white and low in chroma: a log book's
-     paper, taken from the product's world rather than a default grey. */
-  --ground: #f4f3f1;
-  --surface: #ffffff;
-  --raised: #ebeae7;
-  --sunken: #efeeeb;
+  /* Grounds. Warm stone paper, one step off white and taken from the same
+     world as the landing page. */
+  --ground: #f2f1ec;
+  --surface: #fbfaf6;
+  --raised: #e9e7df;
+  --sunken: #edece6;
 
   /* Rules. 1px, about 1.2:1 against the ground. A border or a shadow, never
      both, so these carry all resting separation. */
-  --border: #dfded9;
-  --border-control: #cfceC8;
-  --rule: #eeece9;
+  --border: #d8d6cc;
+  --border-control: #c3c1b5;
+  --rule: #e5e3da;
 
-  /* Ink. */
-  --text: #0a0a0a;
-  --text-secondary: #3d3d3d;
-  --muted: #6b6b6b;
-  --faint: #8a8a8a;
+  /* Ink. Near-black with a green cast, matching the bottle-ink mark. */
+  --text: #12140f;
+  --text-secondary: #2f332c;
+  --muted: #5f655b;
+  --faint: #83887d;
 
-  /* Controls. The one primary action is near-black; its secondary is a grey
-     pill. There is no brand-coloured button anywhere. */
-  --accent: #141414;
-  --accent-ink: #ffffff;
-  --control: #d4d4d4;
-  --control-ink: #0a0a0a;
+  /* Controls. The one primary action is bottle ink; its secondary is a quiet
+     stone pill. There is no brand-coloured button anywhere. */
+  --accent: #0f2a1d;
+  --accent-ink: #f7f5ed;
+  --control: #dedcd2;
+  --control-ink: #12140f;
 
-  /* The one hue, on the main data element only. 6.2:1 on white. */
-  --data: #1d5fbf;
-  --data-pale: #eaf0fa;
-  --data-ink: #123f7f;
+  /* The one data hue, on the main data element only. 7.1:1 on paper. */
+  --data: #1f5c3f;
+  --data-pale: #e4ede3;
+  --data-ink: #0f3d26;
+
+  /* The brand signal. One yellow notch: active nav, logo wedge, one hero word.
+     It is never a body-text colour on paper. */
+  --signal: #f6e016;
+  --signal-ink: #2b2700;
 
   /* Change signals. Small marks and short numbers, never fills. */
-  --positive: #2e7d32;
-  --negative: #c4242a;
-  --warning: #92400e;
-  --pill-positive-bg: #dcfae5;
-  --pill-positive-ink: #04250e;
-  --pill-negative-bg: #ffedea;
-  --pill-negative-ink: #831c1e;
-  --pill-warning-bg: #fffbeb;
-  --pill-warning-ink: #92400e;
-  --pill-neutral-bg: #eeeeee;
-  --pill-neutral-ink: #3d3d3d;
+  --positive: #1f6b43;
+  --negative: #a83a32;
+  --warning: #8a5a00;
+  --pill-positive-bg: #e2f0e4;
+  --pill-positive-ink: #0d3a20;
+  --pill-negative-bg: #fbe9e5;
+  --pill-negative-ink: #6d1f1a;
+  --pill-warning-bg: #fbf0d4;
+  --pill-warning-ink: #6d4700;
+  --pill-neutral-bg: #eae8e0;
+  --pill-neutral-ink: #33372f;
 
-  /* Chart. One hue per chart, neutrals for the rest. */
-  --chart-1: #141414;
-  --chart-2: #8a8a8a;
-  --chart-3: #1d5fbf;
-  --gridline: #eeece9;
+  /* Chart. Ink for the series, the data green for the current element. */
+  --chart-1: #0f2a1d;
+  --chart-2: #9aa094;
+  --chart-3: #1f5c3f;
+  --gridline: #e7e5dc;
 
   /* Geometry. One gap value horizontally and vertically; the tight radius
      pair, chosen once for the whole product. */
-  --radius-card: 8px;
-  --radius-control: 6px;
+  --radius-card: 12px;
+  --radius-control: 8px;
   --row-height: 44px;
   --gap: 12px;
   --pad: 24px;
-  --control-height: 36px;
-  --rail-width: 56px;
+  --control-height: 38px;
+  --rail-width: 248px;
+  --sidebar-width: 248px;
 
-  /* Type. Title 24, section 16, kpi 30, body 14, small 12. Nothing under 11. */
-  --fs-title: 24px;
+  /* Type. Title 26, section 16, kpi 34, body 14, small 12. Nothing under 11. */
+  --fs-title: 26px;
   --fs-section: 16px;
-  --fs-kpi: 30px;
+  --fs-kpi: 34px;
   --fs-body: 14px;
   --fs-small: 12px;
   --fs-meta: 11px;
@@ -124,8 +130,8 @@
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Shadows exist only for what floats. */
-  --shadow-float: 0 12px 32px -8px rgba(10, 10, 10, 0.18), 0 2px 6px rgba(10, 10, 10, 0.06);
-  --shadow-menu: 0 6px 20px -6px rgba(10, 10, 10, 0.2);
+  --shadow-float: 0 28px 64px -28px rgba(15, 42, 29, 0.32), 0 2px 10px rgba(15, 42, 29, 0.06);
+  --shadow-menu: 0 10px 30px -10px rgba(15, 42, 29, 0.26);
 
   --ease: cubic-bezier(0.16, 0.84, 0.32, 1);
 }
@@ -136,98 +142,97 @@
   :root:not([data-theme]) {
     color-scheme: dark;
 
-    --ground: #0f0f0f;
-    --surface: #171717;
-    --raised: #1f1f1f;
-    --sunken: #131313;
+    --ground: #0d120e;
+    --surface: #141a15;
+    --raised: #1e261f;
+    --sunken: #101611;
 
-    --border: #2e2e2e;
-    --border-control: #3d3d3d;
-    --rule: #232323;
+    --border: #2b342c;
+    --border-control: #3b453c;
+    --rule: #222b23;
 
-    --text: #f4f4f4;
-    --text-secondary: #d4d4d4;
-    --muted: #a3a3a3;
-    --faint: #858585;
+    --text: #f3f1e8;
+    --text-secondary: #d4d6c9;
+    --muted: #a0a596;
+    --faint: #828878;
 
-    --accent: #f4f4f4;
-    --accent-ink: #0a0a0a;
-    --control: #2b2b2b;
-    --control-ink: #f4f4f4;
+    --accent: #f3f1e8;
+    --accent-ink: #0d120e;
+    --control: #2a322b;
+    --control-ink: #f3f1e8;
 
-    --data: #74a9ff;
-    --data-pale: #16233a;
-    --data-ink: #cfe0ff;
+    --data: #7fb894;
+    --data-pale: #152a1d;
+    --data-ink: #c8e6d2;
 
-    --positive: #6fcf76;
-    --negative: #ff8a80;
-    --warning: #e0b252;
-    --pill-positive-bg: #12291a;
-    --pill-positive-ink: #b7f0c2;
-    --pill-negative-bg: #2e1516;
-    --pill-negative-ink: #ffc9c2;
+    --positive: #7fce9b;
+    --negative: #ff9c8f;
+    --warning: #e2bc63;
+    --pill-positive-bg: #13291b;
+    --pill-positive-ink: #b9efc9;
+    --pill-negative-bg: #2f1714;
+    --pill-negative-ink: #ffc9c0;
     --pill-warning-bg: #2b2113;
     --pill-warning-ink: #f2d9a6;
-    --pill-neutral-bg: #242424;
-    --pill-neutral-ink: #d4d4d4;
+    --pill-neutral-bg: #242c25;
+    --pill-neutral-ink: #d4d6c9;
 
-    --chart-1: #f4f4f4;
-    --chart-2: #7a7a7a;
-    --chart-3: #74a9ff;
-    --gridline: #232323;
+    --chart-1: #f3f1e8;
+    --chart-2: #7e8577;
+    --chart-3: #7fb894;
+    --gridline: #222b23;
 
-    --shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
-    --shadow-menu: 0 6px 20px -6px rgba(0, 0, 0, 0.55);
+    --shadow-float: 0 28px 64px -28px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.4);
+    --shadow-menu: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
   }
 }
 
-/* True neutral darks. No navy, no slate: every ground is an equal-channel
-   grey, and the data hue is lightened to hold 3:1 against them. */
+/* Dark keeps the same green-cast ink family, inverted: no navy, no slate. */
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --ground: #0f0f0f;
-  --surface: #171717;
-  --raised: #1f1f1f;
-  --sunken: #131313;
+  --ground: #0d120e;
+  --surface: #141a15;
+  --raised: #1e261f;
+  --sunken: #101611;
 
-  --border: #2e2e2e;
-  --border-control: #3d3d3d;
-  --rule: #232323;
+  --border: #2b342c;
+  --border-control: #3b453c;
+  --rule: #222b23;
 
-  --text: #f4f4f4;
-  --text-secondary: #d4d4d4;
-  --muted: #a3a3a3;
-  --faint: #858585;
+  --text: #f3f1e8;
+  --text-secondary: #d4d6c9;
+  --muted: #a0a596;
+  --faint: #828878;
 
-  --accent: #f4f4f4;
-  --accent-ink: #0a0a0a;
-  --control: #2b2b2b;
-  --control-ink: #f4f4f4;
+  --accent: #f3f1e8;
+  --accent-ink: #0d120e;
+  --control: #2a322b;
+  --control-ink: #f3f1e8;
 
-  --data: #74a9ff;
-  --data-pale: #16233a;
-  --data-ink: #cfe0ff;
+  --data: #7fb894;
+  --data-pale: #152a1d;
+  --data-ink: #c8e6d2;
 
-  --positive: #6fcf76;
-  --negative: #ff8a80;
-  --warning: #e0b252;
-  --pill-positive-bg: #12291a;
-  --pill-positive-ink: #b7f0c2;
-  --pill-negative-bg: #2e1516;
-  --pill-negative-ink: #ffc9c2;
+  --positive: #7fce9b;
+  --negative: #ff9c8f;
+  --warning: #e2bc63;
+  --pill-positive-bg: #13291b;
+  --pill-positive-ink: #b9efc9;
+  --pill-negative-bg: #2f1714;
+  --pill-negative-ink: #ffc9c0;
   --pill-warning-bg: #2b2113;
   --pill-warning-ink: #f2d9a6;
-  --pill-neutral-bg: #242424;
-  --pill-neutral-ink: #d4d4d4;
+  --pill-neutral-bg: #242c25;
+  --pill-neutral-ink: #d4d6c9;
 
-  --chart-1: #f4f4f4;
-  --chart-2: #7a7a7a;
-  --chart-3: #74a9ff;
-  --gridline: #232323;
+  --chart-1: #f3f1e8;
+  --chart-2: #7e8577;
+  --chart-3: #7fb894;
+  --gridline: #222b23;
 
-  --shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
-  --shadow-menu: 0 6px 20px -6px rgba(0, 0, 0, 0.55);
+  --shadow-float: 0 28px 64px -28px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.4);
+  --shadow-menu: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────── */
@@ -370,18 +375,17 @@ table,
   min-height: 100dvh;
 }
 
-/* The rail sits on the page ground with a 1px edge. On a phone it becomes a
-   bottom bar carrying the same destinations with short labels. */
+/* Phone: a compact topbar carries identity, save state and settings; a
+   five-destination bottom bar carries the app. */
 .sidebar {
   position: fixed;
   inset: auto 0 0 0;
   z-index: 40;
   display: flex;
-  align-items: center;
-  gap: 2px;
-  height: calc(56px + env(safe-area-inset-bottom, 0px));
-  padding: 0 6px env(safe-area-inset-bottom, 0px);
-  background: var(--ground);
+  align-items: stretch;
+  height: calc(62px + env(safe-area-inset-bottom, 0px));
+  padding: 0 8px env(safe-area-inset-bottom, 0px);
+  background: var(--surface);
   border-top: 1px solid var(--border);
 }
 
@@ -393,8 +397,9 @@ table,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
   color: var(--text);
 }
 
@@ -403,32 +408,55 @@ table,
   height: 100%;
 }
 
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
 .brand-name {
-  font-size: var(--fs-section);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 18px;
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   text-decoration: none;
+}
+
+.brand-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+  line-height: 1;
 }
 
 .nav {
   display: flex;
-  align-items: center;
-  gap: 2px;
+  align-items: stretch;
+  gap: 1px;
   flex: 1 1 auto;
-  justify-content: space-around;
+  justify-content: space-between;
+}
+
+.nav-label {
+  display: none;
 }
 
 .nav-item {
+  position: relative;
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  min-width: 52px;
-  padding: 6px 8px;
+  min-width: 0;
+  padding: 6px 2px;
   border-radius: var(--radius-control);
   color: var(--muted);
-  font-size: var(--fs-meta);
+  font-size: 10px;
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
@@ -439,34 +467,155 @@ table,
   color: var(--text-secondary);
 }
 
-/* The active item is a change of ink colour alone. No coloured pill, no left
-   bar: navigation recedes. */
+/* The active destination is the one place the yellow signal appears in the
+   chrome: the icon sits in a notched yellow tile. */
 .nav-item.is-active {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 620;
 }
 
 .nav-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 34px;
+  height: 24px;
+  border-radius: 7px;
+  transition: background-color 0.14s var(--ease), color 0.14s var(--ease);
 }
 
 .nav-icon svg,
 .nav-icon .icon {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
+}
+
+.nav-item.is-active .nav-icon {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+.nav-item.is-active .nav-icon .icon {
+  stroke-width: 2;
+}
+
+.nav-text {
+  white-space: nowrap;
+}
+
+/* Settings lives in the topbar on a phone. */
+.nav-item-settings {
+  display: none;
 }
 
 .sidebar-foot {
   display: none;
 }
 
+.workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 58px;
+  padding: 0 16px;
+  background: var(--ground);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.topbar-mark {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.local-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--data);
+  box-shadow: 0 0 0 3px var(--data-pale);
+  flex: 0 0 auto;
+}
+
+.topbar-about {
+  display: none;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.topbar-about:hover {
+  color: var(--text);
+}
+
+.topbar-settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  transition: color 0.14s var(--ease), border-color 0.14s var(--ease);
+}
+
+.topbar-settings:hover {
+  color: var(--text);
+  border-color: var(--border-control);
+}
+
+.topbar-settings .icon {
+  width: 17px;
+  height: 17px;
+}
+
 .main {
   flex: 1 1 auto;
   min-width: 0;
   width: 100%;
-  padding: 16px 14px calc(76px + env(safe-area-inset-bottom, 0px));
+  padding: 20px 16px calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
 .tabbar {
@@ -963,6 +1112,15 @@ table,
   border: 0;
 }
 
+/* The legacy stylesheet colours every muscle badge by hue. The ledger uses
+   one neutral stone for taxonomy, so the data green stays the only hue. This
+   repeats the attribute selector so it wins the cascade at equal weight. */
+.badge[class*="badge-"] {
+  background: var(--raised);
+  color: var(--muted);
+  border: 0;
+}
+
 /* ── Forms ─────────────────────────────────────────────────────────────── */
 
 .field {
@@ -1055,8 +1213,8 @@ select {
 .toggle-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--gap);
+  justify-content: flex-start;
+  gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--rule);
 }
@@ -1106,7 +1264,7 @@ select {
 
 .settings-actions {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -2204,7 +2362,18 @@ select {
 
 .empty-mark {
   display: inline-flex;
-  color: var(--faint);
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--muted);
+}
+
+.empty-mark .icon {
+  width: 20px;
+  height: 20px;
 }
 
 .empty h2,
@@ -2284,137 +2453,1310 @@ select {
   color: var(--pill-negative-ink);
 }
 
-/* ── Desktop: the rail ─────────────────────────────────────────────────── */
+/* ── Identity: the notch, the hero, the working surfaces ─────────────────
+   The mark is a weight plate with one chamfered edge, filled yellow. The same
+   notch repeats as the active-nav tab and as the watermark on the session
+   hero. Everything else stays quiet stone and ink so the one signal lands. */
 
-@media (min-width: 900px) {
+/* Type and rhythm */
+
+.view-head h1,
+.view-head h2 {
+  font-weight: 640;
+  letter-spacing: -0.035em;
+}
+
+.view-head h1 {
+  font-size: clamp(26px, 3.2vw, 32px);
+}
+
+.panel {
+  padding: 18px;
+  gap: 14px;
+}
+
+.panel-head h2,
+.panel-head h3 {
+  font-size: 15px;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.panel-head .link,
+.section-title-row .link {
+  font-size: 12px;
+}
+
+/* Home: the session hero */
+
+.home-training-grid {
+  display: grid;
+  gap: 28px;
+}
+
+.start-panel {
+  gap: 18px;
+}
+
+.training-hero,
+.quick-start-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+  padding: 28px 22px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 0;
+  border-radius: 16px;
+}
+
+.training-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.start-panel-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.energy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.11em;
+  line-height: 1;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+
+.energy-badge .icon {
+  width: 13px;
+  height: 13px;
+  color: var(--signal);
+  stroke-width: 2.2;
+}
+
+.start-panel-copy h2,
+.quick-start-panel h2 {
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(32px, 6.4vw, 46px);
+  font-weight: 640;
+  letter-spacing: -0.05em;
+  line-height: 1.01;
+  color: inherit;
+}
+
+.text-gradient {
+  color: var(--signal);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.start-panel-copy p,
+.quick-start-panel p {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: inherit;
+  opacity: 0.66;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.training-hero .btn-primary,
+.quick-start-panel .btn-primary {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+.training-hero .btn-primary:hover:not(:disabled),
+.quick-start-panel .btn-primary:hover:not(:disabled) {
+  background: #ffe93a;
+}
+
+.training-hero .btn-sub,
+.quick-start-panel .btn-sub {
+  background: transparent;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  color: inherit;
+}
+
+.training-hero .btn-sub:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  border-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.btn-sub-note {
+  margin-left: 2px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* The goal ring is the one yellow data mark on Home. */
+
+.hero-goal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+}
+
+.goal-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 138px;
+  height: 138px;
+}
+
+.goal-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.goal-ring circle {
+  fill: none;
+  stroke-width: 6;
+}
+
+.goal-ring-track {
+  stroke: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.goal-ring-value {
+  stroke: var(--signal);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: var(--goal-offset, 100);
+  transition: stroke-dashoffset 0.8s var(--ease);
+}
+
+.goal-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.goal-value strong {
+  font-family: var(--mono);
+  font-size: 31px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: inherit;
+}
+
+.goal-value strong small {
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+.goal-value span {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.goal-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.goal-dots span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 5px;
+  color: inherit;
+  font-family: var(--mono);
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.goal-dots span.is-reached {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--signal-ink);
+  opacity: 1;
+}
+
+.goal-dots .icon {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.6;
+}
+
+.goal-caption {
+  max-width: 22ch;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.hero-plate {
+  position: absolute;
+  right: -78px;
+  bottom: -138px;
+  z-index: 0;
+  width: 310px;
+  height: 310px;
+  color: color-mix(in srgb, currentColor 8%, transparent);
+  pointer-events: none;
+}
+
+@media (max-width: 719px) {
+  .hero-plate {
+    display: none;
+  }
+}
+
+.hero-spark {
+  display: none;
+}
+
+/* Routines: four quiet cards, icon first, no per-split rainbow. */
+
+.routine-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-title-row h2 {
+  margin: 3px 0 0;
+  font-size: 19px;
+  font-weight: 640;
+  letter-spacing: -0.035em;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.routine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.routine-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 138px;
+  padding: 15px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s var(--ease), border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease);
+}
+
+.routine-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--text);
+  box-shadow: var(--shadow-menu);
+}
+
+.routine-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--raised);
+  color: var(--text);
+}
+
+.routine-icon .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.routine-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.routine-copy strong {
+  font-size: 15px;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.routine-copy small {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.routine-count {
+  margin-top: auto;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.routine-go {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  color: var(--faint);
+  transition: color 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.routine-go .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.routine-card:hover .routine-go {
+  transform: translateX(2px);
+  color: var(--text);
+}
+
+.routine-shine {
+  display: none;
+}
+
+/* KPIs: one border, three columns, figures in mono. */
+
+.tile-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-radius: 12px;
+}
+
+.tile {
+  padding: 14px 12px;
+  gap: 5px;
+}
+
+.tile-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.tile-value {
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.tile-value em {
+  margin-left: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--faint);
+}
+
+.tile-hint {
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.tile-grid > .tile:nth-child(2n) {
+  border-right: 1px solid var(--rule);
+}
+
+.tile-grid > .tile:nth-child(3n) {
+  border-right: 0;
+}
+
+.tile-grid > .tile:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.tone-data .tile-value {
+  color: var(--data);
+}
+
+/* Sessions: the row is a small scorecard, not a line of text. */
+
+.session-list {
+  margin: 2px -18px -18px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.session-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 16px;
+  align-items: start;
+  gap: 12px;
+  min-height: 0;
+  padding: 15px 18px;
+}
+
+.session-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--text-secondary);
+}
+
+.session-avatar .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.session-byline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.session-byline strong {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.session-name {
+  font-size: 16px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+.session-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 5px;
+}
+
+.session-kpis > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.session-kpis small {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.session-kpis b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.session-exercise-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.session-exercise-list b {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.session-exercise-list small {
+  color: var(--faint);
+}
+
+.session-go {
+  align-self: center;
+}
+
+/* Active session banner */
+
+.active-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--signal);
+  border-radius: 10px;
+}
+
+.active-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.active-banner-text h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 620;
+  letter-spacing: -0.03em;
+}
+
+.active-banner-text p {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+/* Ticker: a ruled scoreboard strip, not a card. */
+
+.ticker {
+  min-height: 34px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.ticker-caption {
+  padding: 0 14px 0 0;
+  border-right: 1px solid var(--border);
+  background: none;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.ticker-item {
+  font-size: 11px;
+}
+
+.ticker-item b {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.ticker-item i {
+  font-size: 10px;
+  color: var(--faint);
+}
+
+/* Profile */
+
+.profile-view-head {
+  align-items: center;
+}
+
+.profile-identity {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.view-head > .profile-identity {
+  flex-direction: row;
+  align-items: center;
+}
+
+.profile-identity > div {
+  min-width: 0;
+}
+
+.profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 3px var(--ground), 0 0 0 4px var(--border);
+}
+
+.profile-avatar .icon {
+  width: 23px;
+  height: 23px;
+}
+
+.profile-identity h1 {
+  margin: 0;
+}
+
+.profile-settings {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.profile-shortcuts {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  overflow-x: auto;
+  background: var(--raised);
+  border-radius: 10px;
+  scrollbar-width: none;
+}
+
+.profile-shortcuts::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-shortcuts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.profile-shortcuts a:hover {
+  color: var(--text);
+}
+
+.profile-shortcuts a.is-active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 620;
+  box-shadow: 0 1px 2px rgba(15, 42, 29, 0.08);
+}
+
+.profile-shortcuts .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Settings */
+
+.view-settings {
+  max-width: 1020px;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Workout hub and logger */
+
+.workout-launch {
+  gap: 16px;
+}
+
+.quick-start-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.quick-start-panel > .btn {
+  position: relative;
+  z-index: 1;
+}
+
+.launch-mark {
+  display: none;
+}
+
+.logger-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px 16px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.logger-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.logger-kicker {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.logger-name {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 620;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+.logger-name:hover {
+  border-bottom-color: var(--border);
+}
+
+.logger-name:focus {
+  outline: none;
+  border-bottom-color: var(--data);
+  box-shadow: none;
+}
+
+.logger-finish {
+  min-width: 92px;
+}
+
+.logger-metrics {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 26px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.logger-metrics > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logger-metrics small {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.logger-metrics strong {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.exercise-card {
+  padding: 16px;
+  gap: 12px;
+}
+
+.exercise-label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.exercise-head h3 {
+  margin: 3px 0 4px;
+  font-size: 17px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+.exercise-head .exercise-sub {
+  margin: 0;
+}
+
+.exercise-rest {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border-control);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.14s var(--ease), border-color 0.14s var(--ease);
+}
+
+.exercise-rest:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.exercise-rest .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.add-set-button {
+  justify-content: flex-start;
+  height: 34px;
+  padding-left: 10px;
+  background: var(--sunken);
+  border-color: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.add-set-button:hover:not(:disabled) {
+  background: var(--raised);
+  border-color: var(--border);
+}
+
+.picker-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exercise-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--muted);
+}
+
+.exercise-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.exercise-thumb.has-image {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Recorded set detail inside History */
+
+.detail-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-sets li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.detail-sets li:first-child {
+  border-top: 0;
+}
+
+.detail-set-n {
+  color: var(--faint);
+}
+
+.detail-set-v {
+  color: var(--text);
+}
+
+.detail-set-vol {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.summary-cheer {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Small controls settle into the new geometry. */
+
+.btn-primary:hover:not(:disabled) {
+  background: #183b29;
+}
+
+[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+.chip {
+  height: 28px;
+  border-radius: 7px;
+  font-size: 11.5px;
+}
+
+.chip.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.badge {
+  border-radius: 5px;
+  font-size: 10px;
+}
+
+.pill {
+  border-radius: 5px;
+  font-size: 10px;
+}
+
+.link {
+  color: var(--data);
+}
+
+.hover-lift {
+  transition: transform 0.18s var(--ease), border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease);
+}
+
+.dg-static,
+.dg-links {
+  color: inherit;
+}
+
+/* In dark mode the hero drops from cream to a deep panel; a full sheet of
+   near-white would glare. The yellow mark and action stay identical. */
+[data-theme="dark"] .training-hero,
+[data-theme="dark"] .quick-start-panel {
+  background: #16211a;
+  color: var(--text);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .training-hero,
+  :root:not([data-theme]) .quick-start-panel {
+    background: #16211a;
+    color: var(--text);
+  }
+}
+
+@media (min-width: 560px) {
+  .routine-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .settings-grid > .settings-col:first-child {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+@media (min-width: 720px) {
+  .training-hero {
+    grid-template-columns: minmax(0, 1fr) 190px;
+    align-items: center;
+    padding: 36px;
+  }
+
+  .hero-goal {
+    justify-self: end;
+  }
+
+  .quick-start-panel {
+    padding: 34px 36px;
+  }
+
+  .tile {
+    padding: 17px 20px;
+  }
+
+  .tile-value {
+    font-size: var(--fs-kpi);
+  }
+
+  .tile-hint {
+    font-size: 10px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .session-list {
+    margin: 2px -20px -20px;
+  }
+
+  .session-row {
+    padding: 16px 20px;
+  }
+}
+
+/* ── Desktop: the labelled sidebar ─────────────────────────────────────── */
+
+@media (min-width: 960px) {
   .sidebar {
     position: sticky;
     top: 0;
     inset: auto;
-    flex: 0 0 var(--rail-width);
-    width: var(--rail-width);
+    flex: 0 0 var(--sidebar-width);
+    width: var(--sidebar-width);
     height: 100dvh;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 0;
-    padding: 14px 0 14px;
+    padding: 22px 14px 18px;
+    background: var(--ground);
     border-top: 0;
     border-right: 1px solid var(--border);
   }
 
-  /* The rail carries the mark at the top, then destinations on a 44px pitch,
-     then utilities at the bottom. Unlabelled icons need an accessible name. */
+  /* The mark gets its name and a descriptor; unlabelled glyphs are for the
+     phone, where horizontal space is the scarce resource. */
   .brand {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    margin-bottom: 18px;
-    border-radius: var(--radius-control);
+    gap: 11px;
+    padding: 2px 8px 26px;
     color: var(--text);
     text-decoration: none;
   }
 
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
   .brand-name {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
+    font-size: 19px;
+  }
+
+  .brand-tag {
+    font-size: 9px;
   }
 
   .nav {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: flex-start;
-    gap: 4px;
-    flex: 0 0 auto;
-    width: 100%;
+    gap: 2px;
+    flex: 1 1 auto;
   }
 
-  .nav-item {
-    flex-direction: row;
-    width: 38px;
-    height: 38px;
-    min-width: 0;
-    padding: 0;
-    justify-content: center;
-    border-radius: var(--radius-control);
-  }
-
-  /* On the rail the label is the accessible name and the tooltip, not ink. */
-  .nav-item {
-    font-size: 0;
-  }
-
-  .nav-item::after {
-    content: attr(aria-label);
-    position: absolute;
-    left: calc(100% + 10px);
-    top: 50%;
-    transform: translateY(-50%) translateX(-4px);
-    padding: 5px 9px;
-    border-radius: var(--radius-control);
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-size: var(--fs-small);
+  .nav-label {
+    display: block;
+    margin: 16px 10px 6px;
+    font-family: var(--mono);
+    font-size: 9.5px;
     font-weight: 500;
+    letter-spacing: 0.14em;
     line-height: 1;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.14s var(--ease), transform 0.14s var(--ease);
-    box-shadow: var(--shadow-menu);
+    text-transform: uppercase;
+    color: var(--faint);
   }
 
-  .nav-item:hover::after,
-  .nav-item:focus-visible::after {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
+  .nav-label:first-child {
+    margin-top: 4px;
   }
 
   .nav-item {
-    position: relative;
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 38px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-item:hover {
+    background: var(--sunken);
+  }
+
+  .nav-item.is-active {
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--border);
+    font-weight: 620;
+  }
+
+  /* The notch: a yellow tab sitting on the sidebar's edge, aligned to the
+     active destination. It is the same shape as the logo wedge. */
+  .nav-item.is-active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    width: 3px;
+    height: 18px;
+    transform: translateY(-50%);
+    background: var(--signal);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+    background: none;
+    color: var(--muted);
+  }
+
+  .nav-item.is-active .nav-icon {
+    background: none;
+    color: var(--text);
+  }
+
+  .nav-item-settings {
+    display: flex;
+    margin-top: 12px;
   }
 
   .sidebar-foot {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    align-items: stretch;
+    gap: 9px;
     margin-top: auto;
-    padding-top: 20px;
+    padding: 16px 10px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sidebar-foot .local-status {
+    font-size: 9px;
   }
 
   .sidebar-foot .link-muted {
-    font-size: 0;
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-control);
+    font-size: 11px;
   }
 
-  .sidebar-foot .link-muted::before {
-    content: "";
-    width: 16px;
-    height: 16px;
-    background: currentColor;
-    -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>')
-      no-repeat center / contain;
-    mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>')
-      no-repeat center / contain;
-  }
-
-  .storage-note {
+  .app-topbar {
     display: none;
   }
 
   .main {
-    padding: 28px 32px 48px;
+    padding: 36px 40px 64px;
   }
 
   .view {
@@ -2448,7 +3790,7 @@ select {
 
 /* The tablet is its own band: two narrow panels stack once either would be
    under about 340px, and the identity column is never the one truncated. */
-@media (min-width: 620px) and (max-width: 899px) {
+@media (min-width: 620px) and (max-width: 959px) {
   .main {
     padding: 20px 20px calc(76px + env(safe-area-inset-bottom, 0px));
   }
@@ -2473,7 +3815,7 @@ select {
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .sheet {
     align-items: center;
     padding: 24px;

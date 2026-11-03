@@ -289,7 +289,9 @@ async function main() {
     source: {
       repository: "https://github.com/hasaneyldrm/exercises-dataset",
       commit: upstreamCommit,
-      localPath: dir,
+      // The checkout path is machine-local and is deliberately not recorded:
+      // provenance is the repository plus the immutable commit above.
+      localPath: null,
       recordsRead: raw.length,
     },
     counts: {

@@ -17,7 +17,7 @@ export function renderHistory(store, { openId = null } = {}) {
     return `
       <section class="view view-history">
         <header class="view-head">
-          <div><h1>History</h1></div>
+          <div><h1>History</h1><p class="view-subline">Completed sessions, with every set on record.</p></div>
         </header>
         ${emptyState({
           icon: "history",

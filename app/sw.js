@@ -21,7 +21,7 @@
 
 // Bumped whenever the shell's CSS or JS changes: stale-while-revalidate would
 // otherwise serve the previous build for one more load after a deploy.
-const CACHE = "ironlog-shell-v5";
+const CACHE = "ironlog-shell-v6";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -29,8 +29,6 @@ const PRECACHE = [
   "./index.html",
   "./manifest.json",
   "./css/app.css",
-  "./css/kinetic.css",
-  "./css/hevy.css",
   "../assets/css/tailwind.css",
   "./js/main.js",
   "./js/store.js",
