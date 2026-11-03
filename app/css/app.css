@@ -1034,10 +1034,9 @@ select {
   cursor: pointer;
   padding-right: 26px;
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
-  background-size: 5px 5px, 5px 5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2368717b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: calc(100% - 12px) 50%;
+  background-size: 12px 8px;
   background-repeat: no-repeat;
   color: var(--text);
 }
@@ -3280,7 +3279,7 @@ select {
   overflow: hidden;
   display: flex;
   align-items: center;
-  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); /* taste-skill-ignore: functional scroll fade, not a colour fill */
 }
 
 .ticker-track {
@@ -3482,25 +3481,19 @@ select {
    mounts so a stray loop never runs behind real data. */
 
 .skeleton {
-  background-image: linear-gradient(
-    90deg,
-    var(--raised) 0%,
-    color-mix(in srgb, var(--raised) 55%, var(--surface)) 45%,
-    var(--raised) 90%
-  );
-  background-size: 220% 100%;
-  background-repeat: no-repeat;
+  background-color: var(--raised);
   border-radius: var(--radius-control);
   color: transparent !important;
   animation: skeleton-sweep 1400ms var(--ease-out-soft) infinite;
 }
 
 @keyframes skeleton-sweep {
-  from {
-    background-position: 130% 0;
+  0%,
+  100% {
+    background-color: var(--raised);
   }
-  to {
-    background-position: -30% 0;
+  50% {
+    background-color: color-mix(in srgb, var(--raised) 55%, var(--surface));
   }
 }
 

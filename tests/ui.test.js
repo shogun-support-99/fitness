@@ -34,10 +34,10 @@ test("statTile", async (t) => {
     assert.match(html, /&amp;/);
   });
 
-  await t.test("opts into the shared reveal and hover treatment", () => {
+  await t.test("opts into the shared reveal, without the hover-lift tell", () => {
     const html = statTile({ label: "Sets", value: "3" });
     assert.match(html, /data-reveal="rise"/);
-    assert.match(html, /hover-lift/);
+    assert.doesNotMatch(html, /hover-lift/);
   });
 });
 

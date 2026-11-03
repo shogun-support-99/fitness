@@ -112,9 +112,9 @@ node --test "tests/*.test.js"
 ```
 
 ```
-# tests 340
-# suites 72
-# pass 340
+# tests 356
+# suites 78
+# pass 356
 # fail 0
 ```
 
@@ -122,7 +122,10 @@ The tests cover the behaviour that is easy to get subtly wrong: Epley rounding w
 binary-float drift, personal records ignoring unticked and incomplete sessions, streak
 logic across missed days, ISO week bucketing, corrupt-payload recovery, storage quota
 failure, timer completion semantics, source-specific instruction routing, merged-library
-ID stability, and the provenance/licensing checks for every committed piece of licensed
+ID stability, full user journeys through store + views + timer (boot, log a workout, rest
+timer, plates, notes, finish, history, repeat, stats, library filters, settings, export /
+import / reset), asset integrity (every sw.js PRECACHE entry, JS import, manifest icon and
+preloaded font exists on disk), and the provenance/licensing checks for every committed piece of licensed
 media.
 
 ## Project layout
@@ -162,6 +165,7 @@ media.
 ├── fonts/                     # Self-hosted Figtree + Geist Mono (SIL OFL) and their licences
 ├── NOTICE                     # Third-party data/media attribution and exclusions
 ├── tests/                     # Node test-runner suites
+├── .agents/skills/design-taste-frontend/  # taste-skill v2 design lint (npm run lint:design)
 ├── CONTRIBUTING.md            # Checks, sw.js cache rule, media policy
 ├── 404.html                   # GitHub Pages not-found page
 └── .github/workflows/deploy.yml

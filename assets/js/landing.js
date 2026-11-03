@@ -150,7 +150,7 @@ if (demo) {
       best = Math.max(best, epley(w, r));
     }
     if (volumeEl) volumeEl.textContent = `${volume.toLocaleString("en-US")} kg`;
-    if (onermEl) onermEl.textContent = best > 0 ? `${best.toFixed(1)} kg` : "—";
+    if (onermEl) onermEl.textContent = best > 0 ? `${best.toFixed(1)} kg` : "0";
     if (setsEl) setsEl.textContent = `${done} / ${demoSets.length}`;
     if (prEl) prEl.hidden = !(best > prevBestOneRm);
   }
@@ -227,7 +227,7 @@ if (demo) {
         best = Math.max(best, epley(w, r));
         lines.push(`  ${w} kg x ${r}`);
       }
-      const head = `IronLog — Bench press demo · ${volume.toLocaleString("en-US")} kg volume · ${done}/${demoSets.length} sets` +
+      const head = `IronLog: Bench press demo · ${volume.toLocaleString("en-US")} kg volume · ${done}/${demoSets.length} sets` +
         (best > 0 ? ` · est. 1RM ${best.toFixed(1)} kg` : "") +
         (best > prevBestOneRm ? " · NEW PR" : "");
       const text = [head, ...lines].join("\n");

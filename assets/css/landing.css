@@ -1,6 +1,6 @@
 /* ==========================================================================
-   IronLog — marketing site
-   Design language: clean product UI in the spirit of Hevy's public front end —
+   IronLog marketing site
+   Design language: clean product UI in the spirit of Hevy's public front end,
    Figtree, a single blue action colour, near-white ground, soft grey pill
    secondaries, 12/16px radii, one thin rule doing all the separation work.
    Rebuilt for IronLog's own content; no third-party assets or fonts.
@@ -72,7 +72,6 @@
 
   --shell: 1180px;
   --font: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --shadow-float: 0 24px 60px rgba(16, 24, 40, 0.16), 0 4px 12px rgba(16, 24, 40, 0.06);
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
@@ -316,9 +315,7 @@ svg.tick,
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: saturate(180%) blur(14px);
-  border-bottom: 1px solid var(--line);
+  background: var(--bg);
 }
 
 .header-inner {
@@ -408,8 +405,7 @@ svg.tick,
 }
 
 .mobile-nav {
-  border-top: 1px solid var(--line);
-  background: #fff;
+  background: var(--bg);
   padding: 10px 0 18px;
 }
 
@@ -424,7 +420,6 @@ svg.tick,
   font-size: 16px;
   font-weight: 600;
   color: var(--ink-2);
-  border-bottom: 1px solid var(--line);
 }
 
 .mobile-nav .btn {
@@ -439,9 +434,7 @@ svg.tick,
   position: relative;
   overflow: clip;
   padding: clamp(40px, 6vw, 76px) 0 clamp(56px, 7vw, 96px);
-  background:
-    radial-gradient(720px 420px at 82% 8%, #f2f8ff 0%, rgba(242, 248, 255, 0) 70%),
-    #fff;
+  background: var(--tint);
 }
 
 .hero-grid {
@@ -531,7 +524,7 @@ svg.tick,
   padding: 10px;
   border-radius: 44px;
   background: #101114;
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-float); /* taste-skill-ignore: product UI fragment (data-ui) */
 }
 
 .device-notch {
@@ -611,7 +604,7 @@ svg.tick,
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   padding: 9px 2px 11px;
-  border-bottom: 1px solid #e8eaee;
+  border-bottom: 1px solid #e8eaee; /* taste-skill-ignore: product UI fragment (data-ui) */
 }
 
 .screen-stats div {
@@ -629,7 +622,7 @@ svg.tick,
 }
 
 .screen-stats strong {
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 12.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -640,7 +633,7 @@ svg.tick,
   margin: 10px -4px 0;
   border-radius: 14px 14px 0 0;
   padding: 12px 12px 4px;
-  box-shadow: 0 -1px 0 #e8eaee inset;
+  box-shadow: 0 -1px 0 #e8eaee inset; /* taste-skill-ignore: product UI fragment (data-ui) */
 }
 
 .screen-exercise-head {
@@ -689,13 +682,13 @@ svg.tick,
   align-items: center;
   gap: 6px;
   padding: 6px 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid #f0f2f5; /* taste-skill-ignore: product UI fragment (data-ui) */
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
 .set-row-head {
-  border-bottom: 1px solid #e8eaee;
+  border-bottom: 1px solid #e8eaee; /* taste-skill-ignore: product UI fragment (data-ui) */
   padding-bottom: 5px;
   color: var(--faint);
   font-size: 9px;
@@ -800,7 +793,7 @@ svg.tick,
 
 .screen-rest strong {
   margin-left: auto;
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
@@ -819,7 +812,7 @@ svg.tick,
   margin: 12px -12px 0;
   padding: 9px 0 12px;
   background: #fff;
-  border-top: 1px solid #e8eaee;
+  border-top: 1px solid #e8eaee; /* taste-skill-ignore: product UI fragment (data-ui) */
   font-size: 9.5px;
   font-weight: 600;
   color: var(--faint);
@@ -840,7 +833,7 @@ svg.tick,
   padding: 11px 16px 11px 12px;
   border-radius: var(--r-lg);
   background: #fff;
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-float); /* taste-skill-ignore: product UI fragment (data-ui) */
 }
 
 .float-icon {
@@ -946,10 +939,8 @@ svg.tick,
 /* ── Cards ─────────────────────────────────────────────────────────────── */
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--tint);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-card);
 }
 
 /* ── Showcase ──────────────────────────────────────────────────────────── */
@@ -982,7 +973,6 @@ svg.tick,
 .tabs button[aria-selected="true"] {
   background: #fff;
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1);
 }
 
 .tab-panels {
@@ -1031,9 +1021,9 @@ svg.tick,
 
 .panel-mock {
   border-radius: var(--r-xl);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line); /* taste-skill-ignore: product UI fragment (data-ui) */
   background: #fff;
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-float); /* taste-skill-ignore: product UI fragment (data-ui) */
   overflow: hidden;
 }
 
@@ -1042,7 +1032,7 @@ svg.tick,
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line); /* taste-skill-ignore: product UI fragment (data-ui) */
   background: #fafbfc;
 }
 
@@ -1093,7 +1083,7 @@ svg.tick,
 }
 
 .mock-totals strong {
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -1215,7 +1205,7 @@ svg.tick,
 }
 
 .mock-rest strong {
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1362,7 +1352,6 @@ svg.tick,
 .privacy-card {
   border-radius: var(--r-lg);
   background: var(--dark-2);
-  border: 1px solid #24282e;
   padding: 22px;
 }
 
@@ -1385,7 +1374,6 @@ svg.tick,
   justify-content: space-between;
   gap: 16px;
   padding: 12px 0;
-  border-bottom: 1px solid #24282e;
   font-size: 14.5px;
   color: #c6ccd4;
 }
@@ -1417,11 +1405,10 @@ svg.tick,
 }
 
 .faq-item {
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: var(--tint);
   overflow: hidden;
-  transition: border-color 0.2s var(--ease);
+  transition: background-color 0.2s var(--ease);
 }
 
 .faq-item[open] {
@@ -1505,7 +1492,6 @@ svg.tick,
 /* ── Footer ────────────────────────────────────────────────────────────── */
 
 .site-footer {
-  border-top: 1px solid var(--line);
   background: #fff;
   padding-top: clamp(40px, 5vw, 64px);
 }
@@ -1556,7 +1542,6 @@ svg.tick,
   justify-content: space-between;
   gap: 8px 24px;
   padding: 20px 0 32px;
-  border-top: 1px solid var(--line);
   font-size: 13px;
   color: var(--faint);
 }
@@ -1700,37 +1685,30 @@ html.js.motion-ok .squiggle-a {
   }
 }
 
-/* ── "What lifters love" cards ─────────────────────────────────────────── */
+/* ── "What lifters love" list ──────────────────────────────────────────── */
 
-.love-grid {
+.love-list {
+  list-style: none;
+  margin: clamp(32px, 5vw, 56px) 0 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(36px, 5vw, 60px) clamp(28px, 5vw, 80px);
 }
 
-.love-card {
-  padding: 22px 22px 20px;
+.love-list h3 {
+  margin: 0 0 10px;
+  font-size: clamp(20px, 2.2vw, 24px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
-.love-kicker {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--blue-ink);
-  background: var(--blue-soft);
-  border-radius: var(--r-pill);
-  padding: 3px 10px;
-}
-
-.love-card h3 {
-  margin: 12px 0 8px;
-  font-size: 19px;
-}
-
-.love-card p {
+.love-list p {
   margin: 0;
   color: var(--ink-2);
-  font-size: 14.5px;
-  line-height: 1.55;
+  font-size: 15.5px;
+  line-height: 1.6;
+  max-width: 54ch;
 }
 
 /* ── Interactive demo ──────────────────────────────────────────────────── */
@@ -1743,6 +1721,8 @@ html.js.motion-ok .squiggle-a {
 }
 
 .demo-card {
+  background: var(--surface);
+  border-radius: var(--r-xl);
   padding: 20px;
   font-size: 14px;
 }
@@ -1752,7 +1732,7 @@ html.js.motion-ok .squiggle-a {
   align-items: center;
   gap: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line); /* taste-skill-ignore: product UI fragment (data-ui) */
 }
 
 .demo-head .avatar {
@@ -1765,7 +1745,7 @@ html.js.motion-ok .squiggle-a {
   place-items: center;
   font-weight: 700;
   font-size: 13px;
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .demo-title {
@@ -1781,7 +1761,7 @@ html.js.motion-ok .squiggle-a {
 
 .demo-pr {
   margin-left: auto;
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 11.5px;
   font-weight: 700;
   color: var(--green-ink);
@@ -1802,8 +1782,8 @@ html.js.motion-ok .squiggle-a {
   align-items: center;
   gap: 8px;
   padding: 8px 2px;
-  border-bottom: 1px solid var(--line);
-  font-family: var(--mono);
+  border-bottom: 1px solid var(--line); /* taste-skill-ignore: product UI fragment (data-ui) */
+  font-variant-numeric: tabular-nums;
   transition: background-color 0.25s var(--ease);
 }
 
@@ -1812,7 +1792,7 @@ html.js.motion-ok .squiggle-a {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--faint);
-  border-bottom: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line-strong); /* taste-skill-ignore: product UI fragment (data-ui) */
 }
 
 .demo-row.is-done {
@@ -1840,7 +1820,7 @@ html.js.motion-ok .squiggle-a {
   place-items: center;
   cursor: pointer;
   color: transparent;
-  transition: all 0.2s var(--ease);
+  transition: background-color 0.2s var(--ease), transform 0.2s var(--ease);
 }
 
 .demo-tick:hover {
@@ -1883,7 +1863,7 @@ html.js.motion-ok .squiggle-a {
 }
 
 .demo-metrics strong {
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 17px;
 }
 
@@ -1908,7 +1888,7 @@ html.js.motion-ok .squiggle-a {
 }
 
 .demo-rest strong {
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 15px;
 }
 
@@ -1922,13 +1902,13 @@ html.js.motion-ok .squiggle-a {
 
 .demo-add {
   margin-left: auto;
-  border: 1px solid var(--blue);
-  color: var(--blue-ink);
-  background: transparent;
+  border: 0;
+  color: #fff;
+  background: var(--blue);
   border-radius: var(--r-pill);
   padding: 3px 10px;
   font-size: 12px;
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
@@ -1954,10 +1934,8 @@ html.js.motion-ok .squiggle-a {
 
 .compare-wrap {
   overflow-x: auto;
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  background: var(--tint);
 }
 
 .compare-table {
@@ -2016,16 +1994,15 @@ html.js.motion-ok .squiggle-a {
 .install-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: clamp(24px, 3vw, 40px);
 }
 
 .install-step {
-  padding: 22px;
   position: relative;
 }
 
 .install-n {
-  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 13px;
   font-weight: 700;
   color: #fff;
@@ -2052,7 +2029,7 @@ html.js.motion-ok .squiggle-a {
 /* ── Responsive additions ──────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
-  .love-grid,
+  .love-list,
   .install-grid {
     grid-template-columns: 1fr;
   }

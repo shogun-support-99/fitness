@@ -26,13 +26,21 @@ contributions easy — most changes are a single file plus a test.
 3. Run the checks locally — they are the same ones CI runs:
 
    ```bash
-   node --test "tests/*.test.js"          # unit tests
+   node --test "tests/*.test.js"          # unit tests (incl. user-journey + asset integrity)
    node scripts/check-links.mjs           # every local link in every HTML file resolves
+   npm run lint:design                    # taste-skill v2 lint, landing page (0 FAIL expected)
+   npm run lint:design:app                # taste-skill v2 lint, app screens (0 FAIL expected)
    for f in $(find app assets scripts -name '*.js'); do node --check "$f"; done
    ```
 
-4. Update `README.md` when behaviour changes (features list, test count, project layout).
-5. Open a pull request against `main`. The `Test and deploy` workflow runs the checks above
+4. Keep the design lint green. The repo carries taste-skill v2
+   (`.agents/skills/design-taste-frontend`); `npm run lint:design` scans the landing page and
+   `npm run lint:design:app` the app screens and both must report 0 FAIL. Product-UI fragments
+   on the landing page (phone mock, demo card, showcase panel) are marked `data-ui` and keep
+   their own borders/shadows; anything else that must keep a flagged pattern needs a
+   `taste-skill-ignore` comment with the reason.
+5. Update `README.md` when behaviour changes (features list, test count, project layout).
+6. Open a pull request against `main`. The `Test and deploy` workflow runs the checks above
    plus the licensing assertions, then deploys to GitHub Pages on merge.
 
 ## Where things live

@@ -16,7 +16,7 @@ const ROUTINES = [
 
 export function renderRoutineCards() {
   return `<div class="routine-grid" data-reveal="rise">${ROUTINES.map((routine, index) => `
-    <button class="routine-card routine-${routine.slug} hover-lift motion-safe:animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" aria-label="Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises">
+    <button class="routine-card routine-${routine.slug} motion-safe:animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" aria-label="Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises">
       <span class="routine-icon">${icon(routine.icon)}</span>
       <span class="routine-copy">
         <strong>${esc(routine.label)}</strong>
@@ -24,7 +24,6 @@ export function renderRoutineCards() {
         <span class="routine-count">${routine.muscles.length} exercises</span>
       </span>
       <span class="routine-go">${icon("chevron")}</span>
-      <span class="routine-shine" aria-hidden="true"></span>
     </button>`).join("")}</div>`;
 }
 
