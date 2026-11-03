@@ -111,3 +111,136 @@ if (revealables.length) {
 doc.querySelectorAll("[data-year]").forEach((el) => {
   el.textContent = String(new Date().getFullYear());
 });
+
+/* ── Interactive demo logger ─────────────────────────────────────────────
+   A miniature of the real logging flow, running on this page: tick a set,
+   the row confirms, volume and est. 1RM recompute, a PR flag appears when
+   last time's best is beaten, and the rest countdown starts itself. */
+
+const demo = doc.querySelector("[data-demo]");
+
+if (demo) {
+  const demoSets = [...demo.querySelectorAll(".demo-set")];
+  const volumeEl = demo.querySelector("[data-demo-volume]");
+  const onermEl = demo.querySelector("[data-demo-onerm]");
+  const setsEl = demo.querySelector("[data-demo-sets]");
+  const prEl = demo.querySelector("[data-demo-pr]");
+  const restRead = demo.querySelector("[data-demo-rest-read]");
+  const restBox = demo.querySelector("[data-demo-rest]");
+  const copyBtn = demo.querySelector("[data-demo-copy]");
+
+  // Last session: 72.5 kg x 8 -> est. 1RM 91.8 (Epley).
+  const prevBestOneRm = 72.5 * (1 + 8 / 30);
+  const epley = (w, r) => (w > 0 && r > 0 ? w * (1 + r / 30) : 0);
+  const fmtClock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+  let restEndsAt = null;
+  let restHandle = null;
+
+  function recalc() {
+    let volume = 0;
+    let best = 0;
+    let done = 0;
+    for (const row of demoSets) {
+      if (!row.classList.contains("is-done")) continue;
+      const w = Number(row.dataset.weight);
+      const r = Number(row.dataset.reps);
+      done += 1;
+      volume += w * r;
+      best = Math.max(best, epley(w, r));
+    }
+    if (volumeEl) volumeEl.textContent = `${volume.toLocaleString("en-US")} kg`;
+    if (onermEl) onermEl.textContent = best > 0 ? `${best.toFixed(1)} kg` : "0";
+    if (setsEl) setsEl.textContent = `${done} / ${demoSets.length}`;
+    if (prEl) prEl.hidden = !(best > prevBestOneRm);
+  }
+
+  function tickRest() {
+    if (!restRead) return;
+    if (restEndsAt === null) {
+      restRead.textContent = "–:––";
+      restBox?.classList.remove("is-running");
+      return;
+    }
+    const left = Math.max(0, Math.round((restEndsAt - Date.now()) / 1000));
+    restRead.textContent = fmtClock(left);
+    restBox?.classList.toggle("is-running", left > 0);
+    if (left <= 0) stopRest();
+  }
+
+  function startRest() {
+    restEndsAt = Date.now() + 90 * 1000;
+    if (restHandle) clearInterval(restHandle);
+    restHandle = setInterval(tickRest, 250);
+    tickRest();
+  }
+
+  function stopRest() {
+    restEndsAt = null;
+    if (restHandle) {
+      clearInterval(restHandle);
+      restHandle = null;
+    }
+    tickRest();
+  }
+
+  function flash(btn, msg) {
+    if (!btn) return;
+    const old = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => {
+      btn.textContent = old;
+    }, 1600);
+  }
+
+  demo.addEventListener("click", (event) => {
+    const tick = event.target.closest("[data-demo-tick]");
+    if (tick) {
+      const row = tick.closest(".demo-set");
+      const nowDone = !row.classList.contains("is-done");
+      row.classList.toggle("is-done", nowDone);
+      tick.setAttribute("aria-pressed", String(nowDone));
+      if (nowDone) {
+        startRest();
+      } else if (!demoSets.some((s) => s.classList.contains("is-done"))) {
+        stopRest();
+      }
+      recalc();
+      return;
+    }
+    if (event.target.closest("[data-demo-add15]") && restEndsAt !== null) {
+      restEndsAt += 15 * 1000;
+      tickRest();
+      return;
+    }
+    if (event.target.closest("[data-demo-copy]")) {
+      let volume = 0;
+      let best = 0;
+      let done = 0;
+      const lines = [];
+      for (const row of demoSets) {
+        if (!row.classList.contains("is-done")) continue;
+        const w = Number(row.dataset.weight);
+        const r = Number(row.dataset.reps);
+        done += 1;
+        volume += w * r;
+        best = Math.max(best, epley(w, r));
+        lines.push(`  ${w} kg x ${r}`);
+      }
+      const head = `IronLog: Bench press demo · ${volume.toLocaleString("en-US")} kg volume · ${done}/${demoSets.length} sets` +
+        (best > 0 ? ` · est. 1RM ${best.toFixed(1)} kg` : "") +
+        (best > prevBestOneRm ? " · NEW PR" : "");
+      const text = [head, ...lines].join("\n");
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(
+          () => flash(copyBtn, "Copied!"),
+          () => flash(copyBtn, "Select & copy manually"),
+        );
+      } else {
+        flash(copyBtn, "Clipboard unavailable");
+      }
+    }
+  });
+
+  recalc();
+}

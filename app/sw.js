@@ -21,7 +21,8 @@
 
 // Bumped whenever the shell's CSS or JS changes: stale-while-revalidate would
 // otherwise serve the previous build for one more load after a deploy.
-const CACHE = "ironlog-shell-v5";
+// New JS module? Add it to PRECACHE below AND bump this version.
+const CACHE = "ironlog-shell-v7";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -49,6 +50,7 @@ const PRECACHE = [
   "./js/views/library.js",
   "./js/views/settings.js",
   "./js/views/routines.js",
+  "./js/plates.js",
   "../assets/img/logo.svg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

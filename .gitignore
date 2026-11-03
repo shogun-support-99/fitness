@@ -30,3 +30,6 @@ npm-debug.log*
 # Design-skill working files (dealt directions; not part of the site)
 .taste-skill/
 /freebuff-sites-build/
+
+# Scratch/debug artifacts from local sessions (never part of the site)
+artifacts/

@@ -118,12 +118,14 @@ function matchRank(exercise, q) {
  * @param {Exercise[]} list
  * @param {string} query
  * @param {string} [muscle] optional muscle-group filter
+ * @param {string} [equipment] optional equipment filter ("all" = no filter)
  */
-export function searchExercises(list, query, muscle = "all") {
+export function searchExercises(list, query, muscle = "all", equipment = "all") {
   const q = (query ?? "").trim().toLowerCase();
 
   const filtered = list.filter((e) => {
     if (muscle !== "all" && e.muscle !== muscle) return false;
+    if (equipment !== "all" && e.equipment !== equipment) return false;
     if (q.length === 0) return true;
     return matchRank(e, q) >= 0;
   });

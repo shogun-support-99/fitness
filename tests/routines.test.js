@@ -59,10 +59,10 @@ test("renderRoutineCards", async (t) => {
     assert.match(html, /data-split="Full body"/);
   });
 
-  await t.test("keeps motion classes and the sheen decoration", () => {
+  await t.test("keeps the entrance motion but no sheen or hover-lift tells", () => {
     const html = renderRoutineCards();
     assert.match(html, /motion-safe:animate-scale-in/);
-    assert.match(html, /routine-shine/);
-    assert.match(html, /hover-lift/);
+    assert.doesNotMatch(html, /routine-shine/);
+    assert.doesNotMatch(html, /hover-lift/);
   });
 });

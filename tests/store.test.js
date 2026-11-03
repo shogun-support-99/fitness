@@ -563,3 +563,97 @@ describe("memoryStorage", () => {
     assert.equal(mem.getItem("a"), null);
   });
 });
+
+// ── Import sanitisation ──────────────────────────────────────────────────
+
+describe("importData sanitisation", () => {
+  test("a hand-edited or foreign export is normalised, never trusted", () => {
+    const hostile = JSON.stringify({
+      workouts: [
+        {},
+        { id: "w1", name: "Ok", status: "completed", startedAt: "2026-10-01T10:00:00Z", endedAt: "2026-10-01T11:00:00Z",
+          exercises: [{ exerciseId: "custom-x", sets: [{ weight: "80", reps: "8", done: true }, null, { weight: -5 }] }] },
+        { id: "w2", status: "active", startedAt: "not-a-date" },
+        { id: "w3", status: "active", startedAt: "2026-10-02T10:00:00Z" },
+      ],
+      customExercises: [{ id: "custom-x", name: "X" }, { noId: true }, null],
+    });
+    const result = store.importData(hostile);
+    assert.ok(result.ok);
+    assert.equal(result.workouts, 4);
+
+    const workouts = store.workouts();
+    // The empty record still has every field the views assume.
+    const empty = workouts.find((w) => w.exercises.length === 0);
+    assert.ok(empty);
+    assert.equal(typeof empty.id, "string");
+    assert.equal(empty.status, "completed");
+    assert.ok(!Number.isNaN(new Date(empty.startedAt).getTime()));
+
+    const ok = workouts.find((w) => w.id === "w1");
+    assert.equal(ok.exercises[0].sets.length, 2, "null set dropped");
+    assert.equal(ok.exercises[0].sets[0].weight, 80);
+    assert.equal(ok.exercises[0].sets[1].weight, 0, "negative weight clamped");
+
+    // Two "active" imports: only the first stays active.
+    assert.equal(workouts.filter((w) => w.status === "active").length, 1);
+
+    // Custom exercises without an id are dropped, the rest are marked custom.
+    assert.equal(store.doc.customExercises.length, 1);
+    assert.equal(store.doc.customExercises[0].custom, true);
+  });
+
+  test("sorting never produces NaN comparisons from imported dates", () => {
+    // "garbage" is sanitised to now, which is newer than b's fixed 2026 date.
+    store.importData(JSON.stringify({ workouts: [{ id: "a", startedAt: "garbage" }, { id: "b", startedAt: "2026-01-01T00:00:00Z" }] }));
+    const ordered = store.workouts();
+    assert.deepEqual(ordered.map((w) => w.id), ["a", "b"]);
+    for (const w of ordered) assert.ok(!Number.isNaN(new Date(w.startedAt).getTime()));
+  });
+
+  test("rejects payloads without a workouts array", () => {
+    assert.equal(store.importData('{"nope":1}').ok, false);
+    assert.equal(store.importData("not json").ok, false);
+  });
+});
+
+// ── Unit conversion ──────────────────────────────────────────────────────
+
+describe("convertUnits", () => {
+  test("converts every logged weight and updates the setting", () => {
+    const started = store.startWorkout({ name: "Bench" });
+    const entry = store.addExerciseToWorkout(started.workout.id, "custom-landmine-press").entry;
+    store.addSet(started.workout.id, entry.id, { weight: 100, reps: 5 });
+    store.addSet(started.workout.id, entry.id, { weight: 0, reps: 0 });
+
+    const result = store.convertUnits("kg", "lb");
+    assert.equal(result.converted, 1, "zero-weight rows are left alone");
+    assert.equal(store.settings.units, "lb");
+    const weights = store.getWorkout(started.workout.id).exercises[0].sets.map((s) => s.weight);
+    assert.equal(weights[0], 220, "100 kg rounds to the nearest 1 lb");
+    assert.equal(weights[1], 0);
+
+    const back = store.convertUnits("lb", "kg");
+    assert.equal(back.converted, 1);
+    assert.equal(store.getWorkout(started.workout.id).exercises[0].sets[0].weight, 100, "round-trips to the nearest 0.5 kg");
+  });
+
+  test("same-unit call is a no-op but still stores the setting", () => {
+    const result = store.convertUnits("kg", "kg");
+    assert.equal(result.converted, 0);
+    assert.equal(store.settings.units, "kg");
+  });
+});
+
+// ── Custom exercise id collisions ────────────────────────────────────────
+
+describe("addCustomExercise collisions", () => {
+  test("a second custom exercise with the same name gets a distinct id", () => {
+    const first = store.addCustomExercise({ name: "My Lift" });
+    const second = store.addCustomExercise({ name: "My Lift" });
+    assert.ok(first.ok && second.ok);
+    assert.notEqual(first.exercise.id, second.exercise.id);
+    assert.equal(store.doc.customExercises.length, 2);
+    assert.equal(Object.keys(store.exerciseIndex()).filter((k) => k.startsWith("custom-my-lift")).length, 2);
+  });
+});

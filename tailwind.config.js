@@ -127,14 +127,6 @@ export default {
           from: { backgroundPosition: "200% 0" },
           to: { backgroundPosition: "-200% 0" },
         },
-        sheen: {
-          from: { transform: "translateX(-140%) skewX(-18deg)" },
-          to: { transform: "translateX(240%) skewX(-18deg)" },
-        },
-        "gradient-pan": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-        },
         "pulse-ring": {
           "0%": { transform: "scale(0.9)", opacity: "0.55" },
           "70%": { transform: "scale(1.35)", opacity: "0" },
@@ -187,8 +179,6 @@ export default {
         drift: "drift 14s ease-in-out infinite",
         breathe: "breathe 4.5s ease-in-out infinite",
         shimmer: "shimmer 3.2s linear infinite",
-        sheen: "sheen 1.1s cubic-bezier(0.22, 1, 0.36, 1)",
-        "gradient-pan": "gradient-pan 7s ease infinite",
         "pulse-ring": "pulse-ring 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite",
         glow: "glow 2.6s ease-in-out infinite",
         wiggle: "wiggle 0.5s ease-in-out",
@@ -197,19 +187,6 @@ export default {
         marquee: "marquee 26s linear infinite",
         "draw-line": "draw-line 1.4s cubic-bezier(0.16, 1, 0.3, 1) both",
         "blink-soft": "blink-soft 2.4s ease-in-out infinite",
-      },
-      boxShadow: {
-        lift: "0 18px 40px -22px rgba(23, 34, 44, 0.32)",
-        "lift-lg": "0 28px 60px -28px rgba(23, 34, 44, 0.4)",
-        glow: "0 0 0 1px rgba(224, 90, 27, 0.16), 0 14px 34px -18px rgba(224, 90, 27, 0.55)",
-      },
-      backgroundImage: {
-        "brand-gradient": "linear-gradient(120deg, #e05a1b 0%, #f08a3c 45%, #e05a1b 100%)",
-        "brand-soft": "linear-gradient(135deg, rgba(224, 90, 27, 0.12), rgba(224, 90, 27, 0.02))",
-        "mesh-warm":
-          "radial-gradient(circle at 18% 22%, rgba(224, 90, 27, 0.16), transparent 42%), radial-gradient(circle at 82% 8%, rgba(240, 138, 60, 0.14), transparent 38%), radial-gradient(circle at 62% 88%, rgba(27, 150, 232, 0.1), transparent 46%)",
-        "sheen-line":
-          "linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.55) 48%, transparent 100%)",
       },
       transitionTimingFunction: {
         out: "cubic-bezier(0.22, 1, 0.36, 1)",

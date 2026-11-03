@@ -36,7 +36,7 @@ export function renderSettings(store) {
             )
             .join("")}
         </div>
-        <p class="panel-hint">Applies to labels and new entries. Existing numbers are left as you typed them.</p>
+        <p class="panel-hint">Switching converts every logged weight too, rounded to a loadable 0.5 kg / 1 lb.</p>
       </section>
 
       <section class="panel" data-reveal="rise">

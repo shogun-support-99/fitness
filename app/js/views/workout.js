@@ -81,13 +81,21 @@ export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
         ? `<button class="btn btn-outline btn-wide" data-action="open-picker">${icon("plus")} Add exercise</button>`
         : ""}
 
+      <details class="workout-notes" ${workout.notes ? "open" : ""}>
+        <summary>${icon("info")} Session notes</summary>
+        <textarea class="notes-field" rows="3" maxlength="500" placeholder="How did it feel? What to change next time…"
+                  data-action="set-workout-notes" data-focus-key="workout-notes"
+                  aria-label="Workout notes">${esc(workout.notes ?? "")}</textarea>
+      </details>
+
       <div class="logger-actions">
         <button class="btn btn-danger-ghost" data-action="discard-workout">${icon("trash")} Discard workout</button>
       </div>
     </section>
 
     ${renderPicker(store)}
-    ${renderSummaryModal()}`;
+    ${renderSummaryModal()}
+    ${renderPlateSheet()}`;
 }
 
 function renderTimerBar(timer) {
@@ -147,7 +155,7 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
           <span role="columnheader"><span class="sr-only">Done</span></span>
         </div>
 
-        ${entry.sets.map((set, i) => renderSetRow(entry, set, i, previous, units)).join("")}
+        ${entry.sets.map((set, i) => renderSetRow(entry, set, i, previous, units, exercise)).join("")}
       </div>
 
       <div class="exercise-foot">
@@ -158,19 +166,23 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
     </article>`;
 }
 
-function renderSetRow(entry, set, index, previous, units) {
+function renderSetRow(entry, set, index, previous, units, exercise = null) {
   const oneRm = set.weight > 0 && set.reps > 0 ? estimatedOneRepMax(set.weight, set.reps) : 0;
   const eid = esc(entry.id);
   const sid = esc(set.id);
+  // Barbell lifts get the plate-math shortcut: one tap from the weight cell to
+  // "what plates make this total".
+  const isBarbell = /barbell/i.test(exercise?.equipment ?? "");
   return `
     <div class="set-row ${set.done ? "is-done" : ""}" role="row" data-set="${sid}">
       <span class="set-number" role="cell">${index + 1}</span>
       <span class="set-previous" role="cell">${previous ? `${previous.weight}×${previous.reps}` : "—"}</span>
-      <span role="cell">
+      <span role="cell" class="set-weight-cell">
         <input class="set-input" type="number" inputmode="decimal" min="0" step="0.5"
                value="${set.weight}" placeholder="0"
                data-action="set-weight" data-entry="${eid}" data-set="${sid}"
                aria-label="Set ${index + 1} weight" />
+        ${isBarbell ? `<button class="icon-btn plate-btn" data-action="open-plates" data-entry="${eid}" data-set="${sid}" aria-label="Plate calculator for set ${index + 1}" title="Plate calculator">${icon("dumbbell")}</button>` : ""}
       </span>
       <span role="cell">
         <input class="set-input" type="number" inputmode="numeric" min="0" step="1"
@@ -253,6 +265,32 @@ function renderSummaryModal() {
       <div class="sheet-backdrop" data-action="dismiss-summary"></div>
       <div class="sheet-panel sheet-panel-sm" role="dialog" aria-modal="true" aria-label="Workout summary">
         <div id="summary-content"></div>
+      </div>
+    </div>`;
+}
+
+/**
+ * Plate-calculator sheet shell. main.js fills #plate-sheet-content from
+ * plateState; the target input lives outside that container so typing in it
+ * never re-renders the field out from under the cursor.
+ */
+export function renderPlateSheet() {
+  return `
+    <div class="sheet" id="plate-sheet" hidden>
+      <div class="sheet-backdrop" data-action="close-plates"></div>
+      <div class="sheet-panel sheet-panel-sm" role="dialog" aria-modal="true" aria-label="Plate calculator">
+        <header class="sheet-head">
+          <h2>Plate calculator</h2>
+          <button class="icon-btn" data-action="close-plates" aria-label="Close">${icon("back")}</button>
+        </header>
+        <div class="sheet-form">
+          <label class="field">
+            <span>Total weight on the bar</span>
+            <input type="number" id="plate-target" inputmode="decimal" min="0" step="0.5" data-action="plates-target" aria-label="Target total weight" />
+          </label>
+          <div id="plate-sheet-content"></div>
+          <button class="btn btn-primary btn-wide" data-action="plates-apply">${icon("check")} Set this weight</button>
+        </div>
       </div>
     </div>`;
 }

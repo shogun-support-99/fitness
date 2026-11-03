@@ -7,7 +7,9 @@
   "scripts": {
     "build:css": "tailwindcss -i ./src/tailwind.css -o ./assets/css/tailwind.css --minify",
     "test": "node --test \"tests/*.test.js\"",
-    "check": "node scripts/check-links.mjs"
+    "check": "node scripts/check-links.mjs",
+    "lint:design": "node .agents/skills/design-taste-frontend/scripts/lint.mjs index.html 404.html assets src",
+    "lint:design:app": "node .agents/skills/design-taste-frontend/scripts/lint.mjs --app app/index.html app/css app/js"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

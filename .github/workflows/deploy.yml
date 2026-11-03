@@ -41,6 +41,10 @@ jobs:
 
       - name: Verify local asset links resolve
         run: node scripts/check-links.mjs
+      - name: Design lint (taste-skill, landing page)
+        run: npm run lint:design
+      - name: Design lint (taste-skill, app screens)
+        run: npm run lint:design:app
 
       # Gym Visual 180x180 GIFs/stills ship under a media licence held by the
       # app operator, with attribution retained on every record. They live only

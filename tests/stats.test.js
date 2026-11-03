@@ -9,6 +9,7 @@ import { test, describe } from "node:test";
 import {
   bestSet,
   compactNumber,
+  convertWeight,
   estimatedOneRepMax,
   exerciseProgression,
   exerciseVolume,
@@ -498,5 +499,25 @@ describe("round", () => {
   test("returns 0 for non-finite input", () => {
     assert.equal(round(NaN), 0);
     assert.equal(round(Infinity), 0);
+  });
+});
+
+describe("convertWeight", () => {
+  test("kg to lb rounds to the nearest pound", () => {
+    assert.equal(convertWeight(100, "kg", "lb"), 220);
+    assert.equal(convertWeight(20, "kg", "lb"), 44); // 44.09 lb
+  });
+
+  test("lb to kg rounds to the nearest half kilo", () => {
+    assert.equal(convertWeight(225, "lb", "kg"), 102); // 102.06 kg
+    assert.equal(convertWeight(45, "lb", "kg"), 20.5); // 20.41 kg
+  });
+
+  test("same unit and junk input are safe", () => {
+    assert.equal(convertWeight(80, "kg", "kg"), 80);
+    assert.equal(convertWeight(0, "kg", "lb"), 0);
+    assert.equal(convertWeight(-5, "kg", "lb"), 0);
+    assert.equal(convertWeight(NaN, "kg", "lb"), 0);
+    assert.equal(convertWeight(50, "kg", "stone"), 50, "unknown target unit passes through");
   });
 });

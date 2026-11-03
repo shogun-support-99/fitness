@@ -156,7 +156,7 @@ function renderStartPanel(store, weekCount) {
       <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-reveal="rise">
         <div class="start-panel-copy">
           <span class="energy-badge">${icon("bolt")} Training mode</span>
-          <h2>Small sets. <span class="text-gradient motion-safe:animate-gradient-pan">Big momentum.</span></h2>
+          <h2>Small sets. <span>Big momentum.</span></h2>
           <p>Pick a routine, beat your previous numbers, and let every completed set move you forward.</p>
           <div class="hero-actions">
             <button class="btn btn-primary btn-lg" data-action="start-workout">
