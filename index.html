@@ -44,6 +44,19 @@
         document.documentElement.classList.add("motion-ok");
       }
     </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "IronLog",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Any — installable web app (PWA)",
+      "url": "https://shogun-support-99.github.io/fitness/",
+      "description": "A free, private, offline-first strength-training log. Log sets with last week's numbers in view, run the rest timer, track personal records and progress charts. No account, no server, no tracking.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "license": "https://opensource.org/licenses/MIT"
+    }
+    </script>
     <script type="module" src="assets/js/landing.js"></script>
   </head>
   <body>
@@ -88,7 +101,8 @@
 
         <nav class="site-nav" aria-label="Main">
           <a href="#features">Features</a>
-          <a href="#workout">Workout</a>
+          <a href="#demo">Try it</a>
+          <a href="#compare">Compare</a>
           <a href="#routines">Routines</a>
           <a href="#privacy">Privacy</a>
           <a href="#faq">FAQ</a>
@@ -106,7 +120,8 @@
       <div class="mobile-nav" id="mobile-nav" hidden data-mobile-nav>
         <nav aria-label="Mobile">
           <a href="#features">Features</a>
-          <a href="#workout">Workout</a>
+          <a href="#demo">Try it</a>
+          <a href="#compare">Compare</a>
           <a href="#routines">Routines</a>
           <a href="#privacy">Privacy</a>
           <a href="#faq">FAQ</a>
@@ -214,6 +229,51 @@
         </div>
       </section>
 
+      <section class="section" id="love">
+        <div class="shell">
+          <header class="split-head" data-reveal>
+            <h2>Built for what lifters actually ask for.</h2>
+            <p class="section-lede">
+              The most common reason people switch workout apps is logging speed. The most common
+              reason they stay is seeing progress. IronLog is designed around exactly those two.
+            </p>
+          </header>
+
+          <div class="love-grid">
+            <article class="love-card card" data-reveal>
+              <span class="love-kicker">01</span>
+              <h3>Log a set in seconds</h3>
+              <p>Weight and reps arrive prefilled from last session. Tick the set and get back under the bar — “too many taps mid-set” is the top complaint about workout apps.</p>
+            </article>
+            <article class="love-card card" data-reveal>
+              <span class="love-kicker">02</span>
+              <h3>Know what to beat</h3>
+              <p>Last session's numbers sit in every row, so progressive overload is a decision, not a memory test.</p>
+            </article>
+            <article class="love-card card" data-reveal>
+              <span class="love-kicker">03</span>
+              <h3>A rest timer that runs itself</h3>
+              <p>Starts when you tick a set, survives reloads and tab switches, and takes a +15s nudge mid-count without losing the sequence.</p>
+            </article>
+            <article class="love-card card" data-reveal>
+              <span class="love-kicker">04</span>
+              <h3>Charts that prove progress</h3>
+              <p>Weekly volume, muscle balance, streaks and a per-lift estimated 1RM trend — the chart you open when you think you've plateaued.</p>
+            </article>
+            <article class="love-card card" data-reveal>
+              <span class="love-kicker">05</span>
+              <h3>Records worth celebrating</h3>
+              <p>Heaviest weight, most reps and best estimated 1RM are tracked separately per lift, named in the session summary and flagged the moment they fall.</p>
+            </article>
+            <article class="love-card card" data-reveal>
+              <span class="love-kicker">06</span>
+              <h3>Private by architecture</h3>
+              <p>No account, no server, no analytics — the thing Strava users keep asking for. Everything stays in your browser, exports as one JSON file, and works offline.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section class="section" id="features">
         <div class="shell">
           <header class="split-head" data-reveal>
@@ -261,6 +321,75 @@
             <svg class="notion-callout-mark" aria-hidden="true"><use href="#i-check" /></svg>
             <p><strong>The log is the product.</strong> There is no feed to scroll and nothing to buy: every screen is a set you own.</p>
           </aside>
+        </div>
+      </section>
+
+      <section class="section section-tint" id="demo">
+        <div class="shell">
+          <header class="split-head" data-reveal>
+            <h2>Try the logger right here.</h2>
+            <p class="section-lede">
+              This is the real logging flow running on this page — no install, no account. Tick a
+              set and watch the numbers move.
+            </p>
+          </header>
+
+          <div class="demo-grid">
+            <div class="demo-card card" data-reveal data-demo>
+              <div class="demo-head">
+                <span class="avatar">BP</span>
+                <div class="demo-title">
+                  <strong>Barbell Bench Press</strong>
+                  <span class="demo-prev">Last time: 72.5 kg × 8</span>
+                </div>
+                <span class="demo-pr" data-demo-pr hidden>New PR</span>
+              </div>
+
+              <div class="demo-row demo-row-head"><span>Set</span><span>Previous</span><span>kg</span><span>Reps</span><span></span></div>
+              <div class="demo-row demo-set" data-weight="80" data-reps="8">
+                <span class="demo-n">1</span><span class="demo-prev">72.5×8</span><span class="demo-w">80</span><span class="demo-r">8</span>
+                <button type="button" class="demo-tick" data-demo-tick aria-pressed="false" aria-label="Mark set 1 done"><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg></button>
+              </div>
+              <div class="demo-row demo-set" data-weight="80" data-reps="7">
+                <span class="demo-n">2</span><span class="demo-prev">72.5×8</span><span class="demo-w">80</span><span class="demo-r">7</span>
+                <button type="button" class="demo-tick" data-demo-tick aria-pressed="false" aria-label="Mark set 2 done"><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg></button>
+              </div>
+              <div class="demo-row demo-set" data-weight="82.5" data-reps="6">
+                <span class="demo-n">3</span><span class="demo-prev">72.5×8</span><span class="demo-w">82.5</span><span class="demo-r">6</span>
+                <button type="button" class="demo-tick" data-demo-tick aria-pressed="false" aria-label="Mark set 3 done"><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg></button>
+              </div>
+
+              <div class="demo-metrics">
+                <div><span>Volume</span><strong data-demo-volume>0 kg</strong></div>
+                <div><span>Best est. 1RM</span><strong data-demo-onerm>—</strong></div>
+                <div><span>Sets</span><strong data-demo-sets>0 / 3</strong></div>
+              </div>
+
+              <div class="demo-rest" data-demo-rest>
+                <svg aria-hidden="true"><use href="#i-timer" /></svg>
+                <span>Rest</span>
+                <strong data-demo-rest-read>–:––</strong>
+                <button type="button" class="demo-add" data-demo-add15>+15s</button>
+              </div>
+
+              <button type="button" class="btn btn-secondary btn-sm" data-demo-copy>Copy session summary</button>
+            </div>
+
+            <div class="demo-copy" data-reveal>
+              <h3>What you're tapping</h3>
+              <ul class="checks">
+                <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> One tap marks the set done — the row turns green</li>
+                <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Volume and estimated 1RM update live as you log</li>
+                <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Beating last time's best 1RM raises the PR flag</li>
+                <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> The rest timer starts itself and counts down</li>
+                <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Copy the summary to share it as plain text — nothing is uploaded</li>
+              </ul>
+              <a class="btn btn-primary" href="./app/#/workout">
+                Open the real logger
+                <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -393,6 +522,39 @@
         </div>
       </section>
 
+      <section class="section" id="compare">
+        <div class="shell">
+          <header class="split-head" data-reveal>
+            <h2>How IronLog compares.</h2>
+            <p class="section-lede">
+              The same core loop as the big names — fast logging, previous numbers, rest timer,
+              records — without an account, a paywall or a feed. Honest column by column.
+            </p>
+          </header>
+
+          <div class="compare-wrap" data-reveal>
+            <table class="compare-table">
+              <thead>
+                <tr><th scope="col">Feature</th><th scope="col" class="col-iron">IronLog</th><th scope="col">Strong</th><th scope="col">Hevy</th><th scope="col">Strava</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Price</th><td class="col-iron"><strong>Free</strong>, no account</td><td>Free tier caps routines; paid ~$30/yr</td><td>Generous free tier; pro ~$24/yr</td><td>Free tier; subscription for full features</td></tr>
+                <tr><th scope="row">Last session's numbers in the row</th><td class="col-iron">✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+                <tr><th scope="row">Rest timer starts itself</th><td class="col-iron">✓ survives reloads</td><td>✓</td><td>✓</td><td>—</td></tr>
+                <tr><th scope="row">Plate calculator</th><td class="col-iron">✓ one tap</td><td>Paid feature</td><td>✓ free</td><td>—</td></tr>
+                <tr><th scope="row">Per-lift progress chart</th><td class="col-iron">✓ est. 1RM trend</td><td>Paid feature</td><td>✓</td><td>Segments (GPS sports)</td></tr>
+                <tr><th scope="row">Routines (Push / Pull / Legs…)</th><td class="col-iron">✓ unlimited</td><td>3 on free</td><td>4 on free</td><td>—</td></tr>
+                <tr><th scope="row">Works fully offline</th><td class="col-iron">✓ installable PWA</td><td>✓</td><td>Partial</td><td>Partial</td></tr>
+                <tr><th scope="row">Social feed</th><td class="col-iron">Copy &amp; share text (nothing uploaded)</td><td>—</td><td>✓</td><td>✓ core feature</td></tr>
+                <tr><th scope="row">Data export</th><td class="col-iron">Full JSON backup</td><td>CSV (paid)</td><td>CSV</td><td>—</td></tr>
+                <tr><th scope="row">Where your data lives</th><td class="col-iron"><strong>Your browser only</strong></td><td>Their servers</td><td>Their servers</td><td>Their servers</td></tr>
+              </tbody>
+            </table>
+            <p class="compare-note">Pricing and feature tiers as published by each app in November 2026 — check their sites for current terms. IronLog is MIT-licensed open source.</p>
+          </div>
+        </div>
+      </section>
+
       <section class="section privacy" id="privacy">
         <div class="shell privacy-inner">
           <div class="privacy-copy" data-reveal>
@@ -417,6 +579,36 @@
               <li><span>Where you are</span><b>Nothing</b></li>
             </ul>
             <p class="privacy-card-foot">Because there is no server to ask.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tint" id="install">
+        <div class="shell">
+          <header class="split-head" data-reveal>
+            <h2>Install it like an app. Keep it like a notebook.</h2>
+            <p class="section-lede">
+              IronLog is an installable web app: add it to your home screen once and it opens
+              instantly, offline, with no store and no account.
+            </p>
+          </header>
+
+          <div class="install-grid">
+            <div class="install-step card" data-reveal>
+              <span class="install-n">1</span>
+              <h3>Open IronLog</h3>
+              <p>Tap “Start logging” and land in the app on this site.</p>
+            </div>
+            <div class="install-step card" data-reveal>
+              <span class="install-n">2</span>
+              <h3>Add to home screen</h3>
+              <p>iOS: Share → “Add to Home Screen”. Android/Chrome: ⋮ → “Install app” or “Add to Home screen”.</p>
+            </div>
+            <div class="install-step card" data-reveal>
+              <span class="install-n">3</span>
+              <h3>Train offline</h3>
+              <p>The icon opens the full app with no signal — the log, the library and your history are cached on the device.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -448,6 +640,22 @@
             <details class="faq-item" data-reveal>
               <summary>Can I move my log to another device?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
               <p>Export from Settings and import the same file anywhere. It is one JSON document containing every session, routine and setting.</p>
+            </details>
+            <details class="faq-item" data-reveal>
+              <summary>How is IronLog different from Strong or Hevy?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
+              <p>The same core loop — fast logging, previous numbers, a rest timer, records and charts — but free with no account and no routine caps, offline-first as an installable web app, and your data never leaves your browser. Trade-offs, honestly: no Apple Watch app yet, and no social feed.</p>
+            </details>
+            <details class="faq-item" data-reveal>
+              <summary>How is it different from Strava?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
+              <p>Strava is a social network for GPS sports — feeds, kudos, segments. IronLog is a private strength log: no feed, no tracking, nothing uploaded anywhere. When you want to share a session, copy the summary as plain text and paste it wherever you like.</p>
+            </details>
+            <details class="faq-item" data-reveal>
+              <summary>Can I import my history from Strong or Hevy?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
+              <p>IronLog imports its own JSON export on any device, so moving browsers or phones is one file. Other apps export CSV, which this version doesn't parse yet — CSV import is on the roadmap; for now, start fresh or keep both.</p>
+            </details>
+            <details class="faq-item" data-reveal>
+              <summary>Does it work on my smartwatch?<svg class="faq-chevron" aria-hidden="true"><use href="#i-chevron" /></svg></summary>
+              <p>Not yet — watch apps are a real gap we're aware of. The phone app works fully offline, and the rest timer keeps counting when the screen locks.</p>
             </details>
           </div>
         </div>

@@ -3666,3 +3666,143 @@ select {
     break-inside: avoid;
   }
 }
+
+/* ── Session notes, plate calculator, progress panel (added features) ──── */
+
+.workout-notes {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--sunken);
+  padding: 10px 12px;
+  margin-top: 14px;
+}
+
+.workout-notes summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+  list-style: none;
+}
+
+.workout-notes summary::-webkit-details-marker {
+  display: none;
+}
+
+.workout-notes summary .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.notes-field {
+  width: 100%;
+  margin-top: 8px;
+  resize: vertical;
+  min-height: 64px;
+  font: inherit;
+  font-size: var(--fs-small);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-control);
+  padding: 8px 10px;
+}
+
+/* The weight cell holds the input plus, for barbell lifts, the plate shortcut. */
+.set-weight-cell {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.set-weight-cell .set-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.plate-btn {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  color: var(--muted);
+}
+
+.plate-btn:hover {
+  color: var(--accent);
+}
+
+.plate-result {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--sunken);
+  padding: 10px 12px;
+  margin: 4px 0 12px;
+}
+
+.plate-total {
+  font-family: var(--mono);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.plate-sub {
+  font-size: var(--fs-small);
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.plate-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plate-list li {
+  font-size: var(--fs-meta);
+  font-family: var(--mono);
+  background: var(--surface);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  color: var(--text-secondary);
+}
+
+/* Per-exercise progress chart in the detail sheet. */
+.detail-progress {
+  margin-top: 18px;
+}
+
+.detail-progress .chart {
+  margin-top: 8px;
+}
+
+.chart-line .chart-line {
+  fill: none;
+  stroke: var(--chart-1);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-line .chart-dot {
+  fill: var(--surface);
+  stroke: var(--chart-1);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-line .chart-gridline {
+  stroke: var(--gridline);
+  stroke-width: 0.4;
+  vector-effect: non-scaling-stroke;
+}

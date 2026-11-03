@@ -40,6 +40,14 @@ lives in your browser's local storage, and you can export all of it as JSON at a
 
 - **Fast set logging** — weight and reps per set, ticked as you go, with your previous
   performance shown beside each field so you never have to recall last week's numbers.
+- **Plate calculator** — one tap from any barbell set row to the exact plates per side
+  for a target total, in kg or lb.
+- **Per-lift progress chart** — every exercise's estimated 1RM trend across your sessions,
+  drawn in its detail sheet, so a plateau is something you can see, not guess.
+- **Session notes** — a notes field on the logger, kept with the workout in history.
+- **Copyable session summary** — share a finished workout as plain text; nothing is uploaded.
+- **Real unit conversion** — switching kg ↔ lb converts every logged weight (rounded to a
+  loadable 0.5 kg / 1 lb), with a confirm step.
 - **Live estimated 1RM** — Epley formula, recalculated as you type.
 - **Rest timer** — starts automatically when you complete a set, or on demand. Add 15
   seconds mid-count, and it survives a page reload.
@@ -95,8 +103,8 @@ the app. Relative paths are used throughout, so the site works from any base pat
 
 ## Tests
 
-The training maths, persistence layer, rest timer, exercise library, router and HTML
-escaping are unit-tested in Node using the built-in test runner — no test framework to
+The training maths, persistence layer, rest timer, plate calculator, exercise library,
+views, router and HTML escaping are unit-tested in Node using the built-in test runner — no test framework to
 install:
 
 ```bash
@@ -104,9 +112,9 @@ node --test "tests/*.test.js"
 ```
 
 ```
-# tests 312
-# suites 65
-# pass 312
+# tests 340
+# suites 72
+# pass 340
 # fail 0
 ```
 
@@ -141,6 +149,7 @@ media.
 │       ├── store.js           # Persistence (injected storage)
 │       ├── stats.js           # Pure training maths
 │       ├── timer.js           # Rest timer (injected clock)
+│       ├── plates.js          # Plate calculator maths (barbell loads)
 │       ├── exercises.js       # Curated starter library + search ranking
 │       ├── catalogue.js       # External catalogue: fetch, merge, instructions
 │       ├── router.js          # Hash router
@@ -153,6 +162,8 @@ media.
 ├── fonts/                     # Self-hosted Figtree + Geist Mono (SIL OFL) and their licences
 ├── NOTICE                     # Third-party data/media attribution and exclusions
 ├── tests/                     # Node test-runner suites
+├── CONTRIBUTING.md            # Checks, sw.js cache rule, media policy
+├── 404.html                   # GitHub Pages not-found page
 └── .github/workflows/deploy.yml
 ```
 
@@ -170,6 +181,10 @@ npm run build:css     # rewrites assets/css/tailwind.css
 Preflight is disabled, so Tailwind contributes utilities, keyframes and the document
 block components (`feature-row`, `notion-callout`, toggle rows) without resetting the
 hand-written design system.
+
+**Remember:** any new JS/CSS file in the app shell must be added to `PRECACHE` in
+`app/sw.js` *and* the `CACHE` version bumped in the same commit, or offline users get a
+stale shell for one load (see CONTRIBUTING.md).
 
 ## Exercise catalogue
 

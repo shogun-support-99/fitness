@@ -10,15 +10,19 @@
 
 import { EQUIPMENT, MUSCLE_GROUPS, searchExercises } from "../exercises.js";
 import { availableLanguages, hasInstructions } from "../catalogue.js";
-import { emptyState, esc, icon, muscleBadge } from "../ui.js";
+import { exerciseProgression } from "../stats.js";
+import { emptyState, esc, icon, lineChart, muscleBadge } from "../ui.js";
 import { exerciseMedia, exerciseThumbnail, muscleDiagram, movementClass } from "../diagrams.js";
 
 /** Rows rendered before asking the user to narrow the search. */
 export const RESULT_CAP = 120;
 
-export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
+export function renderLibrary(store, { query = "", muscle = "all", equipment = "all" } = {}) {
   const all = store.exercises();
-  const results = searchExercises(all, query, muscle);
+  const results = searchExercises(all, query, muscle, equipment);
+  const equipmentOptions = [...new Set(all.map((e) => e.equipment).filter(Boolean))].sort((a, b) =>
+    EQUIPMENT.indexOf(a) - EQUIPMENT.indexOf(b) || a.localeCompare(b),
+  );
   const shown = results.slice(0, RESULT_CAP);
   const customCount = store.doc.customExercises.length;
   const catalogueReady = store.catalogueReady;
@@ -42,6 +46,16 @@ export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
                value="${esc(query)}" autocomplete="off" data-action="library-search"
                data-focus-key="library-search" />
         ${query ? `<button class="icon-btn" data-action="clear-search" aria-label="Clear search">${icon("back")}</button>` : ""}
+      </div>
+
+      <div class="chip-row chip-scroll" id="library-equipment">
+        <button class="chip ${equipment === "all" ? "is-active" : ""}" data-action="filter-equipment" data-equipment="all">Any equipment</button>
+        ${equipmentOptions
+          .map(
+            (eq) =>
+              `<button class="chip ${equipment === eq ? "is-active" : ""}" data-action="filter-equipment" data-equipment="${esc(eq)}">${esc(eq)}</button>`,
+          )
+          .join("")}
       </div>
 
       <div class="chip-row chip-scroll" id="library-muscles">
@@ -178,6 +192,8 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
 
       ${hasSteps ? renderInstructions(exercise, { languages, currentLang, stepsResult, stepsState }) : ""}
 
+      ${renderProgressPanel(store, exercise)}
+
       ${isCustom
         ? `<p class="detail-note">${icon("info")} You created this exercise. It is stored in this browser only.</p>`
         : ""}
@@ -191,6 +207,38 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
            </button>`}
 
       ${hasSteps || exercise.media ? renderAttribution(store, exercise) : ""}
+    </div>`;
+}
+
+/**
+ * The lifter's favourite chart: this exercise's estimated 1RM progression across
+ * every completed session, drawn from exerciseProgression(). Hidden when there
+ * is no history for the exercise yet.
+ */
+function renderProgressPanel(store, exercise) {
+  if (!store || !exercise?.id) return "";
+  const points = exerciseProgression(store.completedWorkouts(), exercise.id);
+  if (points.length === 0) return "";
+  const units = store.settings.units;
+  const last = points[points.length - 1];
+  const first = points[0];
+  const delta = last.bestOneRm - first.bestOneRm;
+  const chart = lineChart(
+    points.map((p) => ({
+      value: p.bestOneRm,
+      label: `${p.date}: est. 1RM ${p.bestOneRm} ${units}, best set ${p.bestWeight}×${p.bestReps}`,
+      display: `${p.bestOneRm} ${units}`,
+      axis: String(p.date).slice(5, 10),
+    })),
+    { ariaLabel: `Estimated one-rep max progression for ${exercise.name}` },
+  );
+  return `
+    <div class="detail-progress">
+      <div class="detail-instructions-head">
+        <h4>${icon("stats")} Your progress</h4>
+        <span class="panel-note">${points.length} session${points.length === 1 ? "" : "s"}${delta !== 0 ? ` · ${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${units} est. 1RM` : ""}</span>
+      </div>
+      ${chart}
     </div>`;
 }
 

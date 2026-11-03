@@ -9,6 +9,7 @@
 import { EXERCISE_INDEX, allExercises, makeExerciseId } from "./exercises.js";
 import { loadCatalogue } from "./catalogue.js";
 import {
+  convertWeight,
   estimatedOneRepMax,
   localDateKey,
   personalRecords,
@@ -198,7 +199,10 @@ export class Store {
     if (trimmed.length === 0) return { ok: false, error: "Name is required." };
     let id = makeExerciseId(trimmed);
     const existing = this.exerciseIndex();
-    if (existing[id] && !existing[id].custom) {
+    // Any collision — catalogue or an earlier custom entry — gets a suffix, so
+    // two custom exercises can never share an id (the index would silently keep
+    // only the later one and delete would remove both).
+    if (existing[id]) {
       id = `${id}-${Date.now().toString(36)}`;
     }
     const exercise = {
@@ -235,13 +239,39 @@ export class Store {
     return this.doc.settings;
   }
 
+  /**
+   * Switch weight units and convert every logged weight in place, rounded to a
+   * loadable increment (0.5 kg / 1 lb) via convertWeight. Zero-weight rows
+   * (bodyweight or unfilled) are left alone.
+   */
+  convertUnits(from, to) {
+    let converted = 0;
+    if (from !== to && (from === "kg" || from === "lb") && (to === "kg" || to === "lb")) {
+      for (const w of this.doc.workouts) {
+        for (const entry of w.exercises ?? []) {
+          for (const s of entry.sets ?? []) {
+            if (Number(s.weight) > 0) {
+              s.weight = convertWeight(s.weight, from, to);
+              converted += 1;
+            }
+          }
+        }
+      }
+    }
+    this.doc.settings.units = to;
+    this.#commit("settings:update");
+    return { converted };
+  }
+
   // ── Workouts ──────────────────────────────────────────────────────────────
 
-  /** Every workout, newest first. */
+  /** Every workout, newest first. Invalid dates sort as epoch 0, never NaN. */
   workouts() {
-    return [...this.doc.workouts].sort(
-      (a, b) => new Date(b.startedAt) - new Date(a.startedAt),
-    );
+    const timeOf = (value) => {
+      const t = new Date(value).getTime();
+      return Number.isFinite(t) ? t : 0;
+    };
+    return [...this.doc.workouts].sort((a, b) => timeOf(b.startedAt) - timeOf(a.startedAt));
   }
 
   /** The single in-progress workout, if any. */
@@ -316,7 +346,9 @@ export class Store {
     let w = weight;
     let r = reps;
     if (fromPrevious && (w === undefined || r === undefined)) {
-      const previous = this.#lastLoggedSet(entry.exerciseId, workout.id);
+      // Includes the current workout on purpose: "Add set" repeats the set the
+      // user just logged in this session.
+      const previous = this.#lastLoggedSet(entry.exerciseId);
       w = w ?? previous?.weight ?? 0;
       r = r ?? previous?.reps ?? 0;
     }
@@ -366,7 +398,7 @@ export class Store {
   }
 
   /** Most recent completed set for an exercise, from this or earlier workouts. */
-  #lastLoggedSet(exerciseId, excludeWorkoutId = null) {
+  #lastLoggedSet(exerciseId) {
     const ordered = this.workouts();
     for (const w of ordered) {
       for (const entry of w.exercises ?? []) {
@@ -474,12 +506,25 @@ export class Store {
       if (!parsed || typeof parsed !== "object") return { ok: false, error: "Not a valid IronLog export." };
       if (!Array.isArray(parsed.workouts)) return { ok: false, error: "Export has no workouts array." };
       const base = emptyDocument();
+      // Sanitise every record: an export from another app, or a hand-edited
+      // file, must never crash a view (home/history map over workout.exercises
+      // and entry.sets without guards, so those must always be arrays).
+      const workouts = parsed.workouts.map((w, i) => sanitizeWorkout(w, i));
+      let sawActive = false;
+      for (const w of workouts) {
+        if (w.status === "active") {
+          if (sawActive) w.status = "completed";
+          else sawActive = true;
+        }
+      }
       this.doc = {
         ...base,
         ...parsed,
         version: SCHEMA_VERSION,
-        workouts: parsed.workouts,
-        customExercises: Array.isArray(parsed.customExercises) ? parsed.customExercises : [],
+        workouts,
+        customExercises: (Array.isArray(parsed.customExercises) ? parsed.customExercises : [])
+          .filter((e) => e && typeof e.id === "string" && typeof e.name === "string")
+          .map((e) => ({ ...e, custom: true })),
         // Layer the import over the current settings, then the shipped
         // defaults, so a partial export never silently resets preferences.
         settings: { ...base.settings, ...this.doc.settings, ...(parsed.settings ?? {}) },
@@ -503,6 +548,87 @@ export class Store {
     // fresh document and undo the removal the user just asked for.
     this.#emit({ type: "data:reset", persisted: this.lastError === null });
   }
+}
+
+/** Valid ISO timestamp or null — used to sanitise imported records. */
+function validIso(value) {
+  if (typeof value !== "string" || value.length === 0) return null;
+  const t = new Date(value).getTime();
+  return Number.isFinite(t) ? new Date(t).toISOString() : null;
+}
+
+function sanitizeSet(s, fallbackIndex) {
+  if (!s || typeof s !== "object") return null;
+  const weight = Number(s.weight);
+  const reps = Number(s.reps);
+  return {
+    id: typeof s.id === "string" && s.id ? s.id : `s_imp_${fallbackIndex}_${Math.random().toString(36).slice(2, 8)}`,
+    weight: Number.isFinite(weight) ? Math.max(0, weight) : 0,
+    reps: Number.isFinite(reps) ? Math.max(0, Math.round(reps)) : 0,
+    done: Boolean(s.done),
+    completedAt: validIso(s.completedAt) ?? undefined,
+    restStartedAt: validIso(s.restStartedAt) ?? undefined,
+    createdAt: validIso(s.createdAt) ?? new Date().toISOString(),
+  };
+}
+
+function sanitizeEntry(e, workoutIndex, entryIndex) {
+  if (!e || typeof e !== "object") return null;
+  if (typeof e.exerciseId !== "string" || e.exerciseId.length === 0) return null;
+  const sets = (Array.isArray(e.sets) ? e.sets : [])
+    .map((s, i) => sanitizeSet(s, `${workoutIndex}_${entryIndex}_${i}`))
+    .filter(Boolean);
+  return {
+    id: typeof e.id === "string" && e.id ? e.id : `e_imp_${workoutIndex}_${entryIndex}`,
+    exerciseId: e.exerciseId,
+    sets,
+  };
+}
+
+function sanitizeSummary(summary) {
+  if (!summary || typeof summary !== "object") return undefined;
+  const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  return {
+    volume: num(summary.volume),
+    sets: num(summary.sets),
+    minutes: num(summary.minutes),
+    exercises: num(summary.exercises),
+    records: Array.isArray(summary.records)
+      ? summary.records
+          .filter((r) => r && typeof r.name === "string")
+          .map((r) => ({
+            exerciseId: typeof r.exerciseId === "string" ? r.exerciseId : "",
+            name: r.name,
+            kinds: Array.isArray(r.kinds) ? r.kinds.map(String) : [],
+          }))
+      : [],
+  };
+}
+
+/**
+ * Normalise one imported workout into the shape every view assumes: string id
+ * and name, a known status, valid timestamps, and exercises/sets arrays.
+ */
+function sanitizeWorkout(w, index) {
+  const now = new Date().toISOString();
+  const startedAt = validIso(w?.startedAt) ?? now;
+  const status = w?.status === "active" ? "active" : "completed";
+  const endedAt = validIso(w?.endedAt) ?? (status === "completed" ? startedAt : null);
+  const exercises = (Array.isArray(w?.exercises) ? w.exercises : [])
+    .map((e, i) => sanitizeEntry(e, index, i))
+    .filter(Boolean);
+  const workout = {
+    id: typeof w?.id === "string" && w.id ? w.id : `w_imp_${index}_${Math.random().toString(36).slice(2, 8)}`,
+    name: String(w?.name ?? "").trim() || defaultWorkoutName(new Date(startedAt)),
+    status,
+    startedAt,
+    endedAt,
+    notes: String(w?.notes ?? ""),
+    exercises,
+  };
+  const summary = sanitizeSummary(w?.summary);
+  if (summary) workout.summary = summary;
+  return workout;
 }
 
 /** A fresh exercise entry inside a workout, seeded with one empty set. */

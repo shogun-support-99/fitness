@@ -11,7 +11,14 @@ import { RestTimer, formatElapsed, formatSeconds } from "./timer.js";
 import { Router, parseHash } from "./router.js";
 import { searchExercises } from "./exercises.js";
 import { hasInstructions, stepsFor } from "./catalogue.js";
-import { compactNumber, estimatedOneRepMax } from "./stats.js";
+import { BAR_WEIGHT, formatPlates, platesForWeight } from "./plates.js";
+import {
+  compactNumber,
+  estimatedOneRepMax,
+  workoutDurationMinutes,
+  workoutSetCount,
+  workoutVolume,
+} from "./stats.js";
 import { esc, icon } from "./ui.js";
 import {
   initReveals,
@@ -36,7 +43,10 @@ import { routineExerciseIds } from "./views/routines.js";
 const store = new Store();
 let elapsedTimer = null;
 let pickerState = { query: "", muscle: "all" };
-let libraryState = { query: "", muscle: "all" };
+let libraryState = { query: "", muscle: "all", equipment: "all" };
+
+/** Which set row the plate calculator is open for. */
+let plateState = { entryId: null, setId: null };
 
 /** The exercise whose detail sheet is open, plus its async instruction state. */
 let detailState = { exercise: null, stepsState: "idle", stepsResult: null };
@@ -367,16 +377,21 @@ const actions = {
     if (next && set.weight > 0 && set.reps > 0) {
       const oneRm = estimatedOneRepMax(set.weight, set.reps);
       if (oneRm > 0) {
-        const previousBest = previousBestOneRm(active, entry.exerciseId, set.id);
+        // Compare against the best ever logged for this exercise in completed
+        // workouts — not just this session. A session-only comparison fires on
+        // the first set of every exercise in every workout (best starts at 0),
+        // which trains the user to ignore the celebration.
+        const previousBest = allTimeBestOneRm(entry.exerciseId, active.id);
         if (oneRm > previousBest) {
-          toast(`New session best — est. 1RM ${compactNumber(oneRm)} ${store.settings.units}`, { tone: "accent" });
-          // Real data only: this fires because a computed 1RM beat the session's
-          // previous best, never on a timer or for decoration.
+          const label = previousBest > 0
+            ? `New personal record — est. 1RM ${compactNumber(oneRm)} ${store.settings.units} (was ${compactNumber(previousBest)})`
+            : `First logged best — est. 1RM ${compactNumber(oneRm)} ${store.settings.units}`;
+          toast(label, { tone: "accent" });
           recordDetail = {
             exercise: store.exerciseIndex()[entry.exerciseId]?.name || "This lift",
             value: compactNumber(oneRm),
             unit: store.settings.units,
-            kind: "session-best",
+            kind: "personal-record",
           };
         }
       }
@@ -443,7 +458,7 @@ const actions = {
     filterLibraryList();
   },
   "clear-search": () => {
-    libraryState = { query: "", muscle: "all" };
+    libraryState = { query: "", muscle: "all", equipment: "all" };
     render();
   },
   "filter-muscle": (el) => {
@@ -452,6 +467,51 @@ const actions = {
       c.classList.toggle("is-active", c.dataset.muscle === libraryState.muscle),
     );
     filterLibraryList();
+  },
+
+  "filter-equipment": (el) => {
+    libraryState.equipment = el.dataset.equipment;
+    $$("#library-equipment .chip").forEach((c) =>
+      c.classList.toggle("is-active", c.dataset.equipment === libraryState.equipment),
+    );
+    filterLibraryList();
+  },
+
+  // Plate calculator (barbell rows in the logger)
+  "open-plates": (el) => {
+    plateState = { entryId: el.dataset.entry, setId: el.dataset.set };
+    const active = store.activeWorkout();
+    const set = active?.exercises.find((e) => e.id === plateState.entryId)?.sets.find((s) => s.id === plateState.setId);
+    const units = store.settings.units;
+    const target = $("#plate-target");
+    if (target) target.value = String(set && set.weight > 0 ? set.weight : BAR_WEIGHT[units] ?? 20);
+    openSheet("plate-sheet");
+    renderPlateSheetContent();
+  },
+  "close-plates": () => closeSheet("plate-sheet"),
+  "plates-target": () => renderPlateSheetContent(),
+  "plates-apply": () => {
+    const active = store.activeWorkout();
+    const target = Number($("#plate-target")?.value) || 0;
+    if (active && plateState.entryId && plateState.setId) {
+      store.updateSet(active.id, plateState.entryId, plateState.setId, { weight: target });
+    }
+    closeSheet("plate-sheet");
+    render();
+    toast(`Weight set to ${target} ${store.settings.units}`);
+  },
+
+  // Share a finished session as plain text (no server, nothing uploaded).
+  "copy-summary": (el) => {
+    const workout = store.getWorkout(el.dataset.id);
+    if (!workout) return;
+    const text = buildSummaryText(workout);
+    const done = () => toast("Summary copied — paste it in your group chat or notes");
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
   },
 
   // Custom exercises
@@ -541,8 +601,32 @@ const actions = {
   },
 
   "set-units": (el) => {
-    store.updateSettings({ units: el.dataset.units });
+    const to = el.dataset.units;
+    const from = store.settings.units;
+    if (to !== from && (to === "kg" || to === "lb")) {
+      const hasWeights = store.doc.workouts.some((w) =>
+        (w.exercises ?? []).some((e) => (e.sets ?? []).some((s) => Number(s.weight) > 0)),
+      );
+      if (hasWeights) {
+        const step = to === "lb" ? "1 lb" : "0.5 kg";
+        const ok = window.confirm(
+          `Switch units from ${from} to ${to}? Every logged weight will be converted (rounded to the nearest ${step}).`,
+        );
+        if (!ok) return;
+        const result = store.convertUnits(from, to);
+        render();
+        toast(result.converted > 0 ? `Units set to ${to} — ${result.converted} weights converted` : `Units set to ${to}`);
+        return;
+      }
+    }
+    store.updateSettings({ units: to });
     render();
+  },
+
+  "set-workout-notes": (el) => {
+    const active = store.activeWorkout();
+    if (!active) return;
+    store.updateWorkout(active.id, { notes: el.value });
   },
   "set-rest": (el) => {
     store.updateSettings({ restSeconds: Number(el.dataset.seconds) || 120 });
@@ -646,17 +730,81 @@ function seedPreviousSets(workout) {
   render();
 }
 
-/** Highest est. 1RM already logged for this exercise in this workout. */
-function previousBestOneRm(workout, exerciseId, excludeSetId) {
+/** Highest est. 1RM ever logged for an exercise in completed workouts. */
+function allTimeBestOneRm(exerciseId, excludeWorkoutId = null) {
   let best = 0;
-  for (const entry of workout.exercises) {
-    if (entry.exerciseId !== exerciseId) continue;
-    for (const s of entry.sets) {
-      if (s.id === excludeSetId || !s.done) continue;
-      best = Math.max(best, estimatedOneRepMax(s.weight, s.reps));
+  for (const w of store.completedWorkouts()) {
+    if (w.id === excludeWorkoutId) continue;
+    for (const entry of w.exercises ?? []) {
+      if (entry.exerciseId !== exerciseId) continue;
+      for (const s of entry.sets ?? []) {
+        if (!s.done) continue;
+        best = Math.max(best, estimatedOneRepMax(s.weight, s.reps));
+      }
     }
   }
   return best;
+}
+
+/** Plain-text recap of a finished workout, for the clipboard. */
+function buildSummaryText(workout) {
+  const units = store.settings.units;
+  const lines = [];
+  const when = new Date(workout.endedAt ?? workout.startedAt);
+  lines.push(`IronLog — ${workout.name} (${Number.isNaN(when.getTime()) ? "" : when.toLocaleDateString()})`);
+  lines.push(
+    `${Math.round(workoutVolume(workout))} ${units} volume · ${workoutSetCount(workout)} sets · ${workoutDurationMinutes(workout)} min`,
+  );
+  for (const entry of workout.exercises ?? []) {
+    const name = store.exerciseIndex()[entry.exerciseId]?.name ?? entry.exerciseId;
+    const done = (entry.sets ?? []).filter((s) => s.done);
+    if (done.length === 0) continue;
+    const best = done.reduce((b, s) => (estimatedOneRepMax(s.weight, s.reps) > estimatedOneRepMax(b.weight, b.reps) ? s : b));
+    lines.push(`• ${name}: ${done.map((s) => `${s.weight}×${s.reps}`).join(", ")} — best est. 1RM ${compactNumber(estimatedOneRepMax(best.weight, best.reps))} ${units}`);
+  }
+  const records = workout.summary?.records ?? [];
+  if (records.length > 0) {
+    lines.push(`Records: ${records.map((r) => `${r.name} (${r.kinds.join(", ")})`).join("; ")}`);
+  }
+  return lines.join("\n");
+}
+
+/** Clipboard fallback for browsers without the async clipboard API. */
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    done();
+  } catch {
+    toast("Could not copy — the summary is in the console", { tone: "danger" });
+    console.info(text);
+  }
+  ta.remove();
+}
+
+/** Recompute the plate breakdown for the current target without touching the input. */
+function renderPlateSheetContent() {
+  const host = $("#plate-sheet-content");
+  const input = $("#plate-target");
+  if (!host) return;
+  const units = store.settings.units;
+  const target = Number(input?.value) || 0;
+  const result = platesForWeight(target, units);
+  const rows = result.perSide.length
+    ? result.perSide.map((p) => `<li><b>${p.count}×</b> ${p.weight} ${esc(units)} plates</li>`).join("")
+    : `<li><b>0×</b> — bar only</li>`;
+  host.innerHTML = `
+    <div class="plate-result">
+      <p class="plate-total">${esc(formatPlates(result, units))}</p>
+      <p class="plate-sub">Bar: ${result.bar} ${esc(units)} · Loaded total: <strong>${result.total} ${esc(units)}</strong>${result.exact ? "" : ` (closest loadable to ${target})`}</p>
+      <ul class="plate-list">${rows}</ul>
+    </div>`;
 }
 
 /**
@@ -713,6 +861,7 @@ function showSummary(workout, summary) {
       }
       <div class="summary-actions">
         <button class="btn btn-primary btn-wide" data-action="dismiss-summary">Done</button>
+        <button class="btn btn-ghost btn-wide" data-action="copy-summary" data-id="${esc(workout.id)}">${icon("copy")} Copy summary</button>
         <button class="btn btn-ghost btn-wide" data-action="view-stats-from-summary">${icon("stats")} See progress</button>
       </div>
     </div>`;
@@ -817,7 +966,7 @@ function filterLibraryList() {
   const list = $(".library-list");
   const emptyHost = $(".view-library");
   if (!list || !emptyHost) return render();
-  const results = searchExercises(store.exercises(), libraryState.query, libraryState.muscle);
+  const results = searchExercises(store.exercises(), libraryState.query, libraryState.muscle, libraryState.equipment);
   // Zero results changes the whole view (empty state plus a create affordance),
   // so hand back to a full render rather than patching the list in place.
   if (results.length === 0) return render();
@@ -860,7 +1009,7 @@ document.addEventListener("input", (event) => {
     actions[action]?.(el, event);
     return;
   }
-  if (action === "rename-workout") {
+  if (action === "rename-workout" || action === "set-workout-notes" || action === "plates-target") {
     actions[action](el, event);
   }
 });
@@ -893,6 +1042,13 @@ document.addEventListener("click", (event) => {
   pickerState.muscle = chip.dataset.muscle;
   $$("#picker-muscles .chip").forEach((c) => c.classList.toggle("is-active", c === chip));
   filterPicker();
+});
+
+// Library equipment chips (delegated, like the muscle chips).
+document.addEventListener("click", (event) => {
+  const chip = event.target.closest("#library-equipment .chip");
+  if (!chip) return;
+  actions["filter-equipment"](chip, event);
 });
 
 document.addEventListener("keydown", (event) => {

@@ -1699,3 +1699,375 @@ html.js.motion-ok .squiggle-a {
     width: 100%;
   }
 }
+
+/* ── "What lifters love" cards ─────────────────────────────────────────── */
+
+.love-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.love-card {
+  padding: 22px 22px 20px;
+}
+
+.love-kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--blue-ink);
+  background: var(--blue-soft);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+
+.love-card h3 {
+  margin: 12px 0 8px;
+  font-size: 19px;
+}
+
+.love-card p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+/* ── Interactive demo ──────────────────────────────────────────────────── */
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(20px, 3vw, 44px);
+  align-items: start;
+}
+
+.demo-card {
+  padding: 20px;
+  font-size: 14px;
+}
+
+.demo-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.demo-head .avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--blue-soft);
+  color: var(--blue-ink);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+.demo-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demo-prev {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.demo-pr {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--green-ink);
+  background: var(--green-soft);
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  animation: demo-pop 0.35s var(--ease);
+}
+
+@keyframes demo-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.demo-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 1fr 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  transition: background-color 0.25s var(--ease);
+}
+
+.demo-row-head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.demo-row.is-done {
+  background: var(--green-soft);
+}
+
+.demo-row.is-done .demo-w,
+.demo-row.is-done .demo-r {
+  color: var(--green-ink);
+  font-weight: 700;
+}
+
+.demo-prev {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.demo-tick {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: transparent;
+  transition: all 0.2s var(--ease);
+}
+
+.demo-tick:hover {
+  border-color: var(--green);
+}
+
+.demo-tick .tick {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.6;
+}
+
+.demo-tick[aria-pressed="true"] {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.demo-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.demo-metrics > div {
+  background: var(--tint);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.demo-metrics span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.demo-metrics strong {
+  font-family: var(--mono);
+  font-size: 17px;
+}
+
+.demo-rest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: var(--r);
+  background: var(--blue-soft);
+  color: var(--blue-ink);
+  font-size: 13px;
+}
+
+.demo-rest svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.demo-rest strong {
+  font-family: var(--mono);
+  font-size: 15px;
+}
+
+.demo-rest.is-running {
+  animation: demo-pulse 1s infinite;
+}
+
+@keyframes demo-pulse {
+  50% { background: #fbe3d2; }
+}
+
+.demo-add {
+  margin-left: auto;
+  border: 1px solid var(--blue);
+  color: var(--blue-ink);
+  background: transparent;
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  font-size: 12px;
+  font-family: var(--mono);
+  cursor: pointer;
+}
+
+.demo-add:hover {
+  background: var(--blue);
+  color: #fff;
+}
+
+.demo-card > .btn {
+  margin-top: 12px;
+}
+
+.demo-copy h3 {
+  font-size: 22px;
+  margin: 0 0 14px;
+}
+
+.demo-copy .checks {
+  margin-bottom: 20px;
+}
+
+/* ── Comparison table ──────────────────────────────────────────────────── */
+
+.compare-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 720px;
+}
+
+.compare-table th,
+.compare-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+
+.compare-table thead th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  background: var(--tint);
+}
+
+.compare-table tbody th {
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.compare-table .col-iron {
+  background: var(--blue-soft);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.compare-table thead .col-iron {
+  color: var(--blue-ink);
+}
+
+.compare-table tbody tr:last-child th,
+.compare-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.compare-note {
+  margin: 12px 4px 0;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+
+/* ── Install steps ─────────────────────────────────────────────────────── */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.install-step {
+  padding: 22px;
+  position: relative;
+}
+
+.install-n {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--blue);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.install-step h3 {
+  margin: 12px 0 8px;
+  font-size: 18px;
+}
+
+.install-step p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+/* ── Responsive additions ──────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .love-grid,
+  .install-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-pr {
+    animation: none;
+  }
+
+  .demo-rest.is-running {
+    animation: none;
+  }
+}

@@ -319,6 +319,19 @@ export function relativeTime(date, now = new Date()) {
   return `${years} year${years === 1 ? "" : "s"} ago`;
 }
 
+/**
+ * Convert a weight between kg and lb, rounded to a loadable increment
+ * (0.5 kg, 1 lb) so switching units never stores a number no plate can make.
+ */
+export function convertWeight(value, from, to) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  if (from === to) return n;
+  const raw = from === "kg" && to === "lb" ? n * 2.20462262185 : from === "lb" && to === "kg" ? n / 2.20462262185 : n;
+  const step = to === "lb" ? 1 : 0.5;
+  return Math.round(raw / step) * step;
+}
+
 /** Compact number formatting: 12500 -> "12.5k". */
 export function compactNumber(value) {
   const n = Number(value) || 0;

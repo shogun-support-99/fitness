@@ -113,6 +113,46 @@ export function barChart(points, { height = 132, ariaLabel = "chart" } = {}) {
     </div>`;
 }
 
+/**
+ * Inline SVG line chart for progressions (est. 1RM over sessions), with a dot
+ * and tooltip per point. Same no-dependency approach as barChart.
+ */
+export function lineChart(points, { height = 132, ariaLabel = "progress chart" } = {}) {
+  if (!points || points.length === 0) {
+    return `<div class="chart-empty">Not enough sessions yet.</div>`;
+  }
+  const values = points.map((p) => Number(p.value) || 0);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const span = max - min || 1;
+  const width = 100;
+  const padX = 2;
+  const padY = 6;
+  const x = (i) => padX + (points.length === 1 ? (width - padX * 2) / 2 : (i / (points.length - 1)) * (width - padX * 2));
+  const y = (v) => padY + (1 - (v - min) / span) * (100 - padY * 2);
+
+  const line = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(2)} ${y(Number(p.value) || 0).toFixed(2)}`).join(" ");
+  const dots = points
+    .map((p, i) => {
+      const v = Number(p.value) || 0;
+      return `<circle class="chart-dot" cx="${x(i).toFixed(2)}" cy="${y(v).toFixed(2)}" r="1.6"><title>${esc(p.label ?? "")}: ${esc(p.display ?? v)}</title></circle>`;
+    })
+    .join("");
+
+  return `
+    <div class="chart chart-line" style="--chart-h:${height}px" role="img" aria-label="${esc(ariaLabel)}">
+      <svg viewBox="0 0 ${width} 100" preserveAspectRatio="none">
+        <line class="chart-gridline" x1="0" y1="${y(max).toFixed(2)}" x2="${width}" y2="${y(max).toFixed(2)}" />
+        <path class="chart-line" d="${line}" />
+        ${dots}
+      </svg>
+      <div class="chart-axis${points.length === 1 ? " chart-axis-single" : ""}">
+        <span>${esc(points[0].axis ?? "")}</span>
+        ${points.length > 1 ? `<span>${esc(points[points.length - 1].axis ?? "")}</span>` : ""}
+      </div>
+    </div>`;
+}
+
 /** Horizontal muscle-group distribution bars. */
 export function distributionBars(rows) {
   const max = Math.max(...rows.map((r) => r.value), 1);
