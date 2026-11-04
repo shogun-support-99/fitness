@@ -26,7 +26,6 @@ function renderProfileHead(workoutCount) {
     <nav class="profile-shortcuts" aria-label="Profile sections">
       <a class="is-active" href="#/stats">${icon("stats")} Statistics</a>
       <a href="#/library">${icon("library")} Exercises</a>
-      <a href="#/history">${icon("history")} History</a>
     </nav>`;
 }
 

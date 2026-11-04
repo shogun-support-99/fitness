@@ -35,6 +35,8 @@ export function renderHome(store) {
 
       ${active ? renderActiveBanner(active, store.settings.units) : renderStartPanel(store, lastSevenDays.length)}
 
+      ${!active && completed.length === 0 ? renderFirstRun() : ""}
+
       <div class="tile-grid">
         ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-data" })}
         ${statTile({ label: "Workouts", value: String(completed.length), countTo: completed.length, hint: "all time" })}
@@ -184,6 +186,50 @@ function renderStartPanel(store, weekCount) {
         ${renderRoutineCards()}
       </section>
     </div>`;
+}
+
+/**
+ * A first-run orientation for a genuinely empty log.
+ *
+ * This is deliberately not sample data: the whole point of a private training
+ * log is that every number in it was earned by the person reading it. The
+ * panel explains the three steps and points at the two ways to add a lift,
+ * then disappears for good once a workout exists.
+ */
+function renderFirstRun() {
+  return `
+    <section class="first-run" data-reveal="rise" aria-labelledby="first-run-title">
+      <div class="first-run-head">
+        <span class="first-run-mark" aria-hidden="true">${icon("dumbbell")}</span>
+        <div class="first-run-copy">
+          <span class="section-label">First run</span>
+          <h2 id="first-run-title">Your log starts empty</h2>
+          <p>No sample workouts, no borrowed numbers. Nothing is written until you log it — then every set is yours, stored on this device.</p>
+        </div>
+      </div>
+      <ol class="first-run-steps">
+        <li>
+          <span class="first-run-num" aria-hidden="true">01</span>
+          <div><strong>Pick a lift</strong><p>Search 1,316 exercises by muscle or equipment, or add your own.</p></div>
+        </li>
+        <li>
+          <span class="first-run-num" aria-hidden="true">02</span>
+          <div><strong>Log the set</strong><p>Weight and reps are prefilled from last time. Tick the set and rest starts.</p></div>
+        </li>
+        <li>
+          <span class="first-run-num" aria-hidden="true">03</span>
+          <div><strong>Finish and back up</strong><p>See volume and records, then export a JSON backup whenever you like.</p></div>
+        </li>
+      </ol>
+      <div class="first-run-actions">
+        <a class="btn btn-outline btn-small" href="#/library">${icon("library")} Browse exercises</a>
+        <button class="btn btn-sub btn-small" data-action="open-custom-exercise">${icon("plus")} Add a custom exercise</button>
+        <label class="btn btn-sub btn-small">
+          ${icon("upload")} Restore a backup
+          <input type="file" accept="application/json,.json" data-action="import-file" hidden />
+        </label>
+      </div>
+    </section>`;
 }
 
 function renderSessionRow(workout, index, units) {

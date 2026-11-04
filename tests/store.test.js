@@ -24,6 +24,14 @@ describe("construction", () => {
     assert.equal(store.activeWorkout(), null);
     assert.equal(store.settings.units, "kg");
     assert.equal(store.settings.restSeconds, 120);
+    assert.equal(store.settings.lastBackupAt, null);
+  });
+
+  test("ships no demo workouts or custom exercises", () => {
+    assert.equal(store.doc.workouts.length, 0);
+    assert.equal(store.doc.customExercises.length, 0);
+    assert.equal(store.completedWorkouts().length, 0);
+    assert.equal(storage.getItem(STORAGE_KEY), null);
   });
 
   test("starts empty until the catalogue is loaded", () => {
@@ -43,6 +51,7 @@ describe("construction", () => {
     const loaded = new Store(storage);
     assert.equal(loaded.settings.units, "lb");
     assert.equal(loaded.settings.restSeconds, 120);
+    assert.equal(loaded.settings.lastBackupAt, null);
   });
 
   test("ignores a non-object payload", () => {
@@ -425,6 +434,25 @@ describe("settings", () => {
     store.updateSettings({ units: "lb" });
     assert.equal(store.settings.restSeconds, 120);
     assert.equal(store.settings.autoStartRestTimer, true);
+  });
+
+  test("records the last export time for the backup reminder", () => {
+    const before = Date.now();
+    store.updateSettings({ lastBackupAt: new Date().toISOString() });
+    assert.ok(new Date(store.settings.lastBackupAt).getTime() >= before);
+    assert.equal(new Store(storage).settings.lastBackupAt, store.settings.lastBackupAt);
+  });
+
+  test("reloadFromStorage picks up a write from another tab", () => {
+    const other = new Store(storage);
+    const { workout } = other.startWorkout({ name: "Other tab" });
+    other.completeWorkout(workout.id);
+
+    assert.equal(store.workouts().length, 0);
+    store.reloadFromStorage();
+
+    assert.equal(store.workouts().length, 1);
+    assert.equal(store.completedWorkouts()[0].name, "Other tab");
   });
 });
 

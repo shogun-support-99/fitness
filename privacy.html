@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="How IronLog handles your data: local-only storage, no account, no analytics, JSON backups, third-party licences and the limits of a training log."
+    />
+    <meta name="theme-color" content="#f2f1ec" />
+    <meta property="og:title" content="Privacy &amp; data — IronLog" />
+    <meta
+      property="og:description"
+      content="IronLog keeps your training log in your browser. No account, no server, no analytics — here is exactly what that means."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="IronLog" />
+    <meta property="og:url" content="https://shogun-support-99.github.io/fitness/privacy.html" />
+    <meta property="og:image" content="https://shogun-support-99.github.io/fitness/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Privacy &amp; data — IronLog</title>
+    <link rel="canonical" href="https://shogun-support-99.github.io/fitness/privacy.html" />
+    <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
+    <link rel="icon" href="./assets/img/logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png" />
+    <link rel="preload" href="fonts/Figtree-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="assets/css/tailwind.css" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
+    <script>
+      document.documentElement.classList.remove("no-js");
+      document.documentElement.classList.add("js");
+      if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+        document.documentElement.classList.add("motion-ok");
+      }
+    </script>
+    <script type="module" src="assets/js/landing.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" data-header>
+      <div class="shell header-inner">
+        <a class="brand" href="./" aria-label="IronLog home">
+          <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+            <path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" />
+          </svg>
+          <span>IronLog</span>
+        </a>
+
+        <nav class="site-nav" aria-label="Main">
+          <a href="./#features">Features</a>
+          <a href="./#workout">Workout</a>
+          <a href="./#routines">Routines</a>
+          <a href="./#faq">FAQ</a>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-primary btn-sm" href="./app/">Open IronLog</a>
+          <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" data-nav-toggle>
+            <span class="nav-toggle-bars" aria-hidden="true"><span></span><span></span></span>
+            <span class="sr-only">Menu</span>
+          </button>
+        </div>
+      </div>
+      <div class="mobile-nav" id="mobile-nav" hidden data-mobile-nav>
+        <nav aria-label="Mobile">
+          <a href="./#features">Features</a>
+          <a href="./#workout">Workout</a>
+          <a href="./#routines">Routines</a>
+          <a href="./#faq">FAQ</a>
+          <a class="btn btn-primary" href="./app/">Open IronLog</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="legal-page">
+      <div class="shell">
+        <header class="legal-head" data-reveal>
+          <p class="eyebrow">Privacy &amp; data</p>
+          <h1>The short version: it stays on your device.</h1>
+          <p class="legal-lede">
+            IronLog has no account system, no backend and no analytics. Your training log is a
+            document in this browser's local storage — written by you, readable by you, and
+            removable by you. This page explains the details, including the parts a host or a
+            browser handles for any website.
+          </p>
+          <p class="legal-meta">Last updated <time datetime="2026-11-04">4 November 2026</time></p>
+        </header>
+
+        <div class="legal-grid">
+          <aside class="legal-summary" data-reveal aria-labelledby="summary-title">
+            <span class="legal-summary-mark" aria-hidden="true">✓</span>
+            <h2 id="summary-title">At a glance</h2>
+            <ul>
+              <li><strong>No account.</strong> No email, password or profile leaves the app.</li>
+              <li><strong>No tracking.</strong> No analytics, advertising or third-party scripts.</li>
+              <li><strong>Your copy.</strong> Export everything as one JSON file at any time.</li>
+              <li><strong>Your call.</strong> Erase everything from Settings when you want it gone.</li>
+            </ul>
+          </aside>
+
+          <div class="legal-body">
+            <section aria-labelledby="stored">
+              <h2 id="stored">What IronLog stores</h2>
+              <p>
+                Everything is written to <strong>local storage</strong> in the browser you use.
+                There is no server-side copy and no sync service. The app keeps:
+              </p>
+              <ul>
+                <li>
+                  <strong><code>ironlog.v1</code></strong> — your workouts, sets, custom exercises
+                  and preferences (units, rest defaults, theme, instruction language, last backup
+                  time).
+                </li>
+                <li>
+                  <strong><code>ironlog.sidebar</code></strong> — whether the desktop sidebar is
+                  expanded or collapsed.
+                </li>
+              </ul>
+              <p>
+                The service worker also caches the app's own HTML, CSS, JavaScript, fonts and the
+                exercise catalogue in <strong>Cache Storage</strong>, so the app can open offline.
+                It caches only files served from this site; it does not cache your exported
+                backups.
+              </p>
+            </section>
+
+            <section aria-labelledby="not-collected">
+              <h2 id="not-collected">What is not collected</h2>
+              <p>
+                IronLog does not collect names, email addresses, account credentials, location,
+                device fingerprints, workout contents or usage analytics. There are no cookies
+                set by the app, no advertising pixels, no third-party scripts and no remote font
+                or CDN requests. The app makes no network request with your training data.
+              </p>
+            </section>
+
+            <section aria-labelledby="hosting">
+              <h2 id="hosting">Hosting and routine request data</h2>
+              <p>
+                The site is served by <strong>GitHub Pages</strong>. Like any web host, GitHub
+                receives standard request information when your browser loads a page — such as an
+                IP address, user agent, requested URL and time. That is ordinary web-server
+                logging controlled by GitHub, not by IronLog, and it is not linked to your workout
+                document. See
+                <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer" target="_blank">GitHub's privacy statement</a>
+                for details.
+              </p>
+              <p>
+                Once the app is installed or cached, it can run without contacting the network at
+                all. When it does update, it fetches the same static files from this site.
+              </p>
+            </section>
+
+            <section aria-labelledby="backups">
+              <h2 id="backups">Backups, imports and erasing</h2>
+              <p>
+                <strong>Export JSON</strong> creates a file in your downloads folder containing
+                your whole log. That file is yours; where you keep it is outside IronLog's control.
+                <strong>Import JSON</strong> replaces the current log with the file you choose.
+                <strong>Erase all data</strong> in Settings clears the app's local document.
+              </p>
+              <p>
+                Because the log is local-only, clearing site data, using a private window, or
+                losing the device can remove it permanently. IronLog asks the browser for
+                persistent storage where that is supported, but no web page can guarantee that a
+                browser will never evict local data. Keep an exported backup if the log matters to
+                you.
+              </p>
+            </section>
+
+            <section aria-labelledby="licences">
+              <h2 id="licences">Third-party content and licences</h2>
+              <p>
+                The exercise catalogue is derived from the
+                <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">exercises-dataset</a>
+                project by Hasan Emir Yıldırım, used under the MIT licence. Exercise animation
+                media is © Gym Visual and is redistributed under a media licence held by the
+                operator of this deployment. Attribution is retained in the app and in every
+                catalogue record. Full terms are in the
+                <a href="./NOTICE">third-party notices</a>.
+              </p>
+              <p>
+                IronLog's own source code is MIT licensed. The licence does not grant rights to
+                the Gym Visual media; a different deployment must hold its own media licence or
+                remove that media.
+              </p>
+            </section>
+
+            <section aria-labelledby="medical">
+              <h2 id="medical">Not medical advice</h2>
+              <p>
+                IronLog records training. It does not diagnose, treat or prevent any condition,
+                and its numbers — including estimated one-rep max and volume — are training
+                estimates, not medical measurements. Strength training carries risk. Work within
+                your limits and consult a qualified professional before changing your programme,
+                especially if you are injured, pregnant or managing a health condition.
+              </p>
+            </section>
+
+            <section aria-labelledby="changes">
+              <h2 id="changes">Changes and contact</h2>
+              <p>
+                If this policy changes, the date at the top of this page changes with it. Questions
+                or corrections can be raised in the
+                <a href="https://github.com/shogun-support-99/fitness/issues" rel="noopener noreferrer" target="_blank">project issue tracker</a>.
+                Please do not include private training data or personal details in a public issue.
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-top">
+        <div class="footer-brand">
+          <a class="brand" href="./" aria-label="IronLog home">
+            <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+              <path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" />
+            </svg>
+            <span>IronLog</span>
+          </a>
+          <p>A private strength-training log that stays in your browser.</p>
+        </div>
+        <nav class="footer-cols" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="./app/">Open the app</a>
+            <a href="./#features">Features</a>
+            <a href="./#routines">Routines</a>
+            <a href="./app/#/library">Exercise library</a>
+          </div>
+          <div>
+            <h3>Learn</h3>
+            <a href="./#workout">How logging works</a>
+            <a href="./#privacy">Privacy</a>
+            <a href="./#faq">FAQ</a>
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a href="https://github.com/shogun-support-99/fitness" rel="noopener noreferrer" target="_blank">Source code</a>
+            <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">Exercise data</a>
+            <a href="./NOTICE">Licensing</a>
+          </div>
+        </nav>
+      </div>
+      <div class="shell footer-bottom">
+        <p>© <span data-year>2026</span> IronLog. MIT licensed. Not affiliated with any other fitness product.</p>
+        <p class="footer-fine">Exercise data © 2026 Hasan Emir Yıldırım (MIT). Media © Gym Visual, under licence.</p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -19,9 +19,10 @@
  * plain ES-agnostic worker code (no imports), so it needs no build step.
  */
 
-// Bumped whenever the shell's CSS or JS changes: stale-while-revalidate would
-// otherwise serve the previous build for one more load after a deploy.
-const CACHE = "ironlog-shell-v6";
+// The deploy workflow rewrites this value with the commit SHA, so every
+// published build gets a fresh cache and waiting updates can be detected. When
+// editing locally, bump the suffix if an old shell keeps winning during tests.
+const CACHE = "ironlog-shell-v10";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -32,6 +33,7 @@ const PRECACHE = [
   "../assets/css/tailwind.css",
   "./js/main.js",
   "./js/store.js",
+  "./js/version.js",
   "./js/timer.js",
   "./js/router.js",
   "./js/exercises.js",
@@ -51,6 +53,10 @@ const PRECACHE = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",
+  // The library index is fetched after first paint; precaching it means the
+  // offline library is complete after the first visit, not just the shell.
+  "./data/exercises-index.json",
+  "./data/catalogue-meta.json",
   "../fonts/Figtree-Variable.woff2",
   "../fonts/Figtree-Variable-latinext.woff2",
   "../fonts/Geist-Variable.woff2",
@@ -59,11 +65,34 @@ const PRECACHE = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => true))))
-      .then(() => self.skipWaiting()),
+    (async () => {
+      const cache = await caches.open(CACHE);
+      // cache: "reload" bypasses the HTTP cache. Without it, an update can
+      // precache yesterday's JavaScript because the CDN cached it for minutes.
+      await Promise.all(
+        PRECACHE.map(async (url) => {
+          try {
+            // Resolve against the worker's own URL so the request construction
+            // cannot fail on a relative path, then bypass the HTTP cache so an
+            // update never precaches yesterday's JavaScript.
+            const absolute = new URL(url, self.location.href).href;
+            await cache.add(new Request(absolute, { cache: "reload" }));
+          } catch {
+            // One missing optional asset must not abort the whole install; the
+            // fetch handler still fills it in on first use.
+          }
+        }),
+      );
+      // First install claims immediately so the first visit already works
+      // offline. Updates wait for the page to ask: swapping modules under a
+      // live workout is worse than showing "reload to update".
+      if (!self.registration.active) await self.skipWaiting();
+    })(),
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -85,10 +114,12 @@ self.addEventListener("fetch", (event) => {
   // Navigations: network first, fall back to the cached app shell offline.
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: "no-cache" })
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put("./", copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE).then((cache) => cache.put("./", copy));
+          }
           return response;
         })
         .catch(() => caches.match("./")),

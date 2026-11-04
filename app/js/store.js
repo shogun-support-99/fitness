@@ -45,6 +45,9 @@ function emptyDocument() {
       // are equally supported and the choice is persisted per browser.
       theme: "light",
       instructionLanguage: "en",
+      // Set when the user exports a backup; surfaced in Settings so a local-only
+      // log never drifts for months without one.
+      lastBackupAt: null,
     },
     createdAt: new Date().toISOString(),
   };
@@ -55,11 +58,25 @@ export class Store {
    * @param {Storage} [storage] defaults to window.localStorage when available
    */
   constructor(storage) {
-    this.storage =
-      storage ??
-      (typeof globalThis !== "undefined" && globalThis.localStorage
-        ? globalThis.localStorage
-        : memoryStorage());
+    /** True when the log lives only in memory and will vanish on close. */
+    this.volatile = false;
+    if (storage) {
+      this.storage = storage;
+    } else {
+      try {
+        // Access can itself throw in locked-down or private contexts, so the
+        // fallback has to wrap the property read, not just the write.
+        if (globalThis.localStorage) {
+          this.storage = globalThis.localStorage;
+        } else {
+          this.storage = memoryStorage();
+          this.volatile = true;
+        }
+      } catch {
+        this.storage = memoryStorage();
+        this.volatile = true;
+      }
+    }
     this.doc = this.#read();
     this.listeners = new Set();
 
@@ -489,6 +506,21 @@ export class Store {
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };
     }
+  }
+
+  /**
+   * Re-read the persisted document after another tab wrote to the same key.
+   *
+   * localStorage is last-write-wins across tabs; without this, two open tabs
+   * silently diverge and the next write from the stale tab discards the other
+   * tab's workout. Main wires this to the window `storage` event.
+   */
+  reloadFromStorage() {
+    this.doc = this.#read();
+    this._indexCache = null;
+    this._indexCacheKey = null;
+    this.#emit({ type: "data:reload", persisted: true });
+    return this.doc;
   }
 
   reset() {

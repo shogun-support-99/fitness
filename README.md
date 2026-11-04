@@ -46,7 +46,7 @@ lives in your browser's local storage, and you can export all of it as JSON at a
 - **Personal records** — three independent records per exercise: heaviest weight, most
   reps, and highest estimated 1RM. The session summary names exactly which you broke.
 - **Progress views** — weekly volume bars, muscle-group balance, lifetime totals, and a
-  training-day streak. Charts are inline SVG, so no charting library loads.
+  training-day streak. Charts are plain HTML columns and bars, so no charting library loads.
 - **Exercise library** — **1,316 exercises** from a single MIT data catalogue, deduplicated
   by normalised name so saved exercise IDs never change. Search is relevance-ranked and
   grouped by muscle and equipment. Custom exercises persist alongside them.
@@ -104,9 +104,9 @@ node --test "tests/*.test.js"
 ```
 
 ```
-# tests 312
-# suites 65
-# pass 312
+# tests 310
+# suites 62
+# pass 310
 # fail 0
 ```
 
@@ -211,29 +211,29 @@ allowlist. See [`NOTICE`](./NOTICE) for the complete third-party record.
 
 ## Design
 
-The app and landing page share one bright, focused training-product system, built on the
-patterns of Hevy's public front end — Figtree, a single blue action colour (#008CFF),
-near-white ground, soft grey pill secondaries, 16px cards, green completed sets and blue
-tabs — implemented with IronLog's own markup, local-first architecture and licensed media. The workflow centres on reusable routines, an empty
-workout, previous-performance columns, completed-set checks, automatic rest and a clear
-session summary rather than on decorative dashboards.
+The app and landing page share one restrained training-product system: stone-paper
+grounds, bottle-green ink, a single yellow signal, and a data green reserved for completed
+work and the leading series. There is no brand-coloured button and no rainbow of cards;
+weight, reps, volume and records carry the colour. The workflow centres on reusable
+routines, an empty workout, previous-performance columns, completed-set checks, automatic
+rest and a clear session summary rather than on decorative dashboards.
 
 | | |
 | --- | --- |
-| Grounds | cool white `#f5f6f8` with white product cards; `#111315` in dark mode |
-| Action and data | bright blue `#1b96e8` for primary actions, links, timers and charts |
-| Completed sets | green checks and a restrained green row wash |
+| Grounds | warm stone `#f2f1ec` with paper `#fbfaf6` surfaces; true neutral darks in dark mode |
+| Action | bottle ink `#0f2a1d` for primary actions; yellow `#f6e016` for the one signal |
+| Data | deep green `#1f5c3f` for completed sets, the active chart series and record marks |
 | Navigation | six desktop destinations; Home, Workout, Exercises and Profile on mobile |
-| Type | self-hosted Geist, with tabular figures for measurements and updating values |
-| Geometry | compact 12px cards, 8px controls, thin borders and floating sheets/toasts |
+| Type | Figtree on the landing page, Geist in the workspace, Geist Mono for figures |
+| Geometry | 8–12px controls and cards, thin rules, no resting shadows and floating sheets/toasts |
 | Product artwork | working interface samples, licensed exercise stills and original SVG diagrams |
 
-The light theme is the default. Dark and match-system appearances use the same blue
-actions and green completion feedback, and an existing browser preference is respected
-before first paint. Responsive layouts keep the logger's Set / Previous / Weight / Reps /
-Done workflow usable on narrow screens.
+The light theme is the default. Dark and match-system appearances reuse the same signal and
+data hues, and an existing browser preference is respected before first paint. Responsive
+layouts keep the logger's Set / Previous / Weight / Reps / Done workflow usable on narrow
+screens, with the sidebar becoming a bottom bar below 960px.
 
-Both faces are **self-hosted** from `fonts/` under the SIL Open Font License, so the site
+All faces are **self-hosted** from `fonts/` under the SIL Open Font License, so the site
 makes no request to any third party — including for its type. See [`NOTICE`](./NOTICE).
 Browser surfaces are themed from the palette rather than left at their defaults: text
 selection, the caret, scrollbars, focus rings, underline offset and tabular numerals.
@@ -241,40 +241,21 @@ There is a print stylesheet, because a log is a thing people print.
 
 ## Motion
 
-Animation is authored around the product's central ritual: **a completed set connects
-logging, rest, records and progress**. The landing page has two native-scroll scenes:
-a three-frame set/rest/progress reel and a single session interface inspected at three
-distances. Their transform origins are solved from the rendered timer and record values,
-so the zoom lands on the actual data at every viewport. A quiet reading section separates
-the two held scenes.
-
-| Element | Motion |
-| --- | --- |
-| Landing hero | native scroll scrubs three working product frames; completing the sample advances to rest |
-| Landing showcase | pans and scales from the session to its timer, then to its estimated-1RM record |
-| Interface controls | shutter/clip reveals, short press feedback and visible focus |
-| A chart bar | grows from the baseline, staggered |
-| A personal record | **stamped** — overshoot and rotation, with bounded linework |
-| SVG linework | draws itself via `stroke-dashoffset` |
-| A figure | rolls with tabular numerals and thousands separators intact |
-| The rest timer | real countdown state with a draining progress rule and final-fifth warning |
-| A completed set | the tick draws its own check |
-| App navigation | one active line travels between destinations; route changes are short and never replay on input updates |
-
-The hero sample is functional, not a mock clock: editing weight/reps recomputes volume and
-the Epley estimate, and completing the set starts an actual 90-second countdown. The
-85 kg × 6 reps example therefore produces 510 kg of volume and a 102 kg estimated 1RM.
+Motion is authored around the product's central ritual: **a completed set connects
+logging, rest, records and progress**. The landing page uses scroll-triggered reveals, a
+working tabbed preview and a live nav marker; the app reveals each route once, staggers the
+sidebar destinations, draws the completed-set tick, grows chart bars from the baseline and
+stamps a personal record. A rest timer is real countdown state with a draining progress
+rule, and a record summary animates once rather than looping.
 
 Three rules hold everywhere:
 
 1. **Content has a readable default and a finished state.** No script, a failed module or
    reduced motion never leaves a blank stage or hides the product behind an entrance.
-2. **Large scene motion stays compositor-friendly.** Scroll work uses one
-   `requestAnimationFrame` pass and native scrolling; transforms, opacity, clip paths and
-   SVG strokes do the visual work. Countdown progress updates at clock frequency.
+2. **Motion stays compositor-friendly.** Transforms, opacity, clip paths and short timers
+   do the visual work; there is no scroll-jacking and no animation loop left running.
 3. **`prefers-reduced-motion` removes non-essential motion and leaves the final state.**
-   Loops stop outright, scene content becomes a normal readable composition, and useful
-   state changes remain visible.
+   Loops stop outright, reveals resolve immediately, and useful state changes remain visible.
 
 `app/js/motion.js` declines to start observers and loops under reduced motion, and
 disconnects every observer before a re-render so a session left open for an hour does not
@@ -302,7 +283,7 @@ required attribution retained. If you independently hold rights to other media,
 - **No runtime build step.** Plain ES modules are loaded by the browser; the only compiled
   artefact is the Tailwind CSS file, which is committed so deployment cannot fail on a
   toolchain change.
-- **No runtime dependencies.** No framework, no charting library, no icon font, no
+- **No runtime dependencies.** No framework, no charting library, no icon font, no remote
   webfont. The only requests a page makes are for its own files.
 - **Views are pure functions of state.** Each view returns an HTML string from the store;
   behaviour is wired once through a delegated listener keyed on `data-action`. That makes
@@ -327,14 +308,26 @@ There is nothing to do manually. Commit to `main` and the site updates itself wi
 minute or two. Pull requests run the `test` job without deploying, so a broken change is
 caught before it can reach production.
 
+Each deploy stamps the service-worker cache with the commit SHA and rewrites
+`app/js/version.js`, so returning visitors are offered a “new version ready” banner and
+Settings → About shows the live build. The worker waits for the user to accept an update
+rather than swapping modules under an open workout; a first-time install still claims
+immediately so offline support works after one visit.
+
+Before announcing a public deployment, complete the operator checklist in
+[`docs/LAUNCH.md`](./docs/LAUNCH.md) — especially the **Gym Visual media licence**, the
+one-time Pages setting, and the canonical/social URL check.
+
 Pages is configured with **Source: GitHub Actions** on this repository. Run history:
 [Actions](https://github.com/shogun-support-99/fitness/actions).
 
 ## Privacy
 
-No data leaves the device. There is no backend, no analytics, no cookies and no
-third-party network request; all fonts, data and licensed illustrations are self-hosted. Workouts are stored under a single versioned local storage key and can
-be exported or erased from the app's settings screen.
+No training data leaves the device. There is no backend, no analytics and no third-party
+network request; all fonts, data and licensed illustrations are self-hosted. Workouts are
+stored under a single versioned local storage key and can be exported or erased from the
+app's settings screen. Full details, including routine hosting request logs, are on the
+[privacy and data page](https://shogun-support-99.github.io/fitness/privacy.html).
 
 The trade-off is worth stating plainly: because storage is per-browser and per-origin,
 clearing site data removes your log, and it does not sync between devices. Export a backup

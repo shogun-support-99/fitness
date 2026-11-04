@@ -108,7 +108,9 @@ if (revealables.length) {
 
 /* ── Scroll spy ────────────────────────────────────────────────────────── */
 
-const spyLinks = [...doc.querySelectorAll(".site-nav a")];
+const spyLinks = [...doc.querySelectorAll(".site-nav a")].filter((link) =>
+  (link.getAttribute("href") ?? "").startsWith("#"),
+);
 const spySections = spyLinks
   .map((link) => doc.querySelector(link.getAttribute("href")))
   .filter(Boolean);

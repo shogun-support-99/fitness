@@ -6,7 +6,7 @@
  * [data-action], so views stay pure functions of state.
  */
 
-import { Store } from "./store.js";
+import { STORAGE_KEY, Store } from "./store.js";
 import { RestTimer, formatElapsed, formatSeconds } from "./timer.js";
 import { Router, parseHash } from "./router.js";
 import { searchExercises } from "./exercises.js";
@@ -40,6 +40,9 @@ let libraryState = { query: "", muscle: "all" };
 
 /** The exercise whose detail sheet is open, plus its async instruction state. */
 let detailState = { exercise: null, stepsState: "idle", stepsResult: null };
+
+/** Once the user dismisses the update banner, leave them alone this session. */
+let updateDismissed = false;
 
 const restTimer = new RestTimer({
   onFinish: () => notify("Rest complete", "Time for your next set."),
@@ -150,6 +153,9 @@ function render(navigation = router.current) {
   // an open exercise detail — for instance when the catalogue finishes loading
   // while the user is reading one. Repaint it from state instead.
   if (detailState.exercise) renderDetail();
+
+  // Storage protection is async; fill the row after the settings markup exists.
+  refreshStorageProtection();
 }
 
 function syncNav(route) {
@@ -216,6 +222,82 @@ function notify(title, body) {
   }
 }
 
+// ── App lifecycle: storage protection and updates ──────────────────────────
+
+/** Reflect the browser's storage-protection state in Settings when it is open. */
+async function refreshStorageProtection() {
+  const target = document.querySelector('[data-role="storage-protection"]');
+  if (!target) return;
+  if (!navigator.storage || typeof navigator.storage.persisted !== "function") {
+    target.textContent = "Not supported";
+    return;
+  }
+  try {
+    const persisted = await navigator.storage.persisted();
+    target.textContent = persisted ? "Protected" : "Best effort";
+    target.title = persisted
+      ? "The browser will not evict this log automatically. Erasing site data still removes it."
+      : "The browser may evict this log when space is low. Export a backup.";
+  } catch {
+    target.textContent = "Unknown";
+  }
+}
+
+/**
+ * Register the service worker and offer a reload when a new build is waiting.
+ *
+ * The worker deliberately does not skipWaiting on updates: swapping the shell
+ * mid-session can pull the page out from under a workout. The banner lets the
+ * user choose the moment, and the first install still claims immediately so
+ * offline caching works after a single visit.
+ */
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  let hadController = Boolean(navigator.serviceWorker.controller);
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController) {
+      hadController = true;
+      return;
+    }
+    location.reload();
+  });
+
+  try {
+    const registration = await navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" });
+    const offer = () => {
+      if (registration.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+    };
+    registration.addEventListener("updatefound", () => {
+      const installing = registration.installing;
+      if (!installing) return;
+      installing.addEventListener("statechange", () => {
+        if (installing.state === "installed") offer();
+      });
+    });
+    offer();
+
+    const check = () => {
+      registration.update().catch(() => {
+        /* offline or a transient error: try again on the next check */
+      });
+    };
+    check();
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) check();
+    });
+    window.setInterval(check, 30 * 60 * 1000);
+  } catch {
+    /* offline caching is progressive enhancement */
+  }
+}
+
+function showUpdateBanner() {
+  if (updateDismissed) return;
+  const banner = document.querySelector("#update-banner");
+  if (banner) banner.hidden = false;
+}
+
 // ── Sheets ─────────────────────────────────────────────────────────────────
 
 function openSheet(id) {
@@ -240,6 +322,23 @@ function closeSheet(id) {
 // ── Actions ────────────────────────────────────────────────────────────────
 
 const actions = {
+  "toggle-sidebar": () => {
+    const shell = document.querySelector(".shell");
+    if (!shell) return;
+    const collapsed = shell.classList.toggle("sidebar-collapsed");
+    try {
+      localStorage.setItem("ironlog.sidebar", collapsed ? "collapsed" : "open");
+    } catch {
+      /* private mode: the toggle still works for this session */
+    }
+    const btn = document.querySelector('[data-action="toggle-sidebar"]');
+    if (btn) {
+      btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      btn.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+      btn.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+    }
+  },
+
   "start-workout": () => {
     const result = store.startWorkout();
     if (!result.ok) return toast(result.error, { tone: "danger" });
@@ -550,6 +649,25 @@ const actions = {
   },
   "toggle-autorest": (el) => store.updateSettings({ autoStartRestTimer: el.checked }),
 
+  "protect-storage": async () => {
+    if (!navigator.storage || typeof navigator.storage.persist !== "function") {
+      return toast("This browser does not offer storage protection", { tone: "danger", timeout: 3800 });
+    }
+    try {
+      const already = await navigator.storage.persisted?.();
+      const granted = already || (await navigator.storage.persist());
+      await refreshStorageProtection();
+      toast(
+        granted
+          ? "Storage protected from automatic cleanup"
+          : "Browser kept storage best-effort — export a backup",
+        { tone: granted ? "default" : "danger", timeout: 4400 },
+      );
+    } catch {
+      toast("Could not request storage protection", { tone: "danger", timeout: 3800 });
+    }
+  },
+
   "export-data": () => {
     const blob = new Blob([store.exportData()], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -560,7 +678,32 @@ const actions = {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    store.updateSettings({ lastBackupAt: new Date().toISOString() });
+    if (router.current.route === "settings") render();
     toast("Backup downloaded");
+  },
+
+  "apply-update": async () => {
+    const banner = $("#update-banner");
+    if (banner) banner.hidden = true;
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration?.waiting) {
+        registration.waiting.postMessage("SKIP_WAITING");
+        // controllerchange reloads; this is only a fallback for a stuck worker.
+        window.setTimeout(() => location.reload(), 1800);
+        return;
+      }
+    } catch {
+      /* fall through to a plain reload */
+    }
+    location.reload();
+  },
+
+  "dismiss-update": () => {
+    updateDismissed = true;
+    const banner = $("#update-banner");
+    if (banner) banner.hidden = true;
   },
 
   "import-file": (el) => {
@@ -926,6 +1069,16 @@ restTimer.subscribe((snapshot) => {
   if (fill) fill.style.width = `${Math.round(snapshot.progress * 100)}%`;
 });
 
+// Another tab wrote the same key. Re-read before this tab's next write so the
+// last action cannot silently discard the other tab's workout.
+window.addEventListener("storage", (event) => {
+  if (event.key !== STORAGE_KEY) return;
+  store.reloadFromStorage();
+  applyTheme();
+  render();
+  toast("Synced changes from another tab");
+});
+
 store.subscribe((event) => {
   if (event.persisted === false && store.lastError) {
     toast("Could not save to this browser's storage", { tone: "danger", timeout: 4000 });
@@ -958,11 +1111,32 @@ store.subscribe((event) => {
 // ── Boot ───────────────────────────────────────────────────────────────────
 
 function boot() {
+  // Restore the sidebar width preference before the first render so the rail
+  // does not flash open and then collapse.
+  try {
+    if (localStorage.getItem("ironlog.sidebar") === "collapsed") {
+      document.querySelector(".shell")?.classList.add("sidebar-collapsed");
+      const toggle = document.querySelector('[data-action="toggle-sidebar"]');
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute("aria-label", "Expand sidebar");
+        toggle.title = "Expand sidebar";
+      }
+    }
+  } catch {
+    /* storage unavailable: keep the rail open */
+  }
   // Register the service worker for offline support. Best-effort: if the
   // browser or environment can't support it, the app still runs normally.
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(() => {
-      /* offline caching is progressive enhancement */
+  registerServiceWorker();
+
+  // localStorage can be unavailable (private windows, locked-down browsers).
+  // Store falls back to memory so the app still works, but the user must know
+  // the log will not survive the tab closing.
+  if (store.volatile) {
+    toast("Local storage is blocked here — your log will vanish when this tab closes.", {
+      tone: "danger",
+      timeout: 9000,
     });
   }
   applyTheme();

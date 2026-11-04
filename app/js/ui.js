@@ -77,35 +77,50 @@ export function statTile({ label, value, unit = "", hint = "", tone = "", countT
     </div>`;
 }
 
-/** Simple inline SVG sparkline/bar chart with no charting dependency. */
+/**
+ * Simple bar chart with no charting dependency.
+ *
+ * The columns are HTML, not SVG: the plot stretches to the panel width, and a
+ * stretched SVG turns a one-week series into a hundred-pixel slab. With layout
+ * boxes the bar keeps a real pixel width while the slots stay fluid.
+ */
 export function barChart(points, { height = 132, ariaLabel = "chart" } = {}) {
   if (!points || points.length === 0) {
     return `<div class="chart-empty">Not enough sessions yet.</div>`;
   }
   const values = points.map((p) => Number(p.value) || 0);
   const max = Math.max(...values, 1);
-  const width = 100;
-  const gap = 1.6;
   // Keep sparse histories readable: one workout week should be one bar, not a
   // full-width rectangle. Six slots leave room for the series to grow while
   // the populated group stays centred and full series remain edge to edge.
   const slots = Math.max(points.length, 6);
-  const barWidth = (width - gap * (slots - 1)) / slots;
-  const usedWidth = points.length * barWidth + Math.max(0, points.length - 1) * gap;
-  const offset = (width - usedWidth) / 2;
+  const pad = slots - points.length;
+  const lead = Math.floor(pad / 2);
+  const trailing = pad - lead;
+  // Bars stop at 86% so the value label above the tallest bar keeps a clean
+  // gap under the panel rule instead of clipping against it.
+  const plotHeight = 86;
 
-  const bars = points
-    .map((p, i) => {
+  const empty = `<span class="chart-col"></span>`;
+  const cols = [
+    ...Array.from({ length: lead }, () => empty),
+    ...points.map((p) => {
       const v = Number(p.value) || 0;
-      const h = max > 0 ? (v / max) * 100 : 0;
-      const x = offset + i * (barWidth + gap);
-      return `<rect class="chart-bar" x="${x.toFixed(2)}" y="${(100 - h).toFixed(2)}" width="${barWidth.toFixed(2)}" height="${Math.max(h, 0.6).toFixed(2)}" rx="0.8"><title>${esc(p.label ?? "")}: ${esc(p.display ?? v)}</title></rect>`;
-    })
-    .join("");
+      const h = Math.max(max > 0 ? (v / max) * plotHeight : 0, 0.8);
+      return `<span class="chart-col has-point" style="--bar:${h.toFixed(2)}%">
+          <span class="chart-value">${esc(p.display ?? v)}</span>
+          <span class="chart-bar" style="height:${h.toFixed(2)}%" title="${esc(p.label ?? "")}: ${esc(p.display ?? v)}"></span>
+        </span>`;
+    }),
+    ...Array.from({ length: trailing }, () => empty),
+  ].join("");
 
   return `
     <div class="chart" style="--chart-h:${height}px" role="img" aria-label="${esc(ariaLabel)}">
-      <svg viewBox="0 0 ${width} 100" preserveAspectRatio="none">${bars}</svg>
+      <div class="chart-plot">
+        <span class="chart-grid" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="chart-cols" style="grid-template-columns:repeat(${slots}, minmax(0, 1fr))">${cols}</span>
+      </div>
       <div class="chart-axis${points.length === 1 ? " chart-axis-single" : ""}">
         <span>${esc(points[0].axis ?? "")}</span>
         ${points.length > 1 ? `<span>${esc(points[points.length - 1].axis ?? "")}</span>` : ""}
@@ -115,18 +130,26 @@ export function barChart(points, { height = 132, ariaLabel = "chart" } = {}) {
 
 /** Horizontal muscle-group distribution bars. */
 export function distributionBars(rows) {
+  if (!rows || rows.length === 0) {
+    return `<p class="chart-empty">No sets logged yet.</p>`;
+  }
   const max = Math.max(...rows.map((r) => r.value), 1);
+  const total = rows.reduce((sum, r) => sum + r.value, 0);
   return `
     <ul class="dist">
       ${rows
-        .map(
-          (r) => `
-        <li>
-          <span class="dist-name">${esc(r.label)}</span>
-          <span class="dist-track"><span class="dist-fill" style="width:${((r.value / max) * 100).toFixed(1)}%"></span></span>
-          <span class="dist-value">${esc(r.display ?? r.value)}</span>
-        </li>`,
-        )
+        .map((r, i) => {
+          const share = total > 0 ? Math.round((r.value / total) * 100) : 0;
+          // Only the leading row carries the accent hue; ties stay neutral so
+          // the list keeps one focal point instead of a wall of green.
+          const lead = i === 0 ? " is-lead" : "";
+          return `
+        <li class="dist-row${lead}">
+          <span class="dist-name"><span class="dist-dot" aria-hidden="true"></span>${esc(r.label)}</span>
+          <span class="dist-track"><span class="dist-fill bar-animate" style="width:${Math.max((r.value / max) * 100, 4).toFixed(1)}%"></span></span>
+          <span class="dist-value"><strong>${esc(r.display ?? r.value)}</strong><em>${share}%</em></span>
+        </li>`;
+        })
         .join("")}
     </ul>`;
 }

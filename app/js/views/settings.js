@@ -7,7 +7,9 @@
 
 import { EQUIPMENT } from "../exercises.js";
 import { availableLanguages } from "../catalogue.js";
+import { relativeTime } from "../stats.js";
 import { esc, icon } from "../ui.js";
+import { BUILT_AT, VERSION } from "../version.js";
 
 const REST_PRESETS = [45, 60, 90, 120, 180, 240, 300];
 
@@ -16,6 +18,11 @@ export function renderSettings(store) {
   const workoutCount = store.doc.workouts.length;
   const customCount = store.doc.customExercises.length;
   const bytes = new Blob([JSON.stringify(store.doc)]).size;
+  const backupAgeDays = s.lastBackupAt
+    ? (Date.now() - new Date(s.lastBackupAt).getTime()) / 86_400_000
+    : Infinity;
+  const backupStale = workoutCount > 0 && backupAgeDays > 30;
+  const versionLabel = BUILT_AT ? `${VERSION} · ${BUILT_AT.slice(0, 10)}` : VERSION;
 
   return `
     <section class="view view-settings">
@@ -92,7 +99,17 @@ export function renderSettings(store) {
               <div><dt>Custom exercises</dt><dd>${customCount}</dd></div>
               <div><dt>Storage used</dt><dd>${formatBytes(bytes)}</dd></div>
               <div><dt>Where it lives</dt><dd>this browser only</dd></div>
+              <div><dt>Last backup</dt><dd>${s.lastBackupAt ? esc(relativeTime(s.lastBackupAt)) : "never"}</dd></div>
+              <div><dt>Storage protection</dt><dd data-role="storage-protection">Checking…</dd></div>
             </dl>
+            ${
+              backupStale
+                ? `<p class="panel-warning" role="status">
+                    ${workoutCount === 1 ? "Your workout has" : `Your ${workoutCount} workouts have`} no recent backup.
+                    Export a JSON file and keep it somewhere safe — clearing site data removes the log for good.
+                  </p>`
+                : ""
+            }
             <p class="panel-hint">
               IronLog has no account system and no server. Everything you log stays in this
               browser's local storage, so it is private by default — and it disappears if you
@@ -104,6 +121,7 @@ export function renderSettings(store) {
                 ${icon("upload")} Import JSON
                 <input type="file" accept="application/json,.json" data-action="import-file" hidden />
               </label>
+              <button class="btn btn-sub" data-action="protect-storage">${icon("save")} Protect storage</button>
               <button class="btn btn-danger-ghost" data-action="reset-data">${icon("trash")} Erase all data</button>
             </div>
           </section>
@@ -112,12 +130,22 @@ export function renderSettings(store) {
 
           <section class="panel" data-reveal="rise">
             <div class="panel-head"><h2>About</h2></div>
+            <dl class="fact-list">
+              <div><dt>App version</dt><dd title="${esc(BUILT_AT || "local development build")}">${esc(versionLabel)}</dd></div>
+            </dl>
             <p class="panel-hint">
               IronLog is an offline-first strength training log: a 1,316-exercise library,
               set-by-set logging, rest timing, volume and personal records. Built as a static
               app with no build step and no tracking.
             </p>
-            <a class="link" href="../" data-action="to-landing">Project landing page ${icon("chevron")}</a>
+            <p class="panel-hint">
+              Training carries risk. IronLog records what you do; it is not medical, coaching or
+              safety advice. Work within your limits and get professional guidance when you need it.
+            </p>
+            <div class="settings-actions">
+              <a class="link" href="../privacy.html">Privacy &amp; data ${icon("chevron")}</a>
+              <a class="link" href="../" data-action="to-landing">Project landing page ${icon("chevron")}</a>
+            </div>
           </section>
         </div>
       </div>

@@ -393,6 +393,44 @@ table,
   display: none;
 }
 
+.sidebar-head {
+  display: none;
+}
+
+.sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background-color 0.14s var(--ease),
+    color 0.14s var(--ease);
+}
+
+.sidebar-toggle:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.sidebar-toggle .icon {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.3s var(--ease);
+}
+
 .brand-mark {
   display: inline-flex;
   align-items: center;
@@ -734,6 +772,17 @@ table,
   margin: 0;
   font-size: var(--fs-small);
   color: var(--muted);
+}
+
+.panel-warning {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--warning);
+  border-radius: 0 6px 6px 0;
+  background: var(--pill-warning-bg);
+  color: var(--pill-warning-ink);
+  font-size: var(--fs-small);
+  line-height: 1.5;
 }
 
 .panel-empty {
@@ -1567,11 +1616,85 @@ select {
   gap: 8px;
 }
 
-.chart svg {
-  width: 100%;
+.chart-plot {
+  position: relative;
   height: var(--chart-h, 132px);
-  display: block;
-  overflow: visible;
+}
+
+.chart-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chart-grid i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--gridline) 0 4px,
+    transparent 4px 9px
+  );
+}
+
+.chart-grid i:nth-child(1) {
+  top: 25%;
+}
+
+.chart-grid i:nth-child(2) {
+  top: 50%;
+}
+
+.chart-grid i:nth-child(3) {
+  top: 75%;
+}
+
+.chart-cols {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-items: end;
+}
+
+.chart-col {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  min-width: 0;
+}
+
+/* The slot behind the bar: it shows how much of the week's ceiling is used
+   even when the bar itself is short. Empty padding slots stay clean. */
+.chart-col.has-point::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(100%, 48px);
+  height: 100%;
+  transform: translateX(-50%);
+  background: var(--raised);
+  border-radius: 4px;
+  opacity: 0.55;
+}
+
+.chart-value {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--bar, 0%) + 4px);
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .chart-axis {
@@ -1582,8 +1705,16 @@ select {
   color: var(--faint);
 }
 
+.chart-axis-single {
+  justify-content: center;
+}
+
 .chart-bar {
-  fill: var(--chart-1);
+  position: relative;
+  display: block;
+  width: min(100%, 48px);
+  background: var(--chart-1, #0f2a1d);
+  border-radius: 4px 4px 2px 2px;
 }
 
 .chart-empty {
@@ -1604,10 +1735,10 @@ select {
 
 .dist > li {
   display: grid;
-  grid-template-columns: minmax(72px, 1fr) minmax(0, 2.4fr) 52px;
-  gap: 10px;
+  grid-template-columns: minmax(88px, 1fr) minmax(0, 2.6fr) 74px;
+  gap: 12px;
   align-items: center;
-  padding: 6px 0;
+  padding: 9px 0;
   border-top: 1px solid var(--rule);
 }
 
@@ -1616,6 +1747,9 @@ select {
 }
 
 .dist-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: var(--fs-small);
   color: var(--text-secondary);
   text-transform: capitalize;
@@ -1624,9 +1758,21 @@ select {
   white-space: nowrap;
 }
 
+.dist-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--chart-2);
+  flex: 0 0 auto;
+}
+
+.dist-row.is-lead .dist-dot {
+  background: var(--data);
+}
+
 .dist-track {
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: 4px;
   background: var(--raised);
   overflow: hidden;
 }
@@ -1634,19 +1780,44 @@ select {
 .dist-fill {
   display: block;
   height: 100%;
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--chart-2);
 }
 
-.dist > li:first-child .dist-fill {
+.dist-row.is-lead .dist-fill {
   background: var(--data);
 }
 
 .dist-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
   font-family: var(--mono);
   font-size: var(--fs-small);
   color: var(--muted);
   text-align: right;
+}
+
+.dist-value strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dist-value em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--faint);
+}
+
+@media (max-width: 560px) {
+  .dist > li {
+    grid-template-columns: minmax(72px, 1fr) minmax(0, 2fr) 52px;
+  }
+
+  .dist-value em {
+    display: none;
+  }
 }
 
 /* A small label above a group of controls: 12px, sentence case, grey at 4.5:1.
@@ -1667,10 +1838,10 @@ select {
 
 .pr-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 10px;
-  align-items: baseline;
-  padding: 9px 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
   border-top: 1px solid var(--rule);
 }
 
@@ -1679,23 +1850,86 @@ select {
 }
 
 .pr-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
   font-size: var(--fs-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pr-values {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
+.pr-name em {
+  font-style: normal;
+  font-size: var(--fs-meta);
+  color: var(--faint);
 }
 
+.pr-values {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+/* One figure per column: number and unit on the first line, the qualifier
+   ("heaviest", "est. 1RM") underneath in small caps. */
 .pr-value {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  justify-content: end;
+  align-items: baseline;
+  column-gap: 2px;
+  row-gap: 2px;
+  line-height: 1.1;
   font-family: var(--mono);
-  font-size: var(--fs-small);
-  color: var(--muted);
   text-align: right;
+}
+
+.pr-value b {
+  grid-area: 1 / 1;
+  font-size: 13px;
+  font-weight: 620;
+  color: var(--text);
+}
+
+.pr-value i {
+  grid-area: 1 / 2;
+  font-style: normal;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.pr-value u {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.pr-value-accent b {
+  color: var(--data);
+}
+
+@media (max-width: 719px) {
+  .pr-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .pr-name {
+    white-space: normal;
+  }
+
+  .pr-values {
+    justify-content: flex-start;
+    gap: 22px;
+  }
 }
 
 /* A record that broke is the screen's one signal, so it takes the hue. */
@@ -2453,6 +2687,49 @@ select {
   color: var(--pill-negative-ink);
 }
 
+/* Update notice: persistent until acted on, above the phone tab bar. */
+.update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(92vw, 540px);
+  padding: 8px 10px 8px 14px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+}
+
+.update-banner[hidden] {
+  display: none;
+}
+
+.update-banner-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--data);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--data) 18%, transparent);
+}
+
+.update-banner-text {
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.update-banner-close {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+}
+
 /* ── Identity: the notch, the hero, the working surfaces ─────────────────
    The mark is a weight plate with one chamfered edge, filled yellow. The same
    notch repeats as the active-nav tab and as the watermark on the session
@@ -2611,6 +2888,116 @@ select {
 .training-hero .btn-sub:hover:not(:disabled) {
   background: color-mix(in srgb, currentColor 8%, transparent);
   border-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+/* First run: the empty log explains itself instead of shipping sample data. */
+
+.first-run {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.first-run-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.first-run-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: var(--data-pale);
+  color: var(--data);
+}
+
+.first-run-mark .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.first-run-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.first-run-copy h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.first-run-copy p {
+  margin: 0;
+  max-width: 68ch;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.first-run-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.first-run-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ground);
+  border: 1px solid var(--rule);
+}
+
+.first-run-num {
+  flex: 0 0 auto;
+  padding-top: 1px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--data);
+}
+
+.first-run-steps strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 620;
+}
+
+.first-run-steps p {
+  margin: 2px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.first-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 720px) {
+  .first-run-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
 }
 
 .btn-sub-note {
@@ -3630,15 +4017,33 @@ select {
     background: var(--ground);
     border-top: 0;
     border-right: 1px solid var(--border);
+    overflow: hidden;
+    transition:
+      width 0.28s var(--ease),
+      flex-basis 0.28s var(--ease),
+      padding 0.28s var(--ease);
+  }
+
+  .sidebar-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 2px 24px 8px;
+  }
+
+  .sidebar-toggle {
+    display: inline-flex;
   }
 
   /* The mark gets its name and a descriptor; unlabelled glyphs are for the
      phone, where horizontal space is the scarce resource. */
   .brand {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     gap: 11px;
-    padding: 2px 8px 26px;
+    min-width: 0;
+    padding: 0;
     color: var(--text);
     text-decoration: none;
   }
@@ -3749,6 +4154,87 @@ select {
 
   .sidebar-foot .link-muted {
     font-size: 11px;
+  }
+
+  /* Each destination eases in once, left to right, so the rail feels built
+     rather than painted. The stagger lives in --nav-i. */
+  .nav-item {
+    animation: nav-in 0.36s var(--ease) both;
+    animation-delay: calc(var(--nav-i, 0) * 36ms);
+  }
+
+  .nav-item:nth-of-type(1) { --nav-i: 0; }
+  .nav-item:nth-of-type(2) { --nav-i: 1; }
+  .nav-item:nth-of-type(3) { --nav-i: 2; }
+  .nav-item:nth-of-type(4) { --nav-i: 3; }
+  .nav-item:nth-of-type(5) { --nav-i: 4; }
+  .nav-item:nth-of-type(6) { --nav-i: 5; }
+
+  @keyframes nav-in {
+    from {
+      opacity: 0;
+      transform: translateX(-7px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Collapsed rail: the width shrinks, labels leave, icons centre, and the
+     chevron turns around. Same notch, same active destination. */
+  .shell.sidebar-collapsed .sidebar {
+    flex-basis: 84px;
+    width: 84px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .shell.sidebar-collapsed .sidebar-head {
+    justify-content: center;
+    gap: 4px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .shell.sidebar-collapsed .sidebar-toggle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .shell.sidebar-collapsed .brand-mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .shell.sidebar-collapsed .brand-copy,
+  .shell.sidebar-collapsed .nav-label,
+  .shell.sidebar-collapsed .nav-text,
+  .shell.sidebar-collapsed .sidebar-foot {
+    display: none;
+  }
+
+  .shell.sidebar-collapsed .brand {
+    flex: 0 0 auto;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .shell.sidebar-collapsed .nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .shell.sidebar-collapsed .nav-item.is-active::before {
+    left: -10px;
+  }
+
+  .shell.sidebar-collapsed .sidebar-toggle .icon {
+    transform: rotate(180deg);
+  }
+
+  .shell.sidebar-collapsed .nav-item-settings {
+    margin-top: 12px;
   }
 
   .app-topbar {
