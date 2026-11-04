@@ -1,9 +1,10 @@
 /**
  * IronLog landing page interactions.
  *
- * Four small behaviours, no runtime dependency: the mobile menu, the workout
- * preview tabs (roving focus, arrow keys) and a reveal-on-scroll pass that
- * never leaves content hidden when the observer is unavailable.
+ * Five small behaviours, no runtime dependency: the mobile menu, the workout
+ * preview tabs (roving focus, arrow keys), the pointer-driven hero cards, a
+ * reveal-on-scroll pass that never leaves content hidden when the observer is
+ * unavailable, and the nav scroll spy.
  */
 
 const doc = document;
@@ -66,6 +67,49 @@ if (tabList && tabs.length === panels.length) {
       event.preventDefault();
       select((index + step + tabs.length) % tabs.length, { focus: true });
     });
+  });
+}
+
+/* ── Hero folder cards ─────────────────────────────────────────────────── */
+
+const heroArt = doc.querySelector(".hero-art");
+const heroStack = heroArt?.querySelector(".folder-stack");
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+if (heroArt && heroStack && finePointer.matches) {
+  let frame = 0;
+  let x = 0;
+  let y = 0;
+
+  const paint = () => {
+    frame = 0;
+    heroStack.style.setProperty("--hero-x", x.toFixed(3));
+    heroStack.style.setProperty("--hero-y", y.toFixed(3));
+  };
+
+  // One style write per frame: pointermove fires far faster than paint.
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const reset = () => {
+    x = 0;
+    y = 0;
+    queue();
+  };
+
+  heroArt.addEventListener("pointermove", (event) => {
+    if (reduceMotion.matches) return;
+    const rect = heroArt.getBoundingClientRect();
+    x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+    y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    queue();
+  });
+
+  heroArt.addEventListener("pointerleave", reset);
+  heroArt.addEventListener("pointercancel", reset);
+  reduceMotion.addEventListener("change", (event) => {
+    if (event.matches) reset();
   });
 }
 

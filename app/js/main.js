@@ -300,13 +300,13 @@ function showUpdateBanner() {
 
 // ── Sheets ─────────────────────────────────────────────────────────────────
 
-function openSheet(id) {
+function openSheet(id, { focus = true } = {}) {
   const sheet = document.getElementById(id);
   if (!sheet) return;
   sheet.hidden = false;
   requestAnimationFrame(() => sheet.classList.add("is-open"));
   document.body.classList.add("sheet-open");
-  sheet.querySelector("input, button, select")?.focus();
+  if (focus) sheet.querySelector("input, button, select")?.focus();
 }
 
 function closeSheet(id) {
@@ -909,14 +909,36 @@ function renderDetail() {
   if (!sheet || !content) return;
 
   if (!detailState.exercise) return;
+  const exerciseId = detailState.exercise.id;
+  const wasHidden = sheet.hidden;
+  const previousBody = content.querySelector(".detail-body");
+  // Instructions resolve asynchronously and a language switch repaints the
+  // sheet. Keep the reader where they were, but start a newly opened exercise
+  // at the top. Focus follows the language select across the repaint.
+  const sameExercise = content.dataset.exerciseId === exerciseId;
+  const scrollTop = sameExercise ? previousBody?.scrollTop ?? 0 : 0;
+  const languageFocused =
+    sameExercise &&
+    content.contains(document.activeElement) &&
+    document.activeElement?.matches?.('[data-action="set-instruction-language"]');
+
   content.innerHTML = renderExerciseDetail(detailState.exercise, {
     store,
     stepsResult: detailState.stepsResult,
     stepsState: detailState.stepsState,
   });
+  content.dataset.exerciseId = exerciseId;
+
+  const body = content.querySelector(".detail-body");
+  if (body && scrollTop) body.scrollTop = scrollTop;
+  if (languageFocused) {
+    content.querySelector('[data-action="set-instruction-language"]')?.focus({ preventScroll: true });
+  }
+
   // openSheet is idempotent: it unhides, adds .is-open for the transition and
-  // locks body scroll, matching every other sheet in the app.
-  openSheet("exercise-detail-sheet");
+  // locks body scroll, matching every other sheet in the app. Only the first
+  // paint should move focus into the dialog.
+  openSheet("exercise-detail-sheet", { focus: wasHidden });
 }
 
 async function loadDetailSteps(exercise, lang) {
@@ -953,6 +975,8 @@ function openExerciseDetail(id) {
 
 function closeExerciseDetail() {
   detailState = { exercise: null, stepsState: "idle", stepsResult: null };
+  const content = $("#exercise-detail-content");
+  if (content) delete content.dataset.exerciseId;
   closeSheet("exercise-detail-sheet");
 }
 
@@ -1112,9 +1136,13 @@ store.subscribe((event) => {
 
 function boot() {
   // Restore the sidebar width preference before the first render so the rail
-  // does not flash open and then collapse.
+  // does not flash open and then collapse. On a narrow desktop or tablet there
+  // is no stored preference yet, so start as the icon rail to protect the
+  // workspace; the toggle then remembers whatever the user chooses.
   try {
-    if (localStorage.getItem("ironlog.sidebar") === "collapsed") {
+    const savedSidebar = localStorage.getItem("ironlog.sidebar");
+    const compactDesktop = window.matchMedia("(min-width: 720px) and (max-width: 959px)");
+    if (savedSidebar === "collapsed" || (!savedSidebar && compactDesktop.matches)) {
       document.querySelector(".shell")?.classList.add("sidebar-collapsed");
       const toggle = document.querySelector('[data-action="toggle-sidebar"]');
       if (toggle) {

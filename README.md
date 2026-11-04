@@ -231,7 +231,7 @@ rest and a clear session summary rather than on decorative dashboards.
 The light theme is the default. Dark and match-system appearances reuse the same signal and
 data hues, and an existing browser preference is respected before first paint. Responsive
 layouts keep the logger's Set / Previous / Weight / Reps / Done workflow usable on narrow
-screens, with the sidebar becoming a bottom bar below 960px.
+screens. The sidebar is docked on the left from 720px up (starting as the icon rail on tablets) and becomes a bottom bar only below 720px.
 
 All faces are **self-hosted** from `fonts/` under the SIL Open Font License, so the site
 makes no request to any third party — including for its type. See [`NOTICE`](./NOTICE).

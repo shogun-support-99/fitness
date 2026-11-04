@@ -559,13 +559,25 @@ svg.tick,
 }
 
 .folder {
+  --tx: 0px;
+  --ty: 0px;
+  --rot: 0deg;
+  --depth: 1;
   position: absolute;
   inset: 0;
   border-radius: var(--r-lg);
   background: var(--paper);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-card);
-  overflow: hidden;
+  /* The base card position stays in `translate`/`rotate` so the idle drift can
+     own `transform` and the pointer parallax can compose with both. */
+  translate: calc(var(--tx) + var(--hero-x, 0) * var(--depth) * 16px)
+    calc(var(--ty) + var(--hero-y, 0) * var(--depth) * 13px);
+  rotate: var(--rot);
+  transition:
+    translate 0.34s var(--ease),
+    rotate 0.34s var(--ease);
+  will-change: translate, transform;
 }
 
 .folder-tab {
@@ -589,13 +601,75 @@ svg.tick,
 }
 
 .folder-back {
-  transform: rotate(-3.5deg) translateX(-34px) translateY(14px);
+  --tx: -34px;
+  --ty: 14px;
+  --rot: -3.5deg;
+  --depth: 2;
   background: #e9e7df;
   border-color: var(--line-strong);
 }
 
 .folder-mid {
-  transform: rotate(2deg) translateX(30px) translateY(8px);
+  --tx: 30px;
+  --ty: 8px;
+  --rot: 2deg;
+  --depth: 1.35;
+}
+
+.folder-front {
+  --depth: 0.7;
+}
+
+/* The three cards idle at different speeds, then fan a little wider when the
+   pointer is over the artwork. The pointer itself adds depth-scaled parallax
+   through --hero-x/--hero-y, set in landing.js. */
+@media (prefers-reduced-motion: no-preference) {
+  .folder {
+    animation: folder-drift var(--drift, 8s) ease-in-out infinite alternate;
+    animation-delay: var(--drift-delay, 0s);
+  }
+
+  .folder-back {
+    --drift: 9.5s;
+    --drift-delay: -3.2s;
+  }
+
+  .folder-mid {
+    --drift: 7.6s;
+    --drift-delay: -1.4s;
+  }
+
+  .folder-front {
+    --drift: 6.8s;
+    --drift-delay: -0.6s;
+  }
+}
+
+@keyframes folder-drift {
+  from {
+    transform: translate3d(0, 3px, 0);
+  }
+  to {
+    transform: translate3d(0, -9px, 0);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero-art:hover .folder-back {
+    --tx: -45px;
+    --ty: 8px;
+    --rot: -5.2deg;
+  }
+
+  .hero-art:hover .folder-mid {
+    --tx: 41px;
+    --ty: 3px;
+    --rot: 3.4deg;
+  }
+
+  .hero-art:hover .folder-front {
+    --ty: -6px;
+  }
 }
 
 .folder-back .folder-tab {
@@ -1418,29 +1492,6 @@ svg.tick,
   transform: translateX(3px);
 }
 
-.repeat-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-  padding: 22px 24px;
-  background: var(--paper);
-}
-
-.repeat-strip h3 {
-  font-size: 17px;
-  font-weight: 650;
-  letter-spacing: -0.015em;
-}
-
-.repeat-strip p {
-  margin-top: 3px;
-  font-size: 14.5px;
-  color: var(--muted);
-}
-
 /* ── Privacy ───────────────────────────────────────────────────────────── */
 
 .privacy {
@@ -1973,19 +2024,19 @@ html.js.motion-ok [data-reveal].is-in {
   }
 
   .folder-back {
-    transform: rotate(-2.5deg) translateX(-20px) translateY(12px);
+    --tx: -20px;
+    --ty: 12px;
+    --rot: -2.5deg;
   }
 
   .folder-mid {
-    transform: rotate(1.5deg) translateX(18px) translateY(7px);
+    --tx: 18px;
+    --ty: 7px;
+    --rot: 1.5deg;
   }
 
   .routine-grid {
     grid-template-columns: 1fr;
-  }
-
-  .repeat-strip {
-    align-items: flex-start;
   }
 
   .feature-row {
