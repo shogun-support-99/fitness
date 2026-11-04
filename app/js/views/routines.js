@@ -12,7 +12,11 @@ const ROUTINES = [
   { label: "Pull", slug: "pull", detail: "Back · Biceps", muscles: ["back", "biceps"], icon: "bolt" },
   { label: "Legs", slug: "legs", detail: "Quads · Hamstrings · Glutes", muscles: ["quads", "hamstrings", "glutes"], icon: "flame" },
   { label: "Full body", slug: "full-body", detail: "Four foundational movements", muscles: ["chest", "back", "quads", "shoulders"], icon: "user" },
+  { label: "Custom split", slug: "custom", detail: "Pick any muscles", muscles: [], icon: "plus" },
 ];
+
+/* Users can build their own split from any muscles — not locked to the four. */
+export const CUSTOM_SPLIT = { label: "Custom split", slug: "custom", detail: "Pick any muscles", muscles: [], icon: "plus" };
 
 export function renderRoutineCards() {
   return `<div class="routine-grid" data-reveal="rise">${ROUTINES.map((routine, index) => `

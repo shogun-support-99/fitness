@@ -229,7 +229,7 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
               : ""}
           </div>
 
-          ${diagram ? `<div class="detail-muscle-figure">${diagram}</div>` : ""}
+          
         </div>
       </section>
 
@@ -239,7 +239,7 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
         ? `<p class="detail-note">${icon("info")} You created this exercise. It is stored in this browser only.</p>`
         : ""}
 
-      ${hasSteps || exercise.media ? renderAttribution(store, exercise) : ""}
+      
     </div>
 
     <footer class="detail-foot">
@@ -295,25 +295,6 @@ function renderInstructions(exercise, { languages, currentLang, stepsResult, ste
       ${fellBack ? `<p class="steps-fallback">Not available in that language — showing English.</p>` : ""}
       ${body}
     </section>`;
-}
-
-function renderAttribution(store, exercise) {
-  const meta = store?.catalogueMeta;
-  const source = meta?.sources?.dataset ?? meta?.source;
-  const stepsId = String(exercise?.stepsId ?? "");
-  const usesDataset = exercise?.source === "dataset" || stepsId.startsWith("ds-");
-  const credits = [];
-
-  if (usesDataset) {
-    credits.push(`
-    <p class="detail-attribution">
-      Exercise data and instruction text from
-      <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
-      MIT licensed, © 2026 Hasan Emir Yıldırım${source?.commit ? ` · commit ${esc(String(source.commit).slice(0, 7))}` : ""}.
-      Its Gym Visual GIFs are used under a licence held by the app operator (© Gym Visual).
-    </p>`);
-  }
-  return credits.join("");
 }
 
 /**

@@ -2961,6 +2961,13 @@ select {
   font-size: var(--fs-small);
   font-weight: 500;
   animation: toast-in 0.22s var(--ease);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s var(--ease), visibility 0.22s;
+}
+#toast-host.is-visible .toast {
+  opacity: 1;
+  visibility: visible;
 }
 
 @keyframes toast-in {
