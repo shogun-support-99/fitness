@@ -115,8 +115,13 @@ const PLATES = [
  * outline rather than floating rectangles.
  */
 const FRAME = [
+  // The head is a circle on the centre line, so it is its own mirror image and
+  // is drawn once. Everything else below is a half-shape.
   { el: "circle", cx: 110, cy: 46, r: 26, mirror: false },
-  { el: "rect", x: 98, y: 64, w: 12, h: 22, rx: 6, mirror: false },
+  // Authored as a half (98→110) and mirrored to 98→122, which is what puts it
+  // on the centre line. Drawing it un-mirrored left it hanging 6px to the left
+  // of the head — the one asymmetry in an otherwise perfectly mirrored figure.
+  { el: "rect", x: 98, y: 64, w: 12, h: 22, rx: 6 },
   {
     el: "path",
     d: "M110 80 C84 80 64 88 58 104 C53 118 53 146 57 174 C60 196 56 216 58 238 C59 252 64 262 74 268 L110 272 Z",
@@ -213,6 +218,15 @@ export function platesFor(view) {
   return PLATES.filter((p) => p.view === view);
 }
 
+/**
+ * The authored geometry, exposed so tests can assert the invariant the whole
+ * design rests on: half-shapes stay left of the centre line and un-mirrored
+ * shapes sit on it. Rendering is a mirror of this data, so if this data is
+ * symmetric the figure is too.
+ */
+export const BODY_PLATES = PLATES;
+export const BODY_FRAME = FRAME;
+
 /** Plates lit by a set of catalogue `muscle` values. */
 export function platesForMuscles(muscles) {
   const out = new Set();
@@ -287,7 +301,6 @@ export function bodyMap({
       // outline only, so "trained" and "selected" never look identical.
       const t = ceiling > 0 ? Math.min(sets / ceiling, 1) : 0;
       const classes = ["bodymap-region"];
-      if (sets > 0) classes.push("is-warm");
       if (highlight?.has(plate.id)) classes.push("is-lit");
       const title = sets > 0 ? `${plate.label} · ${sets} sets` : plate.label;
       const el = plateToElement(plate);

@@ -46,6 +46,13 @@ export function longDate(value) {
   return `${WEEKDAY_FULL[d.getDay()]}, ${MONTH_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+/** "Nov 4, 2026" — for single-row lists where the weekday is just noise. */
+export function mediumDate(value) {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return `${MONTH_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 /** "20 Feb" — compact enough for a table row. */
 export function shortDate(value) {
   const d = value instanceof Date ? value : new Date(value);

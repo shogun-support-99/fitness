@@ -35,6 +35,7 @@ import {
   weekdayInitials,
   workoutsForRange,
 } from "../app/js/stats.js";
+import { mediumDate } from "../app/js/views/profile-common.js";
 
 /** A store with two completed sessions on known dates. */
 function seededStore() {
@@ -198,7 +199,7 @@ test("body map mirrors every plate, so the figure stays symmetric", () => {
   for (const view of ["front", "back"]) {
     const html = bodyMap({ view });
     const opened = (html.match(/<g transform="matrix\(-1 0 0 1 220 0\)">/g) ?? []).length;
-    const regions = (html.match(/class="bodymap-region/g) ?? []).length;
+    const regions = (html.match(/class="bodymap-region(?=[ "])/g) ?? []).length;
     // One mirror group per plate, plus one per frame segment.
     assert.ok(opened >= regions, `${view} is missing mirrored plates`);
   }
@@ -325,12 +326,27 @@ test("an export from before measurements existed still imports", () => {
 
 test("the profile handle is sanitised and the name trimmed", () => {
   const store = new Store(memoryStorage());
-  store.setProfile({ displayName: "  Anchit Kumar  ", handle: "@anchit 09!" });
+  // Fixture values only. Nothing in this repo should ever carry a real
+  // person's name or handle: the log is private to whoever is running it.
+  store.setProfile({ displayName: "  Test Lifter  ", handle: "@test.lifter_09!" });
   const profile = store.profile();
-  assert.equal(profile.displayName, "Anchit Kumar");
-  assert.equal(profile.handle, "anchit09");
-  assert.match(renderStats(store, params()), /Anchit Kumar/);
-  assert.match(renderStats(store, params()), /@anchit09/);
+  assert.equal(profile.displayName, "Test Lifter");
+  assert.equal(profile.handle, "test.lifter_09");
+  assert.match(renderStats(store, params()), /Test Lifter/);
+  assert.match(renderStats(store, params()), /@test\.lifter_09/);
+
+  // Disallowed characters are stripped rather than escaped: the letters survive,
+  // the markup does not, and esc() is still there behind it.
+  store.setProfile({ handle: "<b>x</b>" });
+  assert.equal(store.profile().handle, "bxb");
+  assert.ok(!renderStats(store, params()).includes("<b>x</b>"));
+});
+
+test("a long display name is capped rather than stretching the header", () => {
+  const store = new Store(memoryStorage());
+  store.setProfile({ displayName: "x".repeat(200), handle: "y".repeat(200) });
+  assert.ok(store.profile().displayName.length <= 48);
+  assert.ok(store.profile().handle.length <= 32);
 });
 
 test("a profile with no name falls back rather than printing undefined", () => {
@@ -339,4 +355,91 @@ test("a profile with no name falls back rather than printing undefined", () => {
   assert.match(html, /Your profile/);
   assert.match(html, /@local/);
   assert.ok(!html.includes("undefined"));
+});
+
+test("the weekly volume chart obeys the selected range", () => {
+  // Dates are relative to today so the assertion does not rot: a fixed fixture
+  // would start failing the moment it fell outside the seven-day window.
+  const store = new Store(memoryStorage());
+  const at = (daysAgo) => {
+    const start = new Date();
+    start.setDate(start.getDate() - daysAgo);
+    start.setHours(18, 0, 0, 0);
+    const end = new Date(start.getTime() + 45 * 60000);
+    return {
+      id: `w_rel_${daysAgo}`,
+      name: "Session",
+      status: "completed",
+      startedAt: start.toISOString(),
+      endedAt: end.toISOString(),
+      notes: "",
+      exercises: [{ id: `e_${daysAgo}`, exerciseId: "bench", sets: [{ weight: 60, reps: 8, done: true }] }],
+    };
+  };
+  store.doc.workouts = [at(1), at(3), at(40)];
+  store.doc.customExercises = [
+    { id: "bench", name: "Bench press", muscle: "chest", target: "pectorals", equipment: "barbell" },
+  ];
+  store._indexCache = null;
+
+  const points = (html) => (html.match(/chart-col has-point/g) ?? []).length;
+  const week = points(renderStatistics(store, params("range=7d")));
+  const all = points(renderStatistics(store, params("range=all")));
+  assert.ok(week >= 1, "the last seven days contain a session, so they must chart one");
+  assert.ok(all > week, `all time (${all} weeks) must chart more than 7 days (${week})`);
+});
+
+test("the cardio card keeps the grid even", () => {
+  const store = seededStore();
+  const html = renderMuscleDistribution(store, params("range=all"));
+  const cards = (html.match(/class="part-card/g) ?? []).length;
+  const figures = (html.match(/class="part-figure"/g) ?? []).length;
+  // Cardio is trained in the fixture, so a seventh card appears — and it still
+  // draws a figure rather than leaving a short card in the grid.
+  assert.equal(cards, 7);
+  assert.equal(figures, cards, "every card needs a figure or the rows go out of line");
+});
+
+test("the week picker stops at the week you are in", () => {
+  const store = seededStore();
+  const current = renderBodyDistribution(store, params());
+  assert.match(current, /<button class="icon-btn" type="button" disabled/);
+  // An earlier week can still step forward.
+  const past = renderBodyDistribution(store, params("week=2026-10-20"));
+  assert.ok(!/disabled/.test(past), "a past week should still be able to advance");
+});
+
+test("a week spanning two months names both of them", () => {
+  assert.equal(calendarWeek(new Date(2026, 10, 5)).label, "01-07 November 2026");
+  assert.equal(calendarWeek(new Date(2026, 10, 29)).label, "29 Nov - 05 Dec 2026");
+  assert.equal(calendarWeek(new Date(2025, 11, 28)).label, "28 Dec - 03 Jan 2026");
+});
+
+test("the headline tiles carry the class that sizes them down on a phone", () => {
+  const store = seededStore();
+  assert.match(renderStats(store, params()), /tile-grid tile-grid-3 tile-grid-headline/);
+  assert.match(renderStatistics(store, params()), /tile-grid tile-grid-4 tile-grid-headline/);
+});
+
+test("the muscle table is captioned for screen readers", () => {
+  const store = seededStore();
+  assert.match(renderBodyDistribution(store, params()), /<caption class="sr-only">/);
+});
+
+test("the measures list uses a date short enough for one row", () => {
+  // The row packs date, weight, delta, note and a delete button onto one line,
+  // so the weekday is dropped: "Nov 4, 2026" instead of "Wednesday, Nov 4, 2026".
+  assert.equal(mediumDate("2026-11-04"), "Nov 4, 2026");
+  assert.equal(mediumDate(new Date(2026, 0, 1)), "Jan 1, 2026");
+  assert.equal(mediumDate("nonsense"), "—");
+
+  const store = seededStore();
+  store.addMeasurement({ date: "2026-11-04", weight: 80 });
+  const html = renderMeasures(store, params());
+  const list = (html.match(/<ul class="measure-list">[\s\S]*?<\/ul>/) ?? [""])[0];
+  assert.match(list, /Nov 4, 2026/);
+  assert.ok(!list.includes("Wednesday"), "the row uses the long form, which does not fit");
+  // The chart tooltip is a title attribute with room for the weekday, so it
+  // keeps the full date.
+  assert.match(html, /Wednesday, Nov 4, 2026/);
 });

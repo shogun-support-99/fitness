@@ -51,6 +51,12 @@ export function renderBodyDistribution(store, params) {
     Object.entries({ ...base, day: dateKey(selected) }).filter(([, v]) => v),
   ).toString();
 
+  // Stepping forward stops at the week you are in. There are no sets in a week
+  // that has not happened, so letting the picker run into the future only
+  // offers the user an endless scroll of empty body maps.
+  const nextWeekStart = calendarWeek(shiftWeek(anchor, 1)).start;
+  const canGoForward = nextWeekStart <= new Date();
+
   return `
     <section class="view view-body-distribution">
       ${profileBack("Body distribution", qs)}
@@ -59,7 +65,11 @@ export function renderBodyDistribution(store, params) {
         <div class="week-picker">
           <a class="icon-btn" href="${esc(hrefWith("body-distribution", qs, { week: dateKey(shiftWeek(anchor, -1)), day: "" }))}" aria-label="Previous week">${icon("back")}</a>
           <h2>${esc(week.label)}</h2>
-          <a class="icon-btn" href="${esc(hrefWith("body-distribution", qs, { week: dateKey(shiftWeek(anchor, 1)), day: "" }))}" aria-label="Next week">${icon("chevron")}</a>
+          ${
+            canGoForward
+              ? `<a class="icon-btn" href="${esc(hrefWith("body-distribution", qs, { week: dateKey(shiftWeek(anchor, 1)), day: "" }))}" aria-label="Next week">${icon("chevron")}</a>`
+              : `<button class="icon-btn" type="button" disabled aria-label="Next week">${icon("chevron")}</button>`
+          }
         </div>
         <ol class="day-strip">
           ${week.days
@@ -96,6 +106,7 @@ export function renderBodyDistribution(store, params) {
 
       ${sectionTitle("Muscles", range ? rangeLabel(range) : "selected day")}
       <table class="muscle-table">
+        <caption class="sr-only">Sets per muscle for the selected day</caption>
         <thead><tr><th scope="col">Muscle</th><th scope="col" class="num">Sets</th></tr></thead>
         <tbody>
           <tr class="is-total"><th scope="row">Total</th><td class="num">${esc(total(counts))}</td></tr>

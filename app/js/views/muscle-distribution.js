@@ -50,7 +50,9 @@ export function renderMuscleDistribution(store, params) {
   const previousCounts = groupSetCounts(muscleSetCounts(previous, index));
 
   // Cardio is a real group when it has been trained, but it has no muscle plate
-  // to light up, so it is appended rather than baked into the six.
+  // to light up, so it is appended rather than baked into the six. Its card
+  // still draws the mannequin — with nothing highlighted — so the grid keeps a
+  // uniform card height instead of one short card throwing the row out of line.
   const groupIds = [
     ...BODY_PART_GROUPS.map((g) => g.id),
     ...(currentCounts.get("cardio") ? ["cardio"] : []),
@@ -62,7 +64,7 @@ export function renderMuscleDistribution(store, params) {
       const before = previousCounts.get(id) ?? 0;
       const change = sets - before;
       return `<li class="part-card hover-lift">
-          <div class="part-figure" aria-hidden="true">${id === "cardio" ? "" : bodyPartThumb(id)}</div>
+          <div class="part-figure" aria-hidden="true">${bodyPartThumb(id)}</div>
           <div class="part-meta">
             <span class="part-name">${esc(groupLabel(id))}</span>
             <span class="part-sets">${esc(sets)} ${sets === 1 ? "set" : "sets"}</span>

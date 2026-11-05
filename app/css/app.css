@@ -977,9 +977,14 @@ table,
   transition: background-color 0.14s var(--ease), color 0.14s var(--ease);
 }
 
-.icon-btn:hover {
+.icon-btn:hover:not(:disabled) {
   background: var(--raised);
   color: var(--text);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .link {
@@ -4761,12 +4766,19 @@ select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.tile-grid-3 > .tile:nth-child(2n) {
+/* Three figures in a two-up grid leave a hole beside the last one, so the
+   third spans the row and the block stays a rectangle. The hairlines have to
+   follow the new shape: the right-hand tile of the first row keeps its bottom
+   rule, because the spanned tile now sits underneath it. */
+.tile-grid-3 > .tile:nth-child(3) {
+  grid-column: 1 / -1;
   border-right: 0;
+  border-bottom: 0;
 }
 
-.tile-grid-3 > .tile:nth-last-child(-n + 2) {
-  border-bottom: 0;
+.tile-grid-3 > .tile:nth-child(2) {
+  border-right: 0;
+  border-bottom: 1px solid var(--rule);
 }
 
 /* The profile's headline figures are the longest strings a tile has to hold —
@@ -4813,6 +4825,13 @@ select {
 .dash-tile:hover,
 .adv-row:hover {
   border-color: var(--border-control);
+}
+
+/* A long single word in a narrow column has nowhere to break, so let it break
+   rather than pushing the tile wider than the grid track. */
+.dash-copy strong,
+.adv-copy strong {
+  overflow-wrap: anywhere;
 }
 
 .dash-icon,
@@ -5002,8 +5021,6 @@ select {
 }
 
 .figure-wrap {
-  display: flex;
-  justify-content: center;
   padding: 4px 0;
 }
 
@@ -5014,11 +5031,15 @@ select {
   color: var(--faint);
 }
 
+/* The figure is a block with a definite max width and `margin: auto`, not a
+   centred flex item: an SVG with width:100% inside a fit-content flex parent
+   has no width to resolve against. */
 .bodymap {
   display: block;
   width: 100%;
   height: auto;
   max-width: 210px;
+  margin: 0 auto;
 }
 
 .bodymap-frame {
@@ -5188,8 +5209,14 @@ select {
   border-radius: var(--radius-card);
 }
 
+/* The card's figure box carries the width so the SVG inside it has something
+   definite to fill, and every card's map stays the same size. */
+.part-figure {
+  width: 96px;
+}
+
 .part-figure .bodymap {
-  max-width: 92px;
+  max-width: 100%;
 }
 
 .part-meta {
@@ -5468,7 +5495,10 @@ select {
 }
 
 .measure-form .field-wide {
-  grid-column: span 2;
+  /* 1 / -1 rather than `span 2`: the grid collapses to a single column on a
+     phone, where a span of two would open an implicit second column and push
+     the note field off the edge. */
+  grid-column: 1 / -1;
 }
 
 .measure-form-actions {
@@ -5550,6 +5580,25 @@ select {
 
 /* ── Profile: wider screens ───────────────────────────────────────────── */
 
+/* Below 400px the dashboard grid's two columns leave about 47px for the label,
+   and "Statistics" needs around 70. The chevron is the least informative thing
+   in the tile, so it goes first, and the icon and padding tighten up after it. */
+@media (max-width: 400px) {
+  .dash-tile {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .dash-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .dash-go {
+    display: none;
+  }
+}
+
 @media (min-width: 620px) {
   .tile-grid-headline .tile-value {
     font-size: var(--fs-kpi);
@@ -5559,12 +5608,14 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .tile-grid-3 > .tile:nth-child(2n) {
-    border-right: 1px solid var(--rule);
+  /* Back to a single row of three: undo the spanned tile and close the
+     hairlines for a one-row grid. */
+  .tile-grid-3 > .tile:nth-child(3) {
+    grid-column: auto;
   }
 
-  .tile-grid-3 > .tile:nth-child(3n) {
-    border-right: 0;
+  .tile-grid-3 > .tile:nth-child(2) {
+    border-right: 1px solid var(--rule);
   }
 
   .tile-grid-3 > .tile:nth-last-child(-n + 2) {

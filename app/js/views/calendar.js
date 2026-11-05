@@ -69,7 +69,7 @@ export function renderCalendar(store, params) {
         <div class="month-head" aria-hidden="true">
           ${WEEKDAY_LABELS.map((d) => `<span>${esc(d)}</span>`).join("")}
         </div>
-        <div class="month-grid" role="grid" aria-label="${esc(grid.label)}">
+        <div class="month-grid">
           ${grid.weeks
             .map((week) =>
               week
@@ -82,7 +82,7 @@ export function renderCalendar(store, params) {
                   const label = `${longDate(cell.date)}${cell.trained ? ", trained" : ""}`;
                   return cell.trained
                     ? `<a class="${classes.join(" ")}" href="${esc(hrefWith("calendar", qs, { day: cell.key }))}" aria-label="${esc(label)}"><span>${esc(cell.day)}</span></a>`
-                    : `<span class="${classes.join(" ")}" role="gridcell" aria-label="${esc(label)}"><span>${esc(cell.day)}</span></span>`;
+                    : `<span class="${classes.join(" ")}" aria-label="${esc(label)}"><span>${esc(cell.day)}</span></span>`;
                 })
                 .join(""),
             )

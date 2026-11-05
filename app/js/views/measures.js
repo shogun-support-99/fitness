@@ -10,7 +10,7 @@
 
 import { barChart, emptyState, esc, icon, statTile } from "../ui.js";
 import { compactNumber } from "../stats.js";
-import { longDate, profileBack, sectionTitle, shortDate } from "./profile-common.js";
+import { longDate, mediumDate, profileBack, sectionTitle, shortDate } from "./profile-common.js";
 
 const CHART_CAP = 12;
 
@@ -101,11 +101,11 @@ function renderRow(entry, previous, units) {
   const delta = previous ? entry.weight - previous.weight : 0;
   const tone = delta === 0 ? "" : delta > 0 ? " is-up" : " is-down";
   return `<li class="measure-row">
-      <span class="measure-date">${esc(longDate(entry.date))}</span>
+      <span class="measure-date">${esc(mediumDate(entry.date))}</span>
       <span class="measure-weight"><b>${esc(entry.weight)}</b> ${esc(units)}</span>
       <span class="measure-delta${tone}">${previous ? `${delta > 0 ? "+" : ""}${compactNumber(delta)}` : "—"}</span>
       ${entry.note ? `<span class="measure-note">${esc(entry.note)}</span>` : ""}
-      <button class="icon-btn measure-delete" type="button" data-action="delete-measurement" data-id="${esc(entry.id)}" aria-label="Delete entry for ${esc(longDate(entry.date))}">${icon("trash")}</button>
+      <button class="icon-btn measure-delete" type="button" data-action="delete-measurement" data-id="${esc(entry.id)}" aria-label="Delete entry for ${esc(mediumDate(entry.date))}">${icon("trash")}</button>
     </li>`;
 }
 

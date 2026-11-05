@@ -22,6 +22,7 @@ import {
   rangeStart,
   trailingWeek,
   trainedDays,
+  weekKey,
   weeklyVolume,
   workoutsInRange,
 } from "../stats.js";
@@ -52,7 +53,15 @@ export function renderStatistics(store, params) {
   const muscleCounts = muscleSetCounts(inRange, index);
   const plates = platesFromMuscleCounts(muscleCounts);
   const days = trailingWeek(new Date(), trainedDays(completed));
-  const weeks = weeklyVolume(completed).slice(-12);
+  // The weekly series obeys the selected range like every other panel here.
+  // Leaving it all-time under a "last 7 days" chip reads as a bug: the chips sit
+  // directly above it. ISO week keys sort correctly as plain strings, including
+  // across a year boundary ("2025-W52" < "2026-W01").
+  const windowStart = rangeStart(range);
+  const floorWeek = windowStart ? weekKey(windowStart) : null;
+  const weeks = weeklyVolume(completed)
+    .filter((w) => !floorWeek || w.week >= floorWeek)
+    .slice(-12);
   const records = store.personalRecords();
 
   const figure =

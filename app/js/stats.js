@@ -520,6 +520,11 @@ const MONTH_NAMES = [
   "December",
 ];
 
+const MONTH_SHORT = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 export const WEEKDAY_LABELS = WEEKDAY_INITIALS;
 export const WEEKDAY_FULL = WEEKDAY_NAMES;
 export const MONTH_LABELS = MONTH_NAMES;
@@ -582,12 +587,14 @@ export function calendarWeek(anchor = new Date(), { selected = null, trainedDays
       trained: trainedDays.has(key),
     });
   }
-  return {
-    days,
-    start,
-    end: days[days.length - 1].date,
-    label: `${pad2(start.getDate())}-${pad2(days[6].date.getDate())} ${MONTH_NAMES[days[6].date.getMonth()]} ${days[6].date.getFullYear()}`,
-  };
+  const last = days[days.length - 1].date;
+  // A week that straddles two months cannot be labelled with one month name:
+  // "28-03 November" would describe an October week. Name both ends instead.
+  const label =
+    start.getMonth() === last.getMonth()
+      ? `${pad2(start.getDate())}-${pad2(last.getDate())} ${MONTH_NAMES[last.getMonth()]} ${last.getFullYear()}`
+      : `${pad2(start.getDate())} ${MONTH_SHORT[start.getMonth()]} - ${pad2(last.getDate())} ${MONTH_SHORT[last.getMonth()]} ${last.getFullYear()}`;
+  return { days, start, end: last, label };
 }
 
 /** Shift a date by whole weeks. */
