@@ -12,23 +12,23 @@ const ROUTINES = [
   { label: "Pull", slug: "pull", detail: "Back · Biceps", muscles: ["back", "biceps"], icon: "bolt" },
   { label: "Legs", slug: "legs", detail: "Quads · Hamstrings · Glutes", muscles: ["quads", "hamstrings", "glutes"], icon: "flame" },
   { label: "Full body", slug: "full-body", detail: "Four foundational movements", muscles: ["chest", "back", "quads", "shoulders"], icon: "user" },
-  { label: "Custom split", slug: "custom", detail: "Pick any muscles", muscles: [], icon: "plus" },
+  { label: "Custom workout", slug: "custom", detail: "Start empty, add any exercises", muscles: [], icon: "plus" },
 ];
 
-/* Users can build their own split from any muscles — not locked to the four. */
-export const CUSTOM_SPLIT = { label: "Custom split", slug: "custom", detail: "Pick any muscles", muscles: [], icon: "plus" };
+/* The presets cover the common splits; the fifth card starts an empty session
+   so any exercise can be added by hand. */
+export const CUSTOM_SPLIT = { label: "Custom workout", slug: "custom", detail: "Start empty, add any exercises", muscles: [], icon: "plus" };
 
 export function renderRoutineCards() {
   return `<div class="routine-grid" data-reveal="rise">${ROUTINES.map((routine, index) => `
-    <button class="routine-card routine-${routine.slug} hover-lift motion-safe:animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" aria-label="Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises">
+    <button class="routine-card routine-${routine.slug} hover-lift motion-safe:animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" data-spotlight aria-label="${routine.muscles.length ? `Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises` : `Start a custom workout and choose exercises`}">
       <span class="routine-icon">${icon(routine.icon)}</span>
       <span class="routine-copy">
         <strong>${esc(routine.label)}</strong>
         <small>${esc(routine.detail)}</small>
-        <span class="routine-count">${routine.muscles.length} exercises</span>
+        <span class="routine-count">${routine.muscles.length ? `${routine.muscles.length} exercises` : "Start empty"}</span>
       </span>
       <span class="routine-go">${icon("chevron")}</span>
-      <span class="routine-shine" aria-hidden="true"></span>
     </button>`).join("")}</div>`;
 }
 

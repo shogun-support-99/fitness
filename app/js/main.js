@@ -77,6 +77,78 @@ function startMotion(root) {
 }
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
+/** The nav glider is measured from layout, so it must be re-placed on resize. */
+const desktopNav = window.matchMedia("(min-width: 720px)");
+let navGliderPlaced = false;
+let navResizeFrame = 0;
+
+function layoutNavGlider({ animate = true } = {}) {
+  const nav = $(".nav");
+  const glider = $(".nav-glider");
+  if (!nav || !glider) return;
+
+  const active = $$(".sidebar .nav-item.is-active").find(
+    (item) => item.getClientRects().length > 0,
+  );
+  if (!active) {
+    glider.classList.remove("is-ready");
+    navGliderPlaced = false;
+    return;
+  }
+
+  // The phone bar has one yellow icon tile; the desktop rail has a full row.
+  // Collapsed desktop still uses the row: the icon alone is too small to
+  // anchor a 3px notch cleanly.
+  const iconOnly = !desktopNav.matches;
+  const target = iconOnly ? active.querySelector(".nav-icon") : active;
+  if (!target) return;
+
+  // offset* is layout geometry, so it ignores the one-off -7px translate the
+  // nav entrance animation applies. getBoundingClientRect() would bake that
+  // skew into the glider if it happened to be measured mid-entrance.
+  const box = {
+    left: active.offsetLeft + (iconOnly ? target.offsetLeft : 0),
+    top: active.offsetTop + (iconOnly ? target.offsetTop : 0),
+    width: target.offsetWidth,
+    height: target.offsetHeight,
+  };
+  const canAnimate = animate && navGliderPlaced && box.width > 0;
+
+  if (!canAnimate) glider.classList.add("is-laying-out");
+  nav.dataset.glider = iconOnly ? "icon" : "tile";
+  glider.style.setProperty("--glider-x", `${box.left}px`);
+  glider.style.setProperty("--glider-y", `${box.top}px`);
+  glider.style.setProperty("--glider-w", `${box.width}px`);
+  glider.style.setProperty("--glider-h", `${box.height}px`);
+  glider.classList.add("is-ready");
+  navGliderPlaced = true;
+
+  if (!canAnimate) {
+    void glider.offsetWidth;
+    glider.classList.remove("is-laying-out");
+  }
+}
+
+function placeNavGlider() {
+  if (navResizeFrame) return;
+  navResizeFrame = requestAnimationFrame(() => {
+    navResizeFrame = 0;
+    layoutNavGlider({ animate: false });
+  });
+}
+
+function initNavGlider() {
+  const nav = $(".nav");
+  if (!nav || !$(".nav-glider")) return;
+  layoutNavGlider({ animate: false });
+  window.addEventListener("resize", placeNavGlider, { passive: true });
+  desktopNav.addEventListener?.("change", placeNavGlider);
+  document.fonts?.ready.then(() => layoutNavGlider({ animate: false }));
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(placeNavGlider).observe(nav);
+  }
+}
+
 // ── Render loop ────────────────────────────────────────────────────────────
 
 const VIEWS = {
@@ -164,9 +236,7 @@ function syncNav(route) {
     item.classList.toggle("is-active", isActive);
     item.setAttribute("aria-current", isActive ? "page" : "false");
   });
-  const primaryItems = $$(".sidebar .nav-item");
-  const index = Math.max(0, primaryItems.findIndex((item) => item.dataset.route === route));
-  primaryItems[0]?.parentElement?.style.setProperty("--active-nav-index", String(index));
+  layoutNavGlider({ animate: navGliderPlaced });
 }
 
 /** Keep focus where the user was after a re-render, using data-focus-key. */
@@ -366,14 +436,16 @@ const actions = {
   "start-split": (el) => {
     const muscles = (el.dataset.muscles || "").split(",").filter(Boolean);
     const splitName = el.dataset.split || "Workout";
-    if (muscles.length === 0) return startEmpty(`${splitName} workout`);
+    // "Custom workout" already names the session; the presets need the suffix.
+    const sessionName = / workout$/i.test(splitName) ? splitName : `${splitName} workout`;
+    if (muscles.length === 0) return startEmpty(sessionName);
 
     // One familiar compound per requested muscle group, resolved from the
     // catalogue by name with an alphabetical fallback.
     const picks = routineExerciseIds(store.exercises(), muscles);
-    if (picks.length === 0) return startEmpty(`${splitName} workout`);
+    if (picks.length === 0) return startEmpty(sessionName);
 
-    const result = store.startWorkout({ name: `${splitName} workout`, exerciseIds: picks });
+    const result = store.startWorkout({ name: sessionName, exerciseIds: picks });
     if (!result.ok) return toast(result.error, { tone: "danger" });
     seedPreviousSets(result.workout);
     router.go("workout");
@@ -1073,6 +1145,51 @@ document.addEventListener("keydown", (event) => {
   closeSheet(open.id);
 });
 
+/** Press "/" anywhere to search the library, or the open exercise picker. */
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+  const focused = document.activeElement;
+  if (
+    focused instanceof HTMLElement &&
+    (focused.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName))
+  ) {
+    return;
+  }
+
+  // A detail or summary sheet owns the screen; the picker is the exception
+  // because its search field is the thing "/" should reach.
+  const openSheet = $(".sheet:not([hidden])");
+  if (openSheet && !openSheet.querySelector('input[type="search"]')) return;
+
+  const search = $$('input[type="search"]').find((input) => input.getClientRects().length > 0);
+  event.preventDefault();
+  if (search) {
+    search.focus();
+    search.select();
+    return;
+  }
+
+  if (router.current.route !== "library") {
+    window.addEventListener(
+      "hashchange",
+      () => {
+        requestAnimationFrame(() => {
+          const input = $("#library-search");
+          input?.focus();
+          input?.select();
+        });
+      },
+      { once: true },
+    );
+    router.go("library");
+    return;
+  }
+
+  const input = $("#library-search");
+  input?.focus();
+  input?.select();
+});
+
 // Rest timer ticks update only the timer bar, never a full re-render.
 restTimer.subscribe((snapshot) => {
   const bar = $(".timer-bar");
@@ -1134,6 +1251,43 @@ store.subscribe((event) => {
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 
+/**
+ * A pointer-tracked light on routine cards. One delegated listener keeps the
+ * cost flat as cards are re-rendered, and touch/reduced-motion users simply
+ * never see the effect.
+ */
+function initSpotlight() {
+  const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+  if (!fine.matches) return;
+
+  let frame = 0;
+  let card = null;
+  let x = 0;
+  let y = 0;
+
+  const paint = () => {
+    frame = 0;
+    if (!card) return;
+    card.style.setProperty("--spot-x", `${x.toFixed(1)}px`);
+    card.style.setProperty("--spot-y", `${y.toFixed(1)}px`);
+  };
+
+  document.addEventListener(
+    "pointermove",
+    (event) => {
+      if (prefersReducedMotion()) return;
+      const next = event.target instanceof Element ? event.target.closest("[data-spotlight]") : null;
+      if (!next) return;
+      const rect = next.getBoundingClientRect();
+      card = next;
+      x = event.clientX - rect.left;
+      y = event.clientY - rect.top;
+      if (!frame) frame = requestAnimationFrame(paint);
+    },
+    { passive: true },
+  );
+}
+
 function boot() {
   // Restore the sidebar width preference before the first render so the rail
   // does not flash open and then collapse. On a narrow desktop or tablet there
@@ -1174,8 +1328,10 @@ function boot() {
     document.body.insertAdjacentHTML("beforeend", renderCustomSheet());
   }
   initPressFeedback(document, { selector: ".btn, .routine-card, .chip, .nav-item, .icon-btn, .timer-btn, .tick" });
+  initSpotlight();
   if (!globalThis.location.hash) globalThis.location.hash = "#/home";
   router.start();
+  initNavGlider();
 
   /**
    * Kick off the external catalogue load without awaiting it. The app is fully

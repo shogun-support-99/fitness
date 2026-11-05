@@ -124,11 +124,11 @@
               server — tap a set, beat it, rest, repeat.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-primary btn-lg" href="./app/">
+              <a class="btn btn-primary btn-lg" href="./app/" data-magnetic>
                 Start logging
                 <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
               </a>
-              <a class="btn btn-secondary btn-lg" href="#features">See how it works</a>
+              <a class="btn btn-secondary btn-lg" href="#features" data-magnetic>See how it works</a>
             </div>
             <ul class="hero-proof">
               <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> 1,316 exercises</li>
@@ -264,6 +264,7 @@
             </p>
 
             <div class="tabs" role="tablist" aria-label="Workout screen preview">
+              <span class="tabs-glider" aria-hidden="true"></span>
               <button type="button" role="tab" id="tab-log" aria-controls="panel-log" aria-selected="true" data-tab>Logging</button>
               <button type="button" role="tab" id="tab-rest" aria-controls="panel-rest" aria-selected="false" tabindex="-1" data-tab>Rest</button>
               <button type="button" role="tab" id="tab-history" aria-controls="panel-history" aria-selected="false" tabindex="-1" data-tab>History</button>
@@ -343,30 +344,31 @@
           <header class="split-head" data-reveal>
             <h2>Start on the split you already run.</h2>
             <p class="section-lede">
-              Push, pull, legs and full body are ready to go, with every set already laid out.
+              Push, pull, legs and full body are ready to go — or start empty and build
+              your own session from 1,316 exercises.
             </p>
           </header>
 
           <div class="routine-grid">
-            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Push routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Push routine in IronLog">
               <span class="routine-tag">Chest · shoulders · triceps</span>
               <h3>Push</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Pull routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Pull routine in IronLog">
               <span class="routine-tag">Back · biceps</span>
               <h3>Pull</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Legs routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Legs routine in IronLog">
               <span class="routine-tag">Quads · hamstrings · calves</span>
               <h3>Legs</h3>
               <p>5 exercises · 17 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift" href="./app/#/workout" data-reveal aria-label="Start the Full body routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Full body routine in IronLog">
               <span class="routine-tag">Whole body</span>
               <h3>Full body</h3>
               <p>6 exercises · 18 sets</p>
@@ -442,11 +444,11 @@
           <h2>Your next session is one tap away.</h2>
           <p>No account. No install step required. Just the log.</p>
           <div class="final-actions">
-            <a class="btn btn-signal btn-lg" href="./app/">
+            <a class="btn btn-signal btn-lg" href="./app/" data-magnetic>
               Open IronLog
               <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
             </a>
-            <a class="btn btn-outline-signal btn-lg" href="#features">Read the features</a>
+            <a class="btn btn-outline-signal btn-lg" href="#features" data-magnetic>Read the features</a>
           </div>
         </div>
       </section>

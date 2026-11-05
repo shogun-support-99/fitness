@@ -50,19 +50,21 @@ test("routineExerciseIds", async (t) => {
 });
 
 test("renderRoutineCards", async (t) => {
-  await t.test("emits the four real routine actions as buttons", () => {
+  await t.test("emits the four split actions plus an empty custom session", () => {
     const html = renderRoutineCards();
-    assert.equal((html.match(/data-action="start-split"/g) ?? []).length, 4);
+    assert.equal((html.match(/data-action="start-split"/g) ?? []).length, 5);
     assert.match(html, /data-split="Push"/);
     assert.match(html, /data-split="Pull"/);
     assert.match(html, /data-split="Legs"/);
     assert.match(html, /data-split="Full body"/);
+    assert.match(html, /data-split="Custom workout"/);
+    assert.match(html, /Start a custom workout and choose exercises/);
   });
 
-  await t.test("keeps motion classes and the sheen decoration", () => {
+  await t.test("keeps motion classes and the spotlight decoration", () => {
     const html = renderRoutineCards();
     assert.match(html, /motion-safe:animate-scale-in/);
-    assert.match(html, /routine-shine/);
+    assert.match(html, /data-spotlight/);
     assert.match(html, /hover-lift/);
   });
 });

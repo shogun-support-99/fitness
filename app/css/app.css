@@ -471,11 +471,63 @@ table,
 }
 
 .nav {
+  position: relative;
   display: flex;
   align-items: stretch;
   gap: 1px;
   flex: 1 1 auto;
   justify-content: space-between;
+}
+
+/* A single signal tile travels between destinations. On the phone it sits
+   behind the active icon; on the expanded desktop rail it becomes the whole
+   active row, with the notch clipped to the sidebar edge. */
+.nav-glider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: var(--glider-w, 0px);
+  height: var(--glider-h, 0px);
+  border-radius: 7px;
+  background: var(--signal);
+  opacity: 0;
+  transform: translate3d(var(--glider-x, 0px), var(--glider-y, 0px), 0);
+  transition:
+    transform 420ms var(--ease-spring),
+    width 320ms var(--ease-out-soft),
+    height 320ms var(--ease-out-soft),
+    opacity 160ms var(--ease-out-soft);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.nav-glider.is-ready {
+  opacity: 1;
+}
+
+.nav-glider.is-laying-out {
+  transition: none;
+}
+
+.nav[data-glider="tile"] .nav-glider {
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    0 1px 1px rgba(20, 20, 15, 0.03);
+}
+
+.nav[data-glider="tile"] .nav-glider::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--rail-gutter, 14px));
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  transform: translateY(-50%);
+  border-radius: 0 2px 2px 0;
+  background: var(--signal);
 }
 
 .nav-label {
@@ -484,6 +536,7 @@ table,
 
 .nav-item {
   position: relative;
+  z-index: 1;
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -529,7 +582,7 @@ table,
 }
 
 .nav-item.is-active .nav-icon {
-  background: var(--signal);
+  background: none;
   color: var(--signal-ink);
 }
 
@@ -654,10 +707,6 @@ table,
   min-width: 0;
   width: 100%;
   padding: 20px 16px calc(84px + env(safe-area-inset-bottom, 0px));
-}
-
-.tabbar {
-  display: none;
 }
 
 .icon {
@@ -2130,6 +2179,37 @@ select {
   right: 2px;
 }
 
+.search-kbd {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--border);
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1;
+  pointer-events: none;
+  transition: opacity 0.15s var(--ease);
+}
+
+.search-bar:focus-within .search-kbd {
+  opacity: 0;
+}
+
+@media (hover: none) {
+  .search-kbd {
+    display: none;
+  }
+}
+
 .library-list {
   list-style: none;
   margin: 0;
@@ -3511,6 +3591,33 @@ select {
   box-shadow: var(--shadow-menu);
 }
 
+.routine-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.routine-card[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    190px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(246, 224, 22, 0.18),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .routine-card[data-spotlight]:hover::before {
+    opacity: 1;
+  }
+}
+
 .routine-icon {
   display: inline-flex;
   align-items: center;
@@ -3575,8 +3682,29 @@ select {
   color: var(--text);
 }
 
-.routine-shine {
-  display: none;
+/* The custom card is a secondary action, not a fifth preset. Spanning the
+   grid keeps it from sitting alone in a row of empty cells, and the row
+   layout gives "start empty" room without competing with the four splits. */
+.routine-card.routine-custom {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  padding: 13px 15px;
+}
+
+.routine-card.routine-custom .routine-copy {
+  flex: 1 1 auto;
+}
+
+.routine-card.routine-custom .routine-count {
+  margin-top: 2px;
+}
+
+.routine-card.routine-custom .routine-go {
+  position: static;
+  margin-left: 4px;
 }
 
 /* KPIs: one border, three columns, figures in mono. */
@@ -4314,6 +4442,7 @@ select {
     align-items: stretch;
     gap: 0;
     padding: 22px 14px 18px;
+    --rail-gutter: 14px;
     background: var(--ground);
     border-top: 0;
     border-right: 1px solid var(--border);
@@ -4402,23 +4531,7 @@ select {
   }
 
   .nav-item.is-active {
-    background: var(--surface);
-    box-shadow: inset 0 0 0 1px var(--border);
     font-weight: 620;
-  }
-
-  /* The notch: a yellow tab sitting on the sidebar's edge, aligned to the
-     active destination. It is the same shape as the logo wedge. */
-  .nav-item.is-active::before {
-    content: "";
-    position: absolute;
-    left: -14px;
-    top: 50%;
-    width: 3px;
-    height: 18px;
-    transform: translateY(-50%);
-    background: var(--signal);
-    border-radius: 0 2px 2px 0;
   }
 
   .nav-icon {
@@ -4488,6 +4601,7 @@ select {
     width: 84px;
     padding-left: 10px;
     padding-right: 10px;
+    --rail-gutter: 10px;
   }
 
   .shell.sidebar-collapsed .sidebar-head {
@@ -4523,10 +4637,6 @@ select {
   .shell.sidebar-collapsed .nav-item {
     justify-content: center;
     padding: 0;
-  }
-
-  .shell.sidebar-collapsed .nav-item.is-active::before {
-    left: -10px;
   }
 
   .shell.sidebar-collapsed .sidebar-toggle .icon {
@@ -5523,26 +5633,23 @@ select {
   transform: scaleX(0.42);
 }
 
-.nav-item.is-active::after {
-  transform: scaleX(1);
+/* The active destination gets one small, springy icon pop when it changes. */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-item.is-active .nav-icon .icon {
+    animation: nav-icon-pop 380ms var(--ease-spring);
+  }
 }
 
-/* Mobile tabbar: one indicator element travelling between items, so the active
-   state is a shared-element transition rather than five independent flips. */
-.tabbar {
-  position: relative;
-}
-
-.tabbar-indicator {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--tab-w, 20%);
-  height: 2px;
-  background: var(--text);
-  transform: translate3d(var(--tab-x, 0), 0, 0);
-  transition: transform 340ms var(--ease-expo);
-  pointer-events: none;
+@keyframes nav-icon-pop {
+  0% {
+    transform: scale(0.88);
+  }
+  58% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ── 10. Charts ───────────────────────────────────────────────────────────
@@ -5753,6 +5860,12 @@ select {
   .pr-burst {
     display: none !important;
   }
+
+  /* The pointer spotlight is decorative; without pointer tracking it would be
+     a stale glow parked at the card centre. */
+  .routine-card[data-spotlight]::before {
+    display: none;
+  }
 }
 
 /* ── Print ───────────────────────────────────────────────────────────────
@@ -5760,7 +5873,6 @@ select {
 
 @media print {
   .sidebar,
-  .tabbar,
   .timer-bar,
   #toast-host,
   .btn,

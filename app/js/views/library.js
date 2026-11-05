@@ -40,8 +40,10 @@ export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
         ${icon("search")}
         <input type="search" id="library-search" placeholder="Search ${all.length} exercises…"
                value="${esc(query)}" autocomplete="off" data-action="library-search"
-               data-focus-key="library-search" />
-        ${query ? `<button class="icon-btn" data-action="clear-search" aria-label="Clear search">${icon("back")}</button>` : ""}
+               aria-keyshortcuts="/" data-focus-key="library-search" />
+        ${query
+          ? `<button class="icon-btn" data-action="clear-search" aria-label="Clear search">${icon("back")}</button>`
+          : `<kbd class="search-kbd" aria-hidden="true">/</kbd>`}
       </div>
 
       <div class="chip-row chip-scroll" id="library-muscles">

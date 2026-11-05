@@ -1,10 +1,11 @@
 /**
  * IronLog landing page interactions.
  *
- * Five small behaviours, no runtime dependency: the mobile menu, the workout
- * preview tabs (roving focus, arrow keys), the pointer-driven hero cards, a
- * reveal-on-scroll pass that never leaves content hidden when the observer is
- * unavailable, and the nav scroll spy.
+ * Seven small behaviours, no runtime dependency: the mobile menu, the workout
+ * preview tabs (roving focus, arrow keys, a shared travelling pill), the
+ * pointer-driven hero cards, pointer spotlights on routine cards, magnetic
+ * hero/final CTAs, a reveal-on-scroll pass that never leaves content hidden
+ * when the observer is unavailable, and the nav scroll spy.
  */
 
 const doc = document;
@@ -47,8 +48,32 @@ if (toggle && mobileNav) {
 const tabList = doc.querySelector(".tabs");
 const tabs = [...doc.querySelectorAll("[data-tab]")];
 const panels = [...doc.querySelectorAll("[data-panel]")];
+const tabGlider = tabList?.querySelector(".tabs-glider");
 
 if (tabList && tabs.length === panels.length) {
+  let activeTab = Math.max(
+    0,
+    tabs.findIndex((tab) => tab.getAttribute("aria-selected") === "true"),
+  );
+
+  // One shared pill travels between tabs, so the control reads as a single
+  // segmented switch instead of three buttons flipping independently.
+  const placeGlider = (index, { animate = true } = {}) => {
+    const tab = tabs[index];
+    if (!tabGlider || !tab) return;
+    if (!animate) tabGlider.classList.add("no-anim");
+    const base = tabList.getBoundingClientRect();
+    const box = tab.getBoundingClientRect();
+    tabGlider.style.setProperty("--tab-x", `${box.left - base.left}px`);
+    tabGlider.style.setProperty("--tab-w", `${box.width}px`);
+    tabGlider.style.setProperty("--tab-h", `${box.height}px`);
+    tabGlider.classList.add("is-ready");
+    if (!animate) {
+      void tabGlider.offsetWidth;
+      tabGlider.classList.remove("no-anim");
+    }
+  };
+
   const select = (index, { focus = false } = {}) => {
     tabs.forEach((tab, i) => {
       const on = i === index;
@@ -56,6 +81,16 @@ if (tabList && tabs.length === panels.length) {
       tab.tabIndex = on ? 0 : -1;
       panels[i].hidden = !on;
     });
+    activeTab = index;
+    placeGlider(index);
+
+    if (!reduceMotion.matches) {
+      const panel = panels[index];
+      panel.classList.remove("is-switching");
+      void panel.offsetWidth;
+      panel.classList.add("is-switching");
+    }
+
     if (focus) tabs[index].focus();
   };
 
@@ -68,6 +103,10 @@ if (tabList && tabs.length === panels.length) {
       select((index + step + tabs.length) % tabs.length, { focus: true });
     });
   });
+
+  placeGlider(activeTab, { animate: false });
+  doc.fonts?.ready.then(() => placeGlider(activeTab, { animate: false }));
+  window.addEventListener("resize", () => placeGlider(activeTab, { animate: false }));
 }
 
 /* ── Hero folder cards ─────────────────────────────────────────────────── */
@@ -110,6 +149,78 @@ if (heroArt && heroStack && finePointer.matches) {
   heroArt.addEventListener("pointercancel", reset);
   reduceMotion.addEventListener("change", (event) => {
     if (event.matches) reset();
+  });
+}
+
+/* ── Spotlight cards ───────────────────────────────────────────────────── */
+
+const spotlit = [...doc.querySelectorAll("[data-spotlight]")];
+
+if (spotlit.length && finePointer.matches) {
+  let frame = 0;
+  let card = null;
+  let x = 0;
+  let y = 0;
+
+  const paint = () => {
+    frame = 0;
+    if (!card) return;
+    card.style.setProperty("--spot-x", `${x.toFixed(1)}px`);
+    card.style.setProperty("--spot-y", `${y.toFixed(1)}px`);
+  };
+
+  doc.addEventListener(
+    "pointermove",
+    (event) => {
+      if (reduceMotion.matches) return;
+      const next = event.target instanceof Element ? event.target.closest("[data-spotlight]") : null;
+      if (!next) return;
+      const rect = next.getBoundingClientRect();
+      card = next;
+      x = event.clientX - rect.left;
+      y = event.clientY - rect.top;
+      if (!frame) frame = requestAnimationFrame(paint);
+    },
+    { passive: true },
+  );
+}
+
+/* ── Magnetic buttons ──────────────────────────────────────────────────── */
+
+const magnetic = [...doc.querySelectorAll("[data-magnetic]")];
+
+if (magnetic.length && finePointer.matches) {
+  magnetic.forEach((button) => {
+    let frame = 0;
+    let x = 0;
+    let y = 0;
+
+    const paint = () => {
+      frame = 0;
+      button.style.setProperty("--mag-x", `${x.toFixed(2)}px`);
+      button.style.setProperty("--mag-y", `${y.toFixed(2)}px`);
+    };
+
+    const queue = () => {
+      if (!frame) frame = requestAnimationFrame(paint);
+    };
+
+    button.addEventListener("pointermove", (event) => {
+      if (reduceMotion.matches) return;
+      const rect = button.getBoundingClientRect();
+      x = ((event.clientX - rect.left) / rect.width - 0.5) * 7;
+      y = ((event.clientY - rect.top) / rect.height - 0.5) * 5;
+      queue();
+    });
+
+    const reset = () => {
+      x = 0;
+      y = 0;
+      queue();
+    };
+
+    button.addEventListener("pointerleave", reset);
+    button.addEventListener("pointercancel", reset);
   });
 }
 

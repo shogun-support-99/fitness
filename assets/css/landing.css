@@ -290,6 +290,19 @@ svg.tick,
   background: var(--pill-hover);
 }
 
+/* Magnetic buttons: the cursor pulls the control a few pixels, then a spring
+   returns it. Kept to the hero and final CTA so the page still feels calm. */
+.btn[data-magnetic] {
+  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0);
+  transition: background-color 0.16s var(--ease), color 0.16s var(--ease),
+    border-color 0.16s var(--ease), transform 0.3s var(--ease);
+}
+
+.btn[data-magnetic]:active {
+  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0) scale(0.985);
+  transition-duration: 80ms;
+}
+
 .btn-signal {
   background: var(--signal);
   color: var(--signal-ink);
@@ -1124,6 +1137,7 @@ svg.tick,
 }
 
 .tabs {
+  position: relative;
   display: inline-flex;
   gap: 4px;
   margin-top: 28px;
@@ -1133,19 +1147,52 @@ svg.tick,
   border: 1px solid var(--line);
 }
 
+.tabs-glider {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  z-index: 0;
+  width: var(--tab-w, 0px);
+  height: var(--tab-h, 34px);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(15, 42, 29, 0.1);
+  transform: translate3d(var(--tab-x, 0px), 0, 0);
+  transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    width 0.32s var(--ease), opacity 0.16s var(--ease);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.tabs-glider.is-ready {
+  opacity: 1;
+}
+
+.tabs-glider.no-anim {
+  transition: none;
+}
+
 .tabs button {
+  position: relative;
+  z-index: 1;
   padding: 9px 16px;
   border-radius: 9px;
   font-size: 14px;
   font-weight: 600;
   color: var(--muted);
-  transition: background-color 0.16s var(--ease), color 0.16s var(--ease);
+  background: transparent;
+  transition: color 0.16s var(--ease);
+}
+
+.tabs button:hover {
+  color: var(--ink);
 }
 
 .tabs button[aria-selected="true"] {
-  background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(15, 42, 29, 0.1);
+  background: transparent;
+  box-shadow: none;
 }
 
 .tab-panels {
@@ -1167,6 +1214,17 @@ svg.tick,
 
 .tab-panel[hidden] {
   display: none;
+}
+
+.tab-panel.is-switching {
+  animation: tab-panel-in 0.3s var(--ease) both;
+}
+
+@keyframes tab-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
 }
 
 .checks {
@@ -1432,6 +1490,8 @@ svg.tick,
 }
 
 .routine-card {
+  position: relative;
+  overflow: hidden;
   padding: 22px;
   display: grid;
   gap: 6px;
@@ -1447,6 +1507,34 @@ svg.tick,
   transform: translateY(-3px);
   border-color: var(--ink);
   box-shadow: var(--shadow-float);
+}
+
+.routine-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Spotlight: a soft signal-yellow light follows the pointer across the card. */
+.routine-card[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    260px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(246, 224, 22, 0.24),
+    transparent 68%
+  );
+  opacity: 0;
+  transition: opacity 0.22s var(--ease);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .routine-card[data-spotlight]:hover::before {
+    opacity: 1;
+  }
 }
 
 .routine-tag {
@@ -1767,6 +1855,19 @@ html.js.motion-ok [data-reveal].is-in {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  .tabs-glider,
+  .btn[data-magnetic] {
+    transition: none;
+  }
+
+  .tab-panel.is-switching {
+    animation: none;
+  }
+
+  .routine-card[data-spotlight]::before {
+    display: none;
   }
 }
 
