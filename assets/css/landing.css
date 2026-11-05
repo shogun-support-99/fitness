@@ -364,16 +364,16 @@ svg.tick,
   color: var(--ink);
 }
 
-/* The active section gets the yellow notch, the same small wedge as the
-   logo: a 3px tab under the word. */
-.site-nav a.is-on::after {
-  content: "";
-  position: absolute;
-  left: 50%;
+/* The active section gets the yellow notch, the same small wedge as the logo:
+   a 3px tab under the word. It is one sliding element rather than a ::after on
+   each link, so it travels between sections instead of blinking on and off. */
+.seg-indicator.is-underline {
+  /* top: auto matters — with top and height both set, bottom is ignored and
+     the notch would sit along the top edge of the link. */
+  top: auto;
   bottom: 2px;
-  width: 16px;
   height: 3px;
-  transform: translateX(-50%);
+  border: 0;
   border-radius: 2px;
   background: var(--signal);
 }
@@ -1123,6 +1123,37 @@ svg.tick,
   letter-spacing: -0.035em;
 }
 
+/* ── Sliding indicator ───────────────────────────────────────────────────
+   One plate that travels to the active option. Absolutely positioned, so it
+   sits behind the labels without taking a slot in the flex row.
+   ------------------------------------------------------------------------- */
+
+[data-indicator] {
+  position: relative;
+}
+
+/* Excluding the plate matters: it is also a direct child, and without the
+   :not() the two rules have equal specificity, so this one would win or lose
+   purely on source order. */
+[data-indicator] > *:not(.seg-indicator) {
+  position: relative;
+  z-index: 1;
+}
+
+.seg-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s var(--ease), width 0.3s var(--ease),
+    height 0.3s var(--ease), top 0.3s var(--ease), opacity 0.16s linear;
+}
+
 .tabs {
   display: inline-flex;
   gap: 4px;
@@ -1142,10 +1173,13 @@ svg.tick,
   transition: background-color 0.16s var(--ease), color 0.16s var(--ease);
 }
 
+/* The sliding plate carries the active surface now, so the tab underneath
+   drops its own: two plates would show a seam as the plate travels. The box
+   shadow goes with it — the craft floor keeps shadows off anything at rest. */
 .tabs button[aria-selected="true"] {
-  background: var(--surface);
+  background: none;
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(15, 42, 29, 0.1);
+  box-shadow: none;
 }
 
 .tab-panels {

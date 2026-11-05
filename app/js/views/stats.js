@@ -1,129 +1,158 @@
 /**
- * IronLog — Stats view.
+ * IronLog — Profile view.
  *
- * Lifetime numbers, weekly volume chart, muscle-group distribution and the
- * personal-record board. All derived from the pure functions in stats.js.
+ * The overview screen: who the log belongs to, a time range, the headline
+ * figures for that range, the four ways into the detail screens, and the
+ * session feed underneath. Everything deeper than a headline lives on its own
+ * screen now — see statistics.js, muscle-distribution.js and body-distribution.js.
+ *
+ * The counters are deliberately local. Hevy shows followers and following here;
+ * IronLog has no server and no other users, so the three figures are things
+ * this device can actually answer: sessions logged, records standing, and the
+ * current training streak.
  */
 
 import {
+  DEFAULT_RANGE,
   compactNumber,
-  lifetimeStats,
-  relativeTime,
+  formatMinutes,
+  ordinal,
+  rangeSummary,
+  rangeStart,
   streaks,
-  weeklyVolume,
+  workoutDurationMinutes,
+  workoutOrdinals,
+  workoutSetCount,
+  workoutVolume,
+  workoutsInRange,
 } from "../stats.js";
-import { barChart, distributionBars, emptyState, esc, icon, statTile } from "../ui.js";
+import { emptyState, esc, icon, statTile } from "../ui.js";
+import {
+  dashTile,
+  hrefWith,
+  initials,
+  longDate,
+  noDataInRange,
+  rangeChips,
+  sectionTitle,
+} from "./profile-common.js";
 
-function renderProfileHead(workoutCount) {
-  return `
-    <header class="view-head profile-view-head">
-      <div class="profile-identity">
-        <span class="profile-avatar">${icon("user")}</span>
-        <div><h1>Your profile</h1><p class="view-subline">${workoutCount} workout${workoutCount === 1 ? "" : "s"} · stored on this device</p></div>
-      </div>
-      <a class="icon-btn profile-settings" href="#/settings" aria-label="Open settings">${icon("settings")}</a>
-    </header>
-    <nav class="profile-shortcuts" aria-label="Profile sections">
-      <a class="is-active" href="#/stats">${icon("stats")} Statistics</a>
-      <a href="#/library">${icon("library")} Exercises</a>
-    </nav>`;
-}
+const FEED_CAP = 20;
 
-export function renderStats(store) {
+export function renderStats(store, params) {
+  const range = params?.get?.("range") || DEFAULT_RANGE;
   const completed = store.completedWorkouts();
-
-  if (completed.length === 0) {
-    return `
-      <section class="view view-stats">
-        ${renderProfileHead(0)}
-        ${emptyState({
-          icon: "stats",
-          title: "No data to chart yet",
-          body: "Log a few sessions and your volume, personal records and muscle balance will build up here.",
-        })}
-      </section>`;
-  }
-
-  const index = store.exerciseIndex();
-  const units = store.settings.units;
-  const life = lifetimeStats(completed);
-  const streak = streaks(completed);
-  const weeks = weeklyVolume(completed).slice(-12);
+  const profile = store.profile();
   const records = store.personalRecords();
+  const streak = streaks(completed);
+  const inRange = workoutsInRange(completed, { start: rangeStart(range) });
+  const summary = rangeSummary(inRange);
+  const units = store.settings.units;
+  const qs = `range=${encodeURIComponent(range)}`;
+
+  const body =
+    completed.length === 0
+      ? emptyState({
+          icon: "stats",
+          title: "No training logged yet",
+          body: "Finish your first session and this screen fills with your volume, records and consistency.",
+          action: `<a class="btn btn-primary" href="#/workout">${icon("dumbbell")} Start a workout</a>`,
+        })
+      : `${summaryRow(summary, units, range)}
+         ${sectionTitle("Dashboard")}
+         <div class="dash-grid">
+           ${dashTile({ href: hrefWith("statistics", qs), icon: "stats", label: "Statistics", detail: "Volume, balance and records" })}
+           ${dashTile({ href: "#/library", icon: "library", label: "Exercises", detail: "Every movement you have logged" })}
+           ${dashTile({ href: hrefWith("measures", qs), icon: "user", label: "Measures", detail: "Bodyweight over time" })}
+           ${dashTile({ href: hrefWith("calendar", qs), icon: "history", label: "Calendar", detail: "Your training month" })}
+         </div>
+         ${renderFeed(inRange, store, units, workoutOrdinals(completed))}`;
 
   return `
     <section class="view view-stats">
-      ${renderProfileHead(life.workouts)}
-
-      <div class="section-title-row"><h2>Statistics</h2><span class="panel-note">All time</span></div>
-      <div class="tile-grid tile-grid-4">
-        ${statTile({ label: "Total volume", value: compactNumber(life.volume), unit: units, tone: "tone-sky" })}
-        ${statTile({ label: "Total sets", value: compactNumber(life.sets), countTo: life.sets, tone: "tone-violet" })}
-        ${statTile({ label: "Time training", value: String(life.hours), countTo: life.hours, unit: "h", tone: "tone-mint" })}
-        ${statTile({ label: "Current streak", value: String(streak.current), countTo: streak.current, unit: "d", hint: `best ${streak.best}d`, tone: "tone-orange" })}
-      </div>
-
-      <section class="panel" data-reveal="rise">
-        <div class="panel-head"><h2>Weekly volume</h2><span class="panel-note">last ${weeks.length} ${weeks.length === 1 ? "week" : "weeks"}</span></div>
-        ${barChart(
-          weeks.map((w) => ({
-            value: w.volume,
-            label: `${w.week}: ${compactNumber(w.volume)} ${units} across ${w.workouts} ${w.workouts === 1 ? "session" : "sessions"}`,
-            display: `${compactNumber(w.volume)} ${units}`,
-            axis: w.week.replace(/^\d{4}-/, ""),
-          })),
-          { ariaLabel: "Weekly training volume" },
-        )}
-      </section>
-
-      <section class="panel" data-reveal="rise">
-        <div class="panel-head"><h2>Muscle balance</h2><span class="panel-note">sets per group</span></div>
-        ${distributionBars(muscleDistribution(completed, index))}
-      </section>
-
-      <section class="panel" data-reveal="rise">
-        <div class="panel-head">
-          <h2>${icon("trophy")} Personal records</h2>
-          <span class="panel-note">${records.size} tracked</span>
+      <header class="view-head profile-hero" data-reveal="rise">
+        <div class="profile-identity">
+          <span class="profile-avatar" aria-hidden="true">${esc(initials(profile.displayName))}</span>
+          <div class="profile-identity-copy">
+            <h1>${esc(profile.displayName || "Your profile")}</h1>
+            <p class="view-subline">@${esc(profile.handle || "local")} · stored on this device</p>
+          </div>
+          <a class="icon-btn profile-settings" href="#/settings" aria-label="Open settings">${icon("settings")}</a>
         </div>
-        ${records.size === 0
-          ? `<p class="panel-empty">Complete a set with weight to start recording personal bests.</p>`
-          : `<ul class="pr-list">
-               ${[...records.values()]
-                 .sort((a, b) => b.maxOneRm - a.maxOneRm)
-                 .slice(0, 25)
-                 .map((r) => renderPrRow(r, units)).join("")}
-             </ul>`}
-      </section>
+
+        <dl class="profile-counters">
+          <div class="counter"><dt>Workouts</dt><dd>${esc(completed.length)}</dd></div>
+          <div class="counter"><dt>Records</dt><dd>${esc(records.size)}</dd></div>
+          <div class="counter"><dt>Day streak</dt><dd>${esc(streak.current)}</dd></div>
+        </dl>
+
+        <details class="profile-edit">
+          <summary class="btn btn-small">Edit profile</summary>
+          <form class="profile-edit-form" data-action="save-profile">
+            <label class="field">
+              <span>Display name</span>
+              <input type="text" name="displayName" maxlength="48" value="${esc(profile.displayName)}" placeholder="Your name" data-focus-key="profile-name" />
+            </label>
+            <label class="field">
+              <span>Handle</span>
+              <input type="text" name="handle" maxlength="32" value="${esc(profile.handle)}" placeholder="yourname" aria-describedby="profile-handle-hint" />
+            </label>
+            <p class="panel-hint" id="profile-handle-hint">Letters, numbers, dots, dashes and underscores. Nothing leaves this browser.</p>
+            <div class="profile-edit-actions">
+              <button class="btn btn-primary btn-small" type="submit">Save</button>
+            </div>
+          </form>
+        </details>
+      </header>
+
+      ${rangeChips("stats", range, qs)}
+      ${body}
     </section>`;
 }
 
-function renderPrRow(record, units) {
-  const latest = record.history[record.history.length - 1];
-  return `
-    <li class="pr-row">
-      <span class="pr-name">
-        ${esc(record.name)}
-        ${latest?.date ? `<em>${esc(relativeTime(latest.date))}</em>` : ""}
-      </span>
-      <span class="pr-values">
-        <span class="pr-value"><b>${record.maxWeight}</b><i>${esc(units)}</i><u>heaviest</u></span>
-        <span class="pr-value"><b>${record.maxReps}</b><i>reps</i><u>most</u></span>
-        <span class="pr-value pr-value-accent"><b>${compactNumber(record.maxOneRm)}</b><i>${esc(units)}</i><u>est. 1RM</u></span>
-      </span>
-    </li>`;
+function summaryRow(summary, units, range) {
+  if (summary.workouts === 0) return noDataInRange(range);
+  return `<div class="tile-grid tile-grid-3 tile-grid-headline">
+      ${statTile({ label: "Duration", value: formatMinutes(summary.minutes), tone: "tone-data" })}
+      ${statTile({ label: "Volume", value: compactNumber(summary.volume), unit: units })}
+      ${statTile({ label: "Reps", value: compactNumber(summary.reps), countTo: summary.reps })}
+    </div>`;
 }
 
-function muscleDistribution(workouts, index) {
-  const counts = new Map();
-  for (const w of workouts) {
-    for (const entry of w.exercises ?? []) {
-      const muscle = index[entry.exerciseId]?.muscle ?? "other";
-      const done = (entry.sets ?? []).filter((s) => s.done).length;
-      counts.set(muscle, (counts.get(muscle) ?? 0) + done);
-    }
+function renderFeed(workouts, store, units, ordinals) {
+  if (workouts.length === 0) {
+    return `<section class="panel"><div class="panel-head"><h2>Workouts</h2></div><p class="panel-empty">No sessions in this range.</p></section>`;
   }
-  return [...counts.entries()]
-    .map(([label, value]) => ({ label, value, display: `${value} ${value === 1 ? "set" : "sets"}` }))
-    .sort((a, b) => b.value - a.value);
+  const index = store.exerciseIndex();
+  const items = workouts.slice(0, FEED_CAP);
+  return `
+    <section class="panel" data-reveal="rise">
+      <div class="panel-head">
+        <h2>Workouts</h2>
+        <span class="panel-note">${items.length} of ${workouts.length}</span>
+      </div>
+      <ol class="feed">
+        ${items.map((w) => renderFeedItem(w, index, units, ordinals.get(w.id))).join("")}
+      </ol>
+    </section>`;
+}
+
+function renderFeedItem(workout, index, units, position) {
+  const names = (workout.exercises ?? [])
+    .map((entry) => index[entry.exerciseId]?.name ?? "Unknown exercise")
+    .slice(0, 4);
+  const extra = (workout.exercises?.length ?? 0) - names.length;
+  const minutes = workoutDurationMinutes(workout);
+  return `
+    <li class="feed-item">
+      <a class="feed-link" href="${esc(hrefWith("history", "", { id: workout.id }))}">
+        <span class="feed-ordinal" aria-hidden="true">${esc(position ? ordinal(position) : "—")}</span>
+        <span class="feed-copy">
+          <span class="feed-title">${esc(workout.name || "Workout")}</span>
+          <span class="feed-date">${esc(longDate(workout.endedAt ?? workout.startedAt))}</span>
+          <span class="feed-stats">${esc(formatMinutes(minutes))} · ${esc(compactNumber(workoutVolume(workout)))} ${esc(units)} · ${esc(workoutSetCount(workout))} sets</span>
+          <span class="feed-exercises">${esc(names.join(", "))}${extra > 0 ? ` +${extra} more` : ""}</span>
+        </span>
+      </a>
+    </li>`;
 }

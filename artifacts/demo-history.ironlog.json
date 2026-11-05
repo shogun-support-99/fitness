@@ -1,0 +1,3684 @@
+{
+  "app": "IronLog",
+  "version": 1,
+  "exportedAt": "2026-11-05T03:15:46.433Z",
+  "workouts": [
+    {
+      "id": "w_demo_9_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-09-02T18:00:00.000Z",
+      "endedAt": "2026-09-02T18:47:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_0_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 57.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 55,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_0_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 55,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_0_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_0_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_0_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 22.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_0_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_9_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-08-31T18:00:00.000Z",
+      "endedAt": "2026-08-31T18:45:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_1_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_1_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_1_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 22.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 22.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_1_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_9_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-08-29T18:00:00.000Z",
+      "endedAt": "2026-08-29T18:55:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_2_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 87.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 4,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 4,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_2_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 90,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_2_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 55,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_2_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 80,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_2_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 50,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 47.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 47.5,
+              "reps": 11,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_2_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_8_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-09-09T18:00:00.000Z",
+      "endedAt": "2026-09-09T18:59:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_3_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_3_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 55,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_3_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_3_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_3_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 22.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_3_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_8_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-09-07T18:00:00.000Z",
+      "endedAt": "2026-09-07T18:50:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_4_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_4_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_4_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 22.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_4_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_8_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-09-05T18:00:00.000Z",
+      "endedAt": "2026-09-05T18:54:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_5_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 92.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_5_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 95,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_5_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 55,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_5_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 82.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_5_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 52.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 45,
+              "reps": 11,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_5_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_7_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-09-16T18:00:00.000Z",
+      "endedAt": "2026-09-16T18:51:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_6_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_6_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_6_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_6_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_6_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_6_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_7_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-09-14T18:00:00.000Z",
+      "endedAt": "2026-09-14T18:53:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_7_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_7_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_7_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 22.5,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_7_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_7_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-09-12T18:00:00.000Z",
+      "endedAt": "2026-09-12T18:53:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_8_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 97.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_8_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 95,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_8_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_8_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 82.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_8_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 50,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 47.5,
+              "reps": 11,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_8_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_6_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-09-23T18:00:00.000Z",
+      "endedAt": "2026-09-23T18:51:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_9_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_9_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_9_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_9_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_9_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_9_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_6_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-09-21T18:00:00.000Z",
+      "endedAt": "2026-09-21T18:42:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_10_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_10_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 75,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_10_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_10_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_6_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-09-19T18:00:00.000Z",
+      "endedAt": "2026-09-19T19:03:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_11_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 97.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 4,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_11_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 97.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 4,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_11_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_11_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 85,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_11_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 50,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 10,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_11_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_5_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-09-30T18:00:00.000Z",
+      "endedAt": "2026-09-30T18:55:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_12_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_12_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 57.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_12_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_12_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 9,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_12_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_12_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_5_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-09-28T18:00:00.000Z",
+      "endedAt": "2026-09-28T18:45:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_13_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 75,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_13_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 75,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_13_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_13_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_5_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-09-26T18:00:00.000Z",
+      "endedAt": "2026-09-26T18:56:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_14_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 100,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_14_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 95,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_14_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_14_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 87.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_14_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 52.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 10,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_14_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_4_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-10-07T18:00:00.000Z",
+      "endedAt": "2026-10-07T18:55:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_15_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_15_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_15_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_15_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_15_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_15_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_4_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-10-05T18:00:00.000Z",
+      "endedAt": "2026-10-05T18:47:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_16_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_16_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 77.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_16_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_16_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_4_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-10-03T18:00:00.000Z",
+      "endedAt": "2026-10-03T19:03:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_17_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 102.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_17_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 102.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_17_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_17_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 90,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_17_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 55,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 10,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_17_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_3_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-10-14T18:00:00.000Z",
+      "endedAt": "2026-10-14T18:50:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_18_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_18_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_18_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_18_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_18_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_18_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_3_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-10-12T18:00:00.000Z",
+      "endedAt": "2026-10-12T18:42:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_19_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_19_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_19_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_19_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_3_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-10-10T18:00:00.000Z",
+      "endedAt": "2026-10-10T19:02:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_20_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 100,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 97.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_20_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 105,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 100,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 4,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_20_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_20_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 90,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_20_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 57.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 11,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 11,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_20_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_2_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-10-21T18:00:00.000Z",
+      "endedAt": "2026-10-21T18:46:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_21_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 60,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_21_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_21_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_21_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 8,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_21_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_21_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_2_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-10-19T18:00:00.000Z",
+      "endedAt": "2026-10-19T18:56:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_22_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_22_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 72.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_22_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_22_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_2_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-10-17T18:00:00.000Z",
+      "endedAt": "2026-10-17T19:04:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_23_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 105,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 100,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 97.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 4,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_23_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 105,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 100,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 97.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_23_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_23_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 90,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 85,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_23_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 57.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 11,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_23_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_1_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-10-28T18:00:00.000Z",
+      "endedAt": "2026-10-28T18:44:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_24_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 72.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_24_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_24_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_24_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_24_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 9,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_24_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_1_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-10-26T18:00:00.000Z",
+      "endedAt": "2026-10-26T18:44:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_25_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_25_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 82.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 75,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_25_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 25,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_25_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_1_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-10-24T18:00:00.000Z",
+      "endedAt": "2026-10-24T18:52:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_26_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 110,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 102.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 95,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_26_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 105,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 97.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 100,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_26_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_26_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 92.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 87.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 82.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_26_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 57.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 50,
+              "reps": 11,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_26_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_0_0",
+      "name": "Push day",
+      "status": "completed",
+      "startedAt": "2026-11-04T18:00:00.000Z",
+      "endedAt": "2026-11-04T18:43:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_27_ds-3294",
+          "exerciseId": "ds-3294",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 6,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_27_ds-0009",
+          "exerciseId": "ds-0009",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 67.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 65,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_27_ds-0977",
+          "exerciseId": "ds-0977",
+          "sets": [
+            {
+              "weight": 37.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_27_ds-0978",
+          "exerciseId": "ds-0978",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 32.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_27_ds-0018",
+          "exerciseId": "ds-0018",
+          "sets": [
+            {
+              "weight": 30,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_27_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_0_1",
+      "name": "Pull day",
+      "status": "completed",
+      "startedAt": "2026-11-02T18:00:00.000Z",
+      "endedAt": "2026-11-02T18:55:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_28_ds-0007",
+          "exerciseId": "ds-0007",
+          "sets": [
+            {
+              "weight": 82.5,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_28_ds-3293",
+          "exerciseId": "ds-3293",
+          "sets": [
+            {
+              "weight": 85,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 80,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 77.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_28_ds-0968",
+          "exerciseId": "ds-0968",
+          "sets": [
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 10,
+              "done": true
+            },
+            {
+              "weight": 27.5,
+              "reps": 9,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_28_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w_demo_0_2",
+      "name": "Legs day",
+      "status": "completed",
+      "startedAt": "2026-10-31T18:00:00.000Z",
+      "endedAt": "2026-10-31T18:59:00.000Z",
+      "notes": "",
+      "exercises": [
+        {
+          "id": "e_29_ds-1512",
+          "exerciseId": "ds-1512",
+          "sets": [
+            {
+              "weight": 107.5,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 102.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 102.5,
+              "reps": 5,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_29_ds-1713",
+          "exerciseId": "ds-1713",
+          "sets": [
+            {
+              "weight": 110,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 105,
+              "reps": 6,
+              "done": true
+            },
+            {
+              "weight": 102.5,
+              "reps": 4,
+              "done": true
+            },
+            {
+              "weight": 97.5,
+              "reps": 5,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_29_ds-0016",
+          "exerciseId": "ds-0016",
+          "sets": [
+            {
+              "weight": 70,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 70,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 62.5,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_29_ds-3214",
+          "exerciseId": "ds-3214",
+          "sets": [
+            {
+              "weight": 95,
+              "reps": 8,
+              "done": true
+            },
+            {
+              "weight": 92.5,
+              "reps": 7,
+              "done": true
+            },
+            {
+              "weight": 90,
+              "reps": 7,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_29_ds-1368",
+          "exerciseId": "ds-1368",
+          "sets": [
+            {
+              "weight": 57.5,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 55,
+              "reps": 12,
+              "done": true
+            },
+            {
+              "weight": 52.5,
+              "reps": 10,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "e_29_ds-0001",
+          "exerciseId": "ds-0001",
+          "sets": [
+            {
+              "weight": 0,
+              "reps": 15,
+              "done": true
+            },
+            {
+              "weight": 0,
+              "reps": 12,
+              "done": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "customExercises": [],
+  "measurements": [
+    {
+      "id": "m_demo_2026-09-03",
+      "date": "2026-09-03",
+      "weight": 82.2,
+      "note": "Morning, fasted"
+    },
+    {
+      "id": "m_demo_2026-09-10",
+      "date": "2026-09-10",
+      "weight": 82.2,
+      "note": ""
+    },
+    {
+      "id": "m_demo_2026-09-17",
+      "date": "2026-09-17",
+      "weight": 81.9,
+      "note": ""
+    },
+    {
+      "id": "m_demo_2026-09-24",
+      "date": "2026-09-24",
+      "weight": 81.8,
+      "note": "Morning, fasted"
+    },
+    {
+      "id": "m_demo_2026-10-01",
+      "date": "2026-10-01",
+      "weight": 81.2,
+      "note": ""
+    },
+    {
+      "id": "m_demo_2026-10-08",
+      "date": "2026-10-08",
+      "weight": 80.9,
+      "note": ""
+    },
+    {
+      "id": "m_demo_2026-10-15",
+      "date": "2026-10-15",
+      "weight": 81,
+      "note": "Morning, fasted"
+    },
+    {
+      "id": "m_demo_2026-10-22",
+      "date": "2026-10-22",
+      "weight": 80.2,
+      "note": ""
+    },
+    {
+      "id": "m_demo_2026-10-29",
+      "date": "2026-10-29",
+      "weight": 80.3,
+      "note": ""
+    },
+    {
+      "id": "m_demo_2026-11-05",
+      "date": "2026-11-05",
+      "weight": 80.2,
+      "note": "Morning, fasted"
+    }
+  ],
+  "settings": {
+    "units": "kg"
+  },
+  "createdAt": "2026-11-05T03:15:46.433Z"
+}

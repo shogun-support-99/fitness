@@ -329,3 +329,340 @@ export function compactNumber(value) {
   if (abs >= 1000) return n.toLocaleString("en-US");
   return String(round(n, abs < 10 && abs % 1 !== 0 ? 1 : 0));
 }
+
+/* ── Training ranges ───────────────────────────────────────────────────────
+ *
+ * The profile answers "how did the last N days go?", which every screen needs
+ * and which must stay answerable from a stored history with gaps in it. These
+ * helpers are pure and take `now` by injection so tests can pin the clock.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Selectable ranges, ordered narrowest first. Hevy's picker offers the same
+ * ladder; "All time" has no window at all.
+ */
+export const RANGES = [
+  { id: "7d", label: "Last 7 days", days: 7 },
+  { id: "30d", label: "Last 30 days", days: 30 },
+  { id: "3m", label: "Last 3 months", months: 3 },
+  { id: "1y", label: "Last year", years: 1 },
+  { id: "all", label: "All time" },
+];
+
+export const DEFAULT_RANGE = "30d";
+
+export function rangeLabel(rangeId) {
+  return RANGES.find((r) => r.id === rangeId)?.label ?? RANGES[0].label;
+}
+
+/** Start of a range as a local-midnight Date, or null for "all time". */
+export function rangeStart(rangeId, now = new Date()) {
+  const range = RANGES.find((r) => r.id === rangeId);
+  if (!range || !range.days && !range.months && !range.years) return null;
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (range.days) {
+    // Overlapping windows, not calendar buckets: "last 7 days" is seven
+    // including today, so it reaches back six whole days.
+    start.setDate(start.getDate() - (range.days - 1));
+  }
+  if (range.months) start.setMonth(start.getMonth() - range.months);
+  if (range.years) start.setFullYear(start.getFullYear() - range.years);
+  return start;
+}
+
+/**
+ * The window immediately before a range, used for the current-vs-previous
+ * comparison. It is the same length, so the two are genuinely comparable.
+ */
+export function previousRangeBounds(rangeId, now = new Date()) {
+  const start = rangeStart(rangeId, now);
+  if (!start) return { start: null, end: null };
+  const end = new Date(start.getTime() - 1);
+  const range = RANGES.find((r) => r.id === rangeId);
+  const prevStart = new Date(start);
+  if (range?.days) prevStart.setDate(prevStart.getDate() - range.days);
+  if (range?.months) prevStart.setMonth(prevStart.getMonth() - range.months);
+  if (range?.years) prevStart.setFullYear(prevStart.getFullYear() - range.years);
+  return { start: prevStart, end };
+}
+
+/** Timestamp of a workout: completion time, falling back to its start. */
+function workoutStamp(workout) {
+  return new Date(workout?.endedAt ?? workout?.startedAt).getTime();
+}
+
+/** Completed workouts inside a range. `end` is exclusive. */
+export function workoutsInRange(workouts, { start = null, end = null } = {}) {
+  return (workouts ?? []).filter((w) => {
+    if (w?.status !== "completed") return false;
+    const t = workoutStamp(w);
+    if (!Number.isFinite(t)) return false;
+    if (start && t < start.getTime()) return false;
+    if (end && t > end.getTime()) return false;
+    return true;
+  });
+}
+
+/** The whole set of completed workouts inside one named range. */
+export function workoutsForRange(workouts, rangeId, now = new Date()) {
+  return workoutsInRange(workouts, { start: rangeStart(rangeId, now) });
+}
+
+/** Headline totals for a set of workouts. */
+export function rangeSummary(workouts) {
+  const list = (workouts ?? []).filter((w) => w?.status === "completed");
+  let volume = 0;
+  let sets = 0;
+  let reps = 0;
+  let minutes = 0;
+  for (const w of list) {
+    volume += workoutVolume(w);
+    sets += workoutSetCount(w);
+    minutes += workoutDurationMinutes(w);
+    for (const entry of w.exercises ?? []) {
+      for (const s of entry.sets ?? []) {
+        if (s?.done) reps += Number(s.reps) || 0;
+      }
+    }
+  }
+  return {
+    workouts: list.length,
+    volume: Math.round(volume),
+    sets,
+    reps,
+    minutes,
+    hours: round(minutes / 60, 1),
+  };
+}
+
+/**
+ * Completed sets per catalogue `muscle`, from a set of workouts.
+ *
+ * Secondary muscles are deliberately not counted. Hevy's muscle screens count a
+ * set once for its primary mover, and double-counting secondaries would inflate
+ * every group that happens to be listed second.
+ */
+export function muscleSetCounts(workouts, index = {}) {
+  const counts = new Map();
+  for (const w of workouts ?? []) {
+    if (w?.status !== "completed") continue;
+    for (const entry of w.exercises ?? []) {
+      const muscle = index[entry.exerciseId]?.muscle ?? "other";
+      const done = (entry.sets ?? []).filter((s) => s.done).length;
+      if (done > 0) counts.set(muscle, (counts.get(muscle) ?? 0) + done);
+    }
+  }
+  return counts;
+}
+
+/** Completed sets per catalogue `target`, for the body-distribution table. */
+export function targetSetCounts(workouts, index = {}) {
+  const counts = new Map();
+  for (const w of workouts ?? []) {
+    if (w?.status !== "completed") continue;
+    for (const entry of w.exercises ?? []) {
+      const target = index[entry.exerciseId]?.target ?? "other";
+      const done = (entry.sets ?? []).filter((s) => s.done).length;
+      if (done > 0) counts.set(target, (counts.get(target) ?? 0) + done);
+    }
+  }
+  return counts;
+}
+
+/** English ordinal for the workout feed: 1 -> "1st", 10 -> "10th". */
+export function ordinal(n) {
+  const value = Math.trunc(Number(n) || 0);
+  const abs = Math.abs(value);
+  const mod100 = abs % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
+  const suffix = abs % 10 === 1 ? "st" : abs % 10 === 2 ? "nd" : abs % 10 === 3 ? "rd" : "th";
+  return `${value}${suffix}`;
+}
+
+/**
+ * Ordinal of a workout within the full history, oldest first. Hevy labels a
+ * session "10th workout", which is far more legible in a feed than a date and
+ * quietly rewards consistency.
+ */
+export function workoutOrdinals(workouts) {
+  const completed = (workouts ?? [])
+    .filter((w) => w?.status === "completed")
+    .sort((a, b) => workoutStamp(a) - workoutStamp(b));
+  const out = new Map();
+  completed.forEach((w, i) => out.set(w.id, i + 1));
+  return out;
+}
+
+/* ── Calendar maths ───────────────────────────────────────────────────── */
+
+const WEEKDAY_INITIALS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const MONTH_SHORT = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+export const WEEKDAY_LABELS = WEEKDAY_INITIALS;
+export const WEEKDAY_FULL = WEEKDAY_NAMES;
+export const MONTH_LABELS = MONTH_NAMES;
+
+/** Single-letter weekday initials in calendar order, Sunday first. */
+export function weekdayInitials() {
+  return [...WEEKDAY_INITIALS];
+}
+
+/** `2026-11-05` style key for any Date, in local time. */
+export function dateKey(date) {
+  return localDateKey(date);
+}
+
+/**
+ * The seven days ending on `anchor`, oldest first — the consistency strip on
+ * the Statistics screen.
+ */
+export function trailingWeek(anchor = new Date(), trainedDays = new Set()) {
+  const end = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+  const days = [];
+  for (let i = 6; i >= 0; i -= 1) {
+    const d = new Date(end);
+    d.setDate(d.getDate() - i);
+    const key = dateKey(d);
+    days.push({
+      date: d,
+      key,
+      day: d.getDate(),
+      weekday: WEEKDAY_INITIALS[d.getDay()],
+      weekdayName: WEEKDAY_NAMES[d.getDay()],
+      isToday: key === dateKey(end),
+      trained: trainedDays.has(key),
+    });
+  }
+  return days;
+}
+
+/**
+ * The Sunday-first calendar week containing `anchor`, with `selected` marking
+ * the day whose sets the screen is showing.
+ */
+export function calendarWeek(anchor = new Date(), { selected = null, trainedDays = new Set() } = {}) {
+  const start = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+  start.setDate(start.getDate() - start.getDay());
+  const selectedKey = selected ? dateKey(selected) : dateKey(anchor);
+  const days = [];
+  for (let i = 0; i < 7; i += 1) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const key = dateKey(d);
+    days.push({
+      date: d,
+      key,
+      day: d.getDate(),
+      weekday: WEEKDAY_INITIALS[d.getDay()],
+      weekdayName: WEEKDAY_NAMES[d.getDay()],
+      isToday: key === dateKey(anchor),
+      isSelected: key === selectedKey,
+      trained: trainedDays.has(key),
+    });
+  }
+  const last = days[days.length - 1].date;
+  // A week that straddles two months cannot be labelled with one month name:
+  // "28-03 November" would describe an October week. Name both ends instead.
+  const label =
+    start.getMonth() === last.getMonth()
+      ? `${pad2(start.getDate())}-${pad2(last.getDate())} ${MONTH_NAMES[last.getMonth()]} ${last.getFullYear()}`
+      : `${pad2(start.getDate())} ${MONTH_SHORT[start.getMonth()]} - ${pad2(last.getDate())} ${MONTH_SHORT[last.getMonth()]} ${last.getFullYear()}`;
+  return { days, start, end: last, label };
+}
+
+/** Shift a date by whole weeks. */
+export function shiftWeek(anchor, weeks) {
+  const d = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+  d.setDate(d.getDate() + weeks * 7);
+  return d;
+}
+
+/** Shift a year/month pair by whole months, normalised. */
+export function shiftMonth(year, month, months) {
+  const d = new Date(year, month + months, 1);
+  return { year: d.getFullYear(), month: d.getMonth() };
+}
+
+/**
+ * A Sunday-first month grid. Leading and trailing cells are filled from the
+ * neighbouring months so the grid is always a whole number of weeks, and every
+ * cell knows whether it is inside the month being shown.
+ */
+export function monthGrid(year, month, { trainedDays = new Set(), today = new Date() } = {}) {
+  const first = new Date(year, month, 1);
+  const gridStart = new Date(year, month, 1 - first.getDay());
+  const todayKey = dateKey(today);
+  const weeks = [];
+  for (let w = 0; w < 6; w += 1) {
+    const row = [];
+    for (let d = 0; d < 7; d += 1) {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + w * 7 + d);
+      const key = dateKey(date);
+      row.push({
+        date,
+        key,
+        day: date.getDate(),
+        inMonth: date.getMonth() === month && date.getFullYear() === year,
+        isToday: key === todayKey,
+        trained: trainedDays.has(key),
+      });
+    }
+    weeks.push(row);
+  }
+  // A six-row grid always covers the month, but the last row is often entirely
+  // next month. Dropping it keeps the panel from ending in dead space.
+  if (weeks.length === 6 && weeks[5].every((c) => !c.inMonth)) weeks.pop();
+  return { weeks, year, month, label: `${MONTH_NAMES[month]} ${year}` };
+}
+
+/** Days with at least one completed workout, as a Set of `YYYY-MM-DD`. */
+export function trainedDays(workouts) {
+  const days = new Set();
+  for (const w of workouts ?? []) {
+    if (w?.status !== "completed") continue;
+    const key = localDateKey(w.endedAt ?? w.startedAt);
+    if (key) days.add(key);
+  }
+  return days;
+}
+
+/** `92` -> "1h 32m", for duration figures that would otherwise be opaque. */
+export function formatMinutes(totalMinutes) {
+  const mins = Math.max(0, Math.round(Number(totalMinutes) || 0));
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}

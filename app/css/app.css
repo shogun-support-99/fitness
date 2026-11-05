@@ -977,9 +977,14 @@ table,
   transition: background-color 0.14s var(--ease), color 0.14s var(--ease);
 }
 
-.icon-btn:hover {
+.icon-btn:hover:not(:disabled) {
   background: var(--raised);
   color: var(--text);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .link {
@@ -1272,6 +1277,71 @@ select {
   border-bottom: 0;
 }
 
+/* A crafted switch, in the spirit of the toggle patterns on 21st.dev and
+   re-skinned for this app. It stays a real checkbox: keyboard operation, the
+   wrapping label, form semantics and the existing change handler all keep
+   working — only the rendering changes, so there is no JS involved.
+
+   Track 44px with a 1px border leaves a 42px padding box; the 20px knob sits
+   2px in and travels 18px, so the gaps at both ends are equal. */
+.toggle-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  background: var(--control);
+  cursor: pointer;
+  transition: background-color 0.24s var(--ease), border-color 0.24s var(--ease);
+}
+
+.toggle-row input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-control);
+  transform: translateY(-50%);
+  /* The overshoot is the whole effect. The knob arrives slightly ahead of
+     where it settles, which is what makes a switch feel mechanical instead of
+     like a checkbox with a border-radius. */
+  transition: transform 0.26s cubic-bezier(0.34, 1.42, 0.64, 1);
+}
+
+.toggle-row input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-row input[type="checkbox"]:checked::after {
+  transform: translateY(-50%) translateX(18px);
+  border-color: transparent;
+}
+
+/* Pressed, the knob stretches along its travel — the way a physical switch
+   resists for a moment before it goes over. Growing about the centre keeps it
+   inside the track at both ends. */
+.toggle-row input[type="checkbox"]:active::after {
+  transform: translateY(-50%) scaleX(1.18);
+}
+
+.toggle-row input[type="checkbox"]:checked:active::after {
+  transform: translateY(-50%) translateX(18px) scaleX(1.18);
+}
+
+.toggle-row input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--data);
+  outline-offset: 2px;
+}
+
 .segmented,
 .segment {
   display: inline-flex;
@@ -1292,7 +1362,10 @@ select {
 .segmented button {
   height: 28px;
   padding: 0 12px;
-  border: 0;
+  /* A transparent border, not `border: 0`: the active state used to add a 1px
+     border that the others did not have, so every switch shunted the row by
+     2px. Equal boxes mean the indicator slides without the row jumping. */
+  border: 1px solid transparent;
   border-radius: 4px;
   background: none;
   color: var(--muted);
@@ -1305,10 +1378,72 @@ select {
 
 .segmented button.is-on,
 .segmented button.is-active {
-  background: var(--surface);
   color: var(--text);
   box-shadow: none;
+}
+
+/* ── Sliding indicator ─────────────────────────────────────────────────────
+   One plate that travels to the active option, instead of each option swapping
+   its own background. Borrowed from the "limelight navigation" pattern and
+   stripped of its glow: a solid surface on a sunken track, which is the same
+   elevation language as the rest of the chrome. Absolutely positioned so it is
+   out of the flex flow and cannot resize the row it lives in.
+   ========================================================================== */
+
+[data-indicator] {
+  position: relative;
+}
+
+/* Excluding the plate matters: it is also a direct child, and without the
+   :not() the two rules have equal specificity, so this one would win or lose
+   purely on source order. */
+[data-indicator] > *:not(.seg-indicator) {
+  position: relative;
+  z-index: 1;
+}
+
+.seg-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  border-radius: var(--radius-control);
+  background: var(--surface);
   border: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s var(--ease), width 0.3s var(--ease),
+    height 0.3s var(--ease), top 0.3s var(--ease), opacity 0.16s linear;
+}
+
+/* The pill supplies the active surface now, so the option underneath stops
+   drawing its own — two plates would show a seam as the pill travels. */
+[data-indicator] > .seg-btn.is-active,
+[data-indicator] > .segment.is-active,
+[data-indicator] > .segment.is-on {
+  background: none;
+  border-color: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
+/* The plate takes the radius of the option it tracks, not of the track:
+   segmented buttons are 4px, the front/back switch is a full pill. */
+[data-indicator].segmented .seg-indicator {
+  border-radius: 4px;
+}
+
+[data-indicator].seg .seg-indicator {
+  border-radius: 999px;
+}
+
+.seg-indicator.is-underline {
+  top: auto;
+  bottom: 2px;
+  height: 3px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--signal);
 }
 
 .settings-actions {
@@ -4623,6 +4758,1036 @@ select {
 
   .tile-grid-4 > .tile:nth-last-child(-n + 4) {
     border-bottom: 0;
+  }
+}
+
+/* ── Profile: the overview and the screens behind it ─────────────────────
+   The log's own answer to the social profile: no followers, no feed of other
+   people, just the numbers this device can honestly report. Everything is
+   built from tokens already in the sheet — stone grounds, one data hue for
+   volume and heat, ink for the current figure, grey for the one it is being
+   compared against.
+   ========================================================================== */
+
+/* ── Identity ─────────────────────────────────────────────────────────── */
+
+.profile-hero {
+  gap: 14px;
+}
+
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+
+.profile-identity-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.profile-identity-copy h1 {
+  overflow-wrap: anywhere;
+}
+
+.profile-settings {
+  flex: 0 0 auto;
+}
+
+.profile-counters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.counter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-right: 1px solid var(--rule);
+}
+
+.counter:last-child {
+  border-right: 0;
+}
+
+.counter dt {
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.counter dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Editing is a disclosure, not a screen: there are two fields to change and
+   no reason to navigate away from the numbers to do it. */
+.profile-edit {
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
+}
+
+.profile-edit > summary {
+  display: inline-flex;
+  cursor: pointer;
+  list-style: none;
+}
+
+.profile-edit > summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-edit-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  align-items: end;
+}
+
+.profile-edit-form .panel-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Range ladder ─────────────────────────────────────────────────────── */
+
+.range-row {
+  margin: 0 0 var(--gap);
+}
+
+/* ── Three-up tiles ───────────────────────────────────────────────────── */
+
+.tile-grid-3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Three figures in a two-up grid leave a hole beside the last one, so the
+   third spans the row and the block stays a rectangle. The hairlines have to
+   follow the new shape: the right-hand tile of the first row keeps its bottom
+   rule, because the spanned tile now sits underneath it. */
+.tile-grid-3 > .tile:nth-child(3) {
+  grid-column: 1 / -1;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.tile-grid-3 > .tile:nth-child(2) {
+  border-right: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* The profile's headline figures are the longest strings a tile has to hold —
+   "11h 12m" and "83.9k kg" — and a two-up grid on a phone leaves them about
+   130 usable pixels. The figure is set smaller there and returns to full size
+   as soon as there is room, rather than overflowing the column. */
+.tile-grid-headline .tile-value {
+  font-size: 25px;
+}
+
+.panel-quiet {
+  text-align: center;
+  padding: 28px 18px;
+}
+
+.panel-quiet .panel-empty {
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+  margin: 0 0 4px;
+}
+
+/* ── Dashboard grid ───────────────────────────────────────────────────── */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: var(--gap);
+}
+
+.dash-tile,
+.adv-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  text-decoration: none;
+  color: inherit;
+}
+
+.dash-tile:hover,
+.adv-row:hover {
+  border-color: var(--border-control);
+}
+
+/* A long single word in a narrow column has nowhere to break, so let it break
+   rather than pushing the tile wider than the grid track. */
+.dash-copy strong,
+.adv-copy strong {
+  overflow-wrap: anywhere;
+}
+
+.dash-icon,
+.adv-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  color: var(--text-secondary);
+}
+
+.dash-icon .icon,
+.adv-icon .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.dash-copy,
+.adv-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dash-copy strong,
+.adv-copy strong {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dash-copy small,
+.adv-copy small {
+  font-size: var(--fs-meta);
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.dash-go {
+  flex: 0 0 auto;
+  color: var(--faint);
+}
+
+.dash-go .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.adv-list {
+  list-style: none;
+  margin: 0 0 var(--gap);
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.adv-list li {
+  display: flex;
+}
+
+.adv-row {
+  width: 100%;
+}
+
+/* ── Screen head and back link ────────────────────────────────────────── */
+
+.profile-back-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--gap);
+}
+
+.profile-back-row h1 {
+  font-size: var(--fs-section);
+  font-weight: 600;
+  margin: 0;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--fs-small);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  border-color: var(--border-control);
+  color: var(--text);
+}
+
+.back-link .icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── The workout feed ─────────────────────────────────────────────────── */
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed-item + .feed-item {
+  border-top: 1px solid var(--rule);
+}
+
+.feed-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 4px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.feed-ordinal {
+  flex: 0 0 auto;
+  min-width: 38px;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  padding-top: 1px;
+}
+
+.feed-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.feed-title {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feed-date {
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+.feed-stats {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.feed-exercises {
+  font-size: var(--fs-small);
+  color: var(--faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-compact .feed-link {
+  padding: 10px 4px;
+}
+
+/* ── The muscle map ─────────────────────────────────────────────────────
+   A mannequin of plates, authored on the left of the centre line and
+   mirrored. It is geometry, not illustration: there is no face, no hands
+   beyond a rounded cap, nothing that reads as a drawn person.
+   ====================================================================== */
+
+.panel-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.figure-wrap {
+  padding: 4px 0;
+}
+
+.figure-empty {
+  padding: 60px 16px;
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--faint);
+}
+
+/* The figure is a block with a definite max width and `margin: auto`, not a
+   centred flex item: an SVG with width:100% inside a fit-content flex parent
+   has no width to resolve against. */
+.bodymap {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 210px;
+  margin: 0 auto;
+}
+
+.bodymap-frame {
+  fill: var(--sunken);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.bodymap-region path,
+.bodymap-region rect {
+  /* Heat, not hue: one colour, scaled by how much of the work landed here.
+     A plate with nothing in it stays at 8%, which reads as an outline rather
+     than a zero the user has to interpret. */
+  fill: var(--data);
+  fill-opacity: calc(0.08 + 0.92 * var(--t, 0));
+  stroke: var(--data-ink);
+  stroke-width: 0.8;
+  stroke-opacity: calc(0.1 + 0.5 * var(--t, 0));
+  transition: fill-opacity 0.18s var(--ease);
+}
+
+.bodymap-region.is-lit path,
+.bodymap-region.is-lit rect {
+  stroke-opacity: 0.8;
+  stroke-width: 1.1;
+}
+
+.bodymap-region:hover path,
+.bodymap-region:hover rect {
+  stroke-opacity: 0.95;
+}
+
+.heat-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.heat-label {
+  font-size: var(--fs-meta);
+  color: var(--faint);
+}
+
+.heat-scale {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.heat-scale i {
+  width: 26px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--data);
+  opacity: calc(0.08 + 0.92 * var(--t, 0));
+}
+
+/* ── Front / back switch ──────────────────────────────────────────────── */
+
+.seg {
+  display: inline-flex;
+  align-self: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--sunken);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.seg-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: var(--fs-small);
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.seg-btn.is-active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ── Week and day strips ──────────────────────────────────────────────── */
+
+.week-strip,
+.day-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.week-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 2px;
+  border-radius: var(--radius-control);
+}
+
+.week-initial,
+.day-initial {
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.week-day,
+.day-number {
+  font-family: var(--mono);
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.week-dot,
+.day-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--raised);
+}
+
+.week-cell.is-trained .week-dot,
+.day-cell.is-trained .day-dot {
+  background: var(--data);
+}
+
+.week-cell.is-today,
+.day-cell.is-today {
+  background: var(--sunken);
+}
+
+.week-cell.is-today .week-day,
+.day-cell.is-today .day-number {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Muscle distribution cards ────────────────────────────────────────── */
+
+.part-grid {
+  list-style: none;
+  margin: 0 0 var(--gap);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.part-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+/* The card's figure box carries the width so the SVG inside it has something
+   definite to fill, and every card's map stays the same size. */
+.part-figure {
+  width: 96px;
+}
+
+.part-figure .bodymap {
+  max-width: 100%;
+}
+
+.part-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+}
+
+.part-name {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.part-sets {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.part-change {
+  font-size: var(--fs-meta);
+  color: var(--faint);
+}
+
+.part-change.is-up {
+  color: var(--positive);
+}
+
+.part-change.is-down {
+  color: var(--negative);
+}
+
+/* ── Previous → current comparisons ───────────────────────────────────── */
+
+.compare-note {
+  margin: 0 0 8px;
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+.delta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  margin-bottom: var(--gap);
+}
+
+.delta-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 12px 14px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.delta-cell:nth-child(2n) {
+  border-right: 0;
+}
+
+.delta-cell:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.delta-label {
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+
+.delta-prev {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.delta-now {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 19px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.delta-now.is-changed {
+  color: var(--text);
+}
+
+.delta-arrow {
+  color: var(--faint);
+  font-size: var(--fs-small);
+}
+
+/* ── Week picker and day strip ────────────────────────────────────────── */
+
+.panel-week {
+  gap: 12px;
+}
+
+.week-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.week-picker h2 {
+  margin: 0;
+  font-size: var(--fs-section);
+  font-weight: 600;
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 2px;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.day-cell:hover {
+  background: var(--raised);
+}
+
+.day-cell.is-selected {
+  border-color: var(--border-control);
+  background: var(--surface);
+}
+
+.day-cell.is-selected .day-number {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Muscle table ─────────────────────────────────────────────────────── */
+
+.muscle-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  font-size: var(--fs-body);
+}
+
+.muscle-table th,
+.muscle-table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+}
+
+.muscle-table thead th {
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.muscle-table tbody tr:last-child th,
+.muscle-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.muscle-table tbody th {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.muscle-table .num {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.muscle-table tr.is-total th {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.muscle-table tr.is-total .num {
+  font-weight: 600;
+}
+
+.muscle-table tr.is-empty td {
+  color: var(--faint);
+  text-align: center;
+}
+
+/* ── Calendar ─────────────────────────────────────────────────────────── */
+
+.month-head {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.month-head span {
+  text-align: center;
+  font-size: var(--fs-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.month-cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+
+.month-cell.is-outside {
+  color: var(--faint);
+  opacity: 0.5;
+}
+
+.month-cell.is-trained {
+  background: var(--data-pale);
+  color: var(--data-ink);
+  font-weight: 600;
+}
+
+.month-cell.is-today {
+  border-color: var(--border-control);
+}
+
+.month-cell.is-selected {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.month-cell.is-trained:hover {
+  filter: brightness(0.97);
+}
+
+/* ── Measures ─────────────────────────────────────────────────────────── */
+
+.measure-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.measure-form .field-wide {
+  /* 1 / -1 rather than `span 2`: the grid collapses to a single column on a
+     phone, where a span of two would open an implicit second column and push
+     the note field off the edge. */
+  grid-column: 1 / -1;
+}
+
+.measure-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.measure-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.measure-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.measure-row:last-child {
+  border-bottom: 0;
+}
+
+.measure-date {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+.measure-weight {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.measure-weight b {
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.measure-delta {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+.measure-delta.is-up {
+  color: var(--positive);
+}
+
+.measure-delta.is-down {
+  color: var(--negative);
+}
+
+.measure-note {
+  font-size: var(--fs-meta);
+  color: var(--faint);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.measure-delete {
+  flex: 0 0 auto;
+}
+
+/* ── Profile: wider screens ───────────────────────────────────────────── */
+
+/* Below 400px the dashboard grid's two columns leave about 47px for the label,
+   and "Statistics" needs around 70. The chevron is the least informative thing
+   in the tile, so it goes first, and the icon and padding tighten up after it. */
+@media (max-width: 400px) {
+  .dash-tile {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .dash-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .dash-go {
+    display: none;
+  }
+}
+
+@media (min-width: 620px) {
+  .tile-grid-headline .tile-value {
+    font-size: var(--fs-kpi);
+  }
+
+  .tile-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Back to a single row of three: undo the spanned tile and close the
+     hairlines for a one-row grid. */
+  .tile-grid-3 > .tile:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .tile-grid-3 > .tile:nth-child(2) {
+    border-right: 1px solid var(--rule);
+  }
+
+  .tile-grid-3 > .tile:nth-last-child(-n + 2) {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .tile-grid-3 > .tile:nth-last-child(-n + 3) {
+    border-bottom: 0;
+  }
+
+  .delta-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .delta-cell:nth-child(2n) {
+    border-right: 1px solid var(--rule);
+  }
+
+  .delta-cell:nth-child(4n) {
+    border-right: 0;
+  }
+
+  .delta-cell:nth-last-child(-n + 2) {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .delta-cell:nth-last-child(-n + 4) {
+    border-bottom: 0;
+  }
+
+  .part-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .dash-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .bodymap {
+    max-width: 240px;
   }
 }
 

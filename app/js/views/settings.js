@@ -35,7 +35,7 @@ export function renderSettings(store) {
         <div class="settings-col">
           <section class="panel" data-reveal="rise">
             <div class="panel-head"><h2>Units</h2></div>
-            <div class="segmented" role="radiogroup" aria-label="Weight units">
+            <div class="segmented" role="radiogroup" aria-label="Weight units" data-indicator>
               ${["kg", "lb"]
                 .map(
                   (u) => `
@@ -68,7 +68,7 @@ export function renderSettings(store) {
 
           <section class="panel" data-reveal="rise">
             <div class="panel-head"><h2>Appearance</h2></div>
-            <div class="segmented" role="radiogroup" aria-label="Appearance">
+            <div class="segmented" role="radiogroup" aria-label="Appearance" data-indicator>
               ${[
                 ["light", "Light"],
                 ["dark", "Dark"],

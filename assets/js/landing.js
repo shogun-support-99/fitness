@@ -1,11 +1,14 @@
 /**
  * IronLog landing page interactions.
  *
- * Five small behaviours, no runtime dependency: the mobile menu, the workout
- * preview tabs (roving focus, arrow keys), the pointer-driven hero cards, a
- * reveal-on-scroll pass that never leaves content hidden when the observer is
- * unavailable, and the nav scroll spy.
+ * Six small behaviours, no runtime dependency: the mobile menu, the workout
+ * preview tabs (roving focus, arrow keys), a sliding indicator on the tabs and
+ * the section nav, the pointer-driven hero cards, a reveal-on-scroll pass that
+ * never leaves content hidden when the observer is unavailable, the number
+ * count-up in the stats band, and the nav scroll spy.
  */
+
+import { slidingIndicator } from "./sliding-indicator.js";
 
 const doc = document;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -48,6 +51,10 @@ const tabList = doc.querySelector(".tabs");
 const tabs = [...doc.querySelectorAll("[data-tab]")];
 const panels = [...doc.querySelectorAll("[data-panel]")];
 
+// A plate that travels to the selected tab. Created here rather than by the
+// generic pass so the tab handler can move it the moment selection changes.
+const tabsIndicator = tabList ? slidingIndicator(tabList) : null;
+
 if (tabList && tabs.length === panels.length) {
   const select = (index, { focus = false } = {}) => {
     tabs.forEach((tab, i) => {
@@ -57,6 +64,7 @@ if (tabList && tabs.length === panels.length) {
       panels[i].hidden = !on;
     });
     if (focus) tabs[index].focus();
+    tabsIndicator?.update();
   };
 
   tabs.forEach((tab, index) => {
@@ -159,6 +167,13 @@ const spySections = spyLinks
   .map((link) => doc.querySelector(link.getAttribute("href")))
   .filter(Boolean);
 
+const siteNav = doc.querySelector(".site-nav");
+// A fixed 16px tab, not a full-width underline: the notch is the same small
+// wedge as the logo, and it reads as a mark rather than as a rule.
+const navIndicator = siteNav
+  ? slidingIndicator(siteNav, { track: "underline", width: 16 })
+  : null;
+
 if (spyLinks.length && spySections.length && "IntersectionObserver" in window) {
   const spy = new IntersectionObserver(
     (entries) => {
@@ -168,11 +183,60 @@ if (spyLinks.length && spySections.length && "IntersectionObserver" in window) {
         spyLinks.forEach((link) => {
           link.classList.toggle("is-on", link.getAttribute("href") === id);
         });
+        navIndicator?.update();
       });
     },
     { rootMargin: "-40% 0px -55% 0px", threshold: 0 },
   );
   spySections.forEach((section) => spy.observe(section));
+}
+
+/* ── Stats band count-up ─────────────────────────────────────────────────
+   The final figure is already in the markup, so this only ever runs on top of
+   correct content: with no JS, or with reduced motion, the numbers just sit
+   there already right.
+   ------------------------------------------------------------------------- */
+
+const counters = [...doc.querySelectorAll("[data-count-to]")];
+
+if (counters.length) {
+  const format = (value) => value.toLocaleString("en-US");
+
+  if (reduceMotion.matches || !("IntersectionObserver" in window)) {
+    counters.forEach((el) => {
+      const target = Number(el.dataset.countTo);
+      if (Number.isFinite(target)) el.textContent = format(target);
+    });
+  } else {
+    const roll = (el) => {
+      const target = Number(el.dataset.countTo);
+      if (!Number.isFinite(target)) return;
+      const duration = 1000;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        // easeOutExpo: the low digits blur early and settle cleanly on the
+        // final value rather than sliding to a stop.
+        const eased = t === 1 ? 1 : 1 - 2 ** (-10 * t);
+        el.textContent = format(Math.round(target * eased));
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    const counterSpy = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          counterSpy.unobserve(entry.target);
+          roll(entry.target);
+        });
+      },
+      { threshold: 0.4 },
+    );
+
+    counters.forEach((el) => counterSpy.observe(el));
+  }
 }
 
 /* ── Footer year ───────────────────────────────────────────────────────── */

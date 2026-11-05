@@ -48,7 +48,15 @@ function emptyDocument() {
       // Set when the user exports a backup; surfaced in Settings so a local-only
       // log never drifts for months without one.
       lastBackupAt: null,
+      // Profile identity. Both are cosmetic: nothing in this app leaves the
+      // browser, so there is no account to back them.
+      displayName: "",
+      handle: "",
     },
+    // Bodyweight and measurement entries, newest first. Kept beside workouts
+    // rather than inside settings because they are data the user enters, not a
+    // preference, and they are exported with the rest of the log.
+    measurements: [],
     createdAt: new Date().toISOString(),
   };
 }
@@ -142,6 +150,7 @@ export class Store {
         version: SCHEMA_VERSION,
         workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
         customExercises: Array.isArray(parsed.customExercises) ? parsed.customExercises : [],
+        measurements: Array.isArray(parsed.measurements) ? parsed.measurements : [],
         settings: { ...base.settings, ...(parsed.settings ?? {}) },
       };
     } catch {
@@ -250,6 +259,85 @@ export class Store {
     this.doc.settings = { ...this.doc.settings, ...patch };
     this.#commit("settings:update");
     return this.doc.settings;
+  }
+
+  // ── Profile and measurements ──────────────────────────────────────────────
+
+  /**
+   * Cosmetic identity shown at the top of the profile.
+   *
+   * Falls back to "Athlete" and an empty handle, because a heading that reads
+   * "undefined" is worse than a placeholder. Nothing here is validated as a
+   * username: there is no server to claim one against.
+   */
+  profile() {
+    const settings = this.doc.settings ?? {};
+    return {
+      displayName: String(settings.displayName ?? "").trim(),
+      handle: String(settings.handle ?? "").trim().replace(/^@/, ""),
+    };
+  }
+
+  setProfile(patch = {}) {
+    const next = { ...this.profile(), ...patch };
+    this.doc.settings.displayName = String(next.displayName ?? "").trim().slice(0, 48);
+    this.doc.settings.handle = String(next.handle ?? "")
+      .trim()
+      .replace(/^@/, "")
+      .replace(/[^a-zA-Z0-9_.-]/g, "")
+      .slice(0, 32);
+    this.#commit("profile:update");
+    return this.profile();
+  }
+
+  /** Bodyweight entries, newest date first. */
+  measurements() {
+    return [...(this.doc.measurements ?? [])].sort((a, b) =>
+      String(b.date).localeCompare(String(a.date)),
+    );
+  }
+
+  latestMeasurement() {
+    return this.measurements()[0] ?? null;
+  }
+
+  /**
+   * Record a bodyweight entry.
+   *
+   * One entry per date: weighing in twice in a day is a correction, not a data
+   * point, so the second write replaces the first rather than charting a
+   * two-kilo swing that never happened.
+   */
+  addMeasurement({ date, weight, note = "", now = new Date() } = {}) {
+    const day = localDateKey(date ?? now);
+    const value = Number(weight);
+    if (!day) return { ok: false, error: "Pick a date." };
+    if (!Number.isFinite(value) || value <= 0) return { ok: false, error: "Enter a bodyweight." };
+    if (value > 1000) return { ok: false, error: "That weight looks wrong." };
+
+    const list = this.doc.measurements ?? (this.doc.measurements = []);
+    const existing = list.find((m) => m.date === day);
+    if (existing) {
+      existing.weight = value;
+      existing.note = String(note).trim().slice(0, 120);
+    } else {
+      list.push({
+        id: `m_${day}_${Math.random().toString(36).slice(2, 8)}`,
+        date: day,
+        weight: value,
+        note: String(note).trim().slice(0, 120),
+      });
+    }
+    this.#commit("measurement:add");
+    return { ok: true, replaced: Boolean(existing) };
+  }
+
+  deleteMeasurement(id) {
+    const before = this.doc.measurements?.length ?? 0;
+    this.doc.measurements = (this.doc.measurements ?? []).filter((m) => m.id !== id);
+    if (this.doc.measurements.length === before) return { ok: false, error: "Entry not found." };
+    this.#commit("measurement:delete");
+    return { ok: true };
   }
 
   // ── Workouts ──────────────────────────────────────────────────────────────
@@ -497,6 +585,7 @@ export class Store {
         version: SCHEMA_VERSION,
         workouts: parsed.workouts,
         customExercises: Array.isArray(parsed.customExercises) ? parsed.customExercises : [],
+        measurements: Array.isArray(parsed.measurements) ? parsed.measurements : [],
         // Layer the import over the current settings, then the shipped
         // defaults, so a partial export never silently resets preferences.
         settings: { ...base.settings, ...this.doc.settings, ...(parsed.settings ?? {}) },

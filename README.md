@@ -47,6 +47,21 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   reps, and highest estimated 1RM. The session summary names exactly which you broke.
 - **Progress views** — weekly volume bars, muscle-group balance, lifetime totals, and a
   training-day streak. Charts are plain HTML columns and bars, so no charting library loads.
+- **A profile with a time range** — every figure on Profile answers one window at a time:
+  last 7 days, 30 days, 3 months, year or all time. The range lives in the URL, so it
+  survives a reload and carries across screens.
+- **Muscle map** — where the work went, drawn as a mannequin of geometric plates authored on
+  one side of the centre line and mirrored. Heat is proportional to sets landed, so a
+  chest-heavy block reads before any number does. Front and back, on Statistics and Body
+  distribution.
+- **Muscle distribution** — six body parts with set counts, each compared against the period
+  immediately before it. The comparison window is always the same length as the one you
+  selected, so the two are genuinely comparable.
+- **Body distribution** — a Sunday-first week picker, a day strip, a body map heat-mapped to
+  that day, and a muscle table underneath. Stepping a week keeps the weekday you were on.
+- **Measures** — bodyweight entries, one per day, charted against your training.
+- **Calendar** — a month grid built from the workouts already in the log, so there is no
+  separate calendar to fall out of sync. Trained days are marked; tap one for its sessions.
 - **Exercise library** — **1,316 exercises** from a single MIT data catalogue, deduplicated
   by normalised name so saved exercise IDs never change. Search is relevance-ranked and
   grouped by muscle and equipment. Custom exercises persist alongside them.
@@ -63,6 +78,10 @@ lives in your browser's local storage, and you can export all of it as JSON at a
 - **Motion with a job** — Tailwind-compiled keyframes and utilities handle entrances,
   floating accents, sheens and reveals, while the authored app motion still runs on
   `IntersectionObserver` and yields entirely to `prefers-reduced-motion`.
+- **One travelling plate, not a dozen swapping backgrounds** — tabs, the section nav,
+  unit/theme segments and the front/back switch share a single sliding indicator
+  (`assets/js/sliding-indicator.js`) that follows the active option instead of each
+  option repainting itself.
 - **Installable PWA** — a manifest with 192/512 maskable icons and shortcuts to Workout
   and Library, plus a service worker that precaches the shell for offline use.
 - **Export, import, erase** — your whole history is one JSON document.
@@ -126,6 +145,7 @@ media.
 │   ├── css/landing.css        # Landing design system
 │   ├── css/tailwind.css       # Compiled Tailwind layer: motion + block components
 │   ├── js/landing.js          # Menu, preview tabs, reveal-on-scroll
+│   ├── js/sliding-indicator.js # Shared "limelight" plate for tabs, nav and segments
 │   └── img/                   # Logo and OG cover (inline SVG, no CDN)
 ├── app/                       # The application
 │   ├── index.html             # App shell: sidebar, workspace top bar, outlet
@@ -139,13 +159,16 @@ media.
 │   └── js/
 │       ├── main.js            # Bootstrap, render loop, event delegation
 │       ├── store.js           # Persistence (injected storage)
-│       ├── stats.js           # Pure training maths
+│       ├── stats.js           # Pure training maths and range/calendar maths
+│       ├── body.js            # Muscle-map geometry: plates, groups, target labels
 │       ├── timer.js           # Rest timer (injected clock)
 │       ├── exercises.js       # Curated starter library + search ranking
 │       ├── catalogue.js       # External catalogue: fetch, merge, instructions
 │       ├── router.js          # Hash router
 │       ├── ui.js              # Escaping, icons, chart primitives
-│       └── views/             # home, routines, workout, history, stats, library, settings
+│       └── views/             # home, routines, workout, history, stats, library, settings,
+│                              # plus the profile family below stats: statistics,
+│                              # muscle-distribution, body-distribution, measures, calendar
 ├── scripts/
 │   ├── build-exercise-data.mjs    # Regenerates the original MIT data catalogue
 │   ├── check-links.mjs            # CI check: every local link resolves
@@ -243,9 +266,19 @@ There is a print stylesheet, because a log is a thing people print.
 
 Motion is authored around the product's central ritual: **a completed set connects
 logging, rest, records and progress**. The landing page uses scroll-triggered reveals, a
-working tabbed preview and a live nav marker; the app reveals each route once, staggers the
-sidebar destinations, draws the completed-set tick, grows chart bars from the baseline and
-stamps a personal record. A rest timer is real countdown state with a draining progress
+working tabbed preview, a count-up on the figures band and a live nav marker; the app
+reveals each route once, staggers the sidebar destinations, draws the completed-set tick,
+grows chart bars from the baseline and stamps a personal record.
+
+Selection changes are carried by one sliding plate rather than by each option swapping its
+own background — the "limelight" pattern borrowed from 21st.dev and stripped of its glow,
+so it is a solid surface travelling over a sunken track, the same elevation language as the
+rest of the chrome. It runs on the landing tabs, the landing section nav (as the yellow
+notch), and in the app on the unit/theme segments and the body-map front/back switch. The
+plate reads the active option from ARIA state or a class, so it owns no state of its own,
+and it is rebuilt with every view render and torn down before the next one. The rest-timer
+switch is a real checkbox rendered as a switch: the knob overshoots slightly on arrival and
+stretches while pressed, so it reads as mechanical rather than as a rounded checkbox. A rest timer is real countdown state with a draining progress
 rule, and a record summary animates once rather than looping.
 
 Three rules hold everywhere:

@@ -6,7 +6,27 @@
  * rewrite rules.
  */
 
-export const ROUTES = ["home", "workout", "history", "stats", "library", "settings"];
+/**
+ * Top-level routes.
+ *
+ * The profile family is flat rather than nested: hash routing has no real path
+ * segments to nest into without inventing a parser, and a flat list keeps the
+ * links in the markup honest. Their shared parent is declared in main.js's
+ * ROUTE_PARENT so the sidebar keeps Profile lit while you are inside one.
+ */
+export const ROUTES = [
+  "home",
+  "workout",
+  "history",
+  "stats",
+  "library",
+  "settings",
+  "statistics",
+  "muscle-distribution",
+  "body-distribution",
+  "measures",
+  "calendar",
+];
 
 export function parseHash(hash) {
   const raw = String(hash ?? "").replace(/^#\/?/, "");
