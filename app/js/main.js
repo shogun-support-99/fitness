@@ -12,6 +12,7 @@ import { Router, parseHash } from "./router.js";
 import { searchExercises } from "./exercises.js";
 import { hasInstructions, stepsFor } from "./catalogue.js";
 import { compactNumber, estimatedOneRepMax } from "./stats.js";
+import { initIndicators } from "../../assets/js/sliding-indicator.js";
 import { esc, icon } from "./ui.js";
 import {
   initReveals,
@@ -77,6 +78,10 @@ function startMotion(root) {
   motionTeardowns.push(initCounters(root));
   motionTeardowns.push(initChartMotion(root));
   motionTeardowns.push(initTicker(root));
+  // Segmented controls are rebuilt with the view, so their indicators have to
+  // be rebuilt too — and torn down first, or their observers leak onto nodes
+  // that no longer exist.
+  motionTeardowns.push(initIndicators(root));
   const hero = root.querySelector("[data-tilt]");
   if (hero) motionTeardowns.push(initTilt(hero, { max: 2.4 }));
 }

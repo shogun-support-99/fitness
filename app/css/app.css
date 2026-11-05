@@ -1277,6 +1277,71 @@ select {
   border-bottom: 0;
 }
 
+/* A crafted switch, in the spirit of the toggle patterns on 21st.dev and
+   re-skinned for this app. It stays a real checkbox: keyboard operation, the
+   wrapping label, form semantics and the existing change handler all keep
+   working — only the rendering changes, so there is no JS involved.
+
+   Track 44px with a 1px border leaves a 42px padding box; the 20px knob sits
+   2px in and travels 18px, so the gaps at both ends are equal. */
+.toggle-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  background: var(--control);
+  cursor: pointer;
+  transition: background-color 0.24s var(--ease), border-color 0.24s var(--ease);
+}
+
+.toggle-row input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-control);
+  transform: translateY(-50%);
+  /* The overshoot is the whole effect. The knob arrives slightly ahead of
+     where it settles, which is what makes a switch feel mechanical instead of
+     like a checkbox with a border-radius. */
+  transition: transform 0.26s cubic-bezier(0.34, 1.42, 0.64, 1);
+}
+
+.toggle-row input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-row input[type="checkbox"]:checked::after {
+  transform: translateY(-50%) translateX(18px);
+  border-color: transparent;
+}
+
+/* Pressed, the knob stretches along its travel — the way a physical switch
+   resists for a moment before it goes over. Growing about the centre keeps it
+   inside the track at both ends. */
+.toggle-row input[type="checkbox"]:active::after {
+  transform: translateY(-50%) scaleX(1.18);
+}
+
+.toggle-row input[type="checkbox"]:checked:active::after {
+  transform: translateY(-50%) translateX(18px) scaleX(1.18);
+}
+
+.toggle-row input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--data);
+  outline-offset: 2px;
+}
+
 .segmented,
 .segment {
   display: inline-flex;
@@ -1297,7 +1362,10 @@ select {
 .segmented button {
   height: 28px;
   padding: 0 12px;
-  border: 0;
+  /* A transparent border, not `border: 0`: the active state used to add a 1px
+     border that the others did not have, so every switch shunted the row by
+     2px. Equal boxes mean the indicator slides without the row jumping. */
+  border: 1px solid transparent;
   border-radius: 4px;
   background: none;
   color: var(--muted);
@@ -1310,10 +1378,72 @@ select {
 
 .segmented button.is-on,
 .segmented button.is-active {
-  background: var(--surface);
   color: var(--text);
   box-shadow: none;
+}
+
+/* ── Sliding indicator ─────────────────────────────────────────────────────
+   One plate that travels to the active option, instead of each option swapping
+   its own background. Borrowed from the "limelight navigation" pattern and
+   stripped of its glow: a solid surface on a sunken track, which is the same
+   elevation language as the rest of the chrome. Absolutely positioned so it is
+   out of the flex flow and cannot resize the row it lives in.
+   ========================================================================== */
+
+[data-indicator] {
+  position: relative;
+}
+
+/* Excluding the plate matters: it is also a direct child, and without the
+   :not() the two rules have equal specificity, so this one would win or lose
+   purely on source order. */
+[data-indicator] > *:not(.seg-indicator) {
+  position: relative;
+  z-index: 1;
+}
+
+.seg-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  border-radius: var(--radius-control);
+  background: var(--surface);
   border: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s var(--ease), width 0.3s var(--ease),
+    height 0.3s var(--ease), top 0.3s var(--ease), opacity 0.16s linear;
+}
+
+/* The pill supplies the active surface now, so the option underneath stops
+   drawing its own — two plates would show a seam as the pill travels. */
+[data-indicator] > .seg-btn.is-active,
+[data-indicator] > .segment.is-active,
+[data-indicator] > .segment.is-on {
+  background: none;
+  border-color: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
+/* The plate takes the radius of the option it tracks, not of the track:
+   segmented buttons are 4px, the front/back switch is a full pill. */
+[data-indicator].segmented .seg-indicator {
+  border-radius: 4px;
+}
+
+[data-indicator].seg .seg-indicator {
+  border-radius: 999px;
+}
+
+.seg-indicator.is-underline {
+  top: auto;
+  bottom: 2px;
+  height: 3px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--signal);
 }
 
 .settings-actions {

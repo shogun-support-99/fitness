@@ -128,7 +128,7 @@ export function figureSwitch(route, params, side) {
     { id: "front", label: "Front" },
     { id: "back", label: "Back" },
   ];
-  return `<div class="seg" role="group" aria-label="Body side">${options
+  return `<div class="seg" role="group" aria-label="Body side" data-indicator>${options
     .map(
       (option) =>
         `<a class="seg-btn${option.id === side ? " is-active" : ""}" href="${esc(
