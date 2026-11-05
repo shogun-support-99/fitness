@@ -7,6 +7,7 @@
 
 import { compactNumber, personalRecords, relativeTime, streaks, workoutDurationMinutes, workoutSetCount, workoutVolume } from "../stats.js";
 import { emptyState, esc, icon, statTile } from "../ui.js";
+import { renderTrainingYear } from "./heatmap.js";
 import { renderRoutineCards } from "./routines.js";
 
 export function renderHome(store) {
@@ -42,6 +43,8 @@ export function renderHome(store) {
         ${statTile({ label: "Workouts", value: String(completed.length), countTo: completed.length, hint: "all time" })}
         ${statTile({ label: "Best streak", value: `${streak.best}`, countTo: streak.best, unit: "d", hint: `${streak.activeDays} active days` })}
       </div>
+
+      ${renderTrainingYear(completed, store.settings.units)}
 
       <section class="panel" data-reveal="rise">
         <div class="panel-head">

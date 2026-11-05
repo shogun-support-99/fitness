@@ -534,3 +534,97 @@ export function initChartMotion(root, { selector = ".chart-bar, .dist-fill" } = 
   });
   return () => bars.forEach((b) => b.classList.remove("bar-animate"));
 }
+
+/* ------------------------------------------------------------------------- *
+ * Training-year heatmap
+ * ------------------------------------------------------------------------- */
+
+/**
+ * One shared tooltip per heatmap, positioned over the hovered day.
+ *
+ * The cells carry their text in `data-tip` and a native `title` fallback, so
+ * the data is still available if this module never runs. The grid is a single
+ * image to assistive tech; making 365 cells individually focusable would be a
+ * keyboard maze. On narrow screens the newest weeks are scrolled into view.
+ *
+ * @returns {() => void} teardown
+ */
+export function initHeatmapTip(root) {
+  const scope = root || document;
+  const maps = Array.from(scope.querySelectorAll("[data-heatmap]"));
+  if (maps.length === 0) return () => {};
+
+  const cleanups = [];
+
+  maps.forEach((map) => {
+    const tip = map.querySelector("[data-heatmap-tip]");
+    const scroller = map.querySelector("[data-heatmap-scroll]");
+    if (!tip) return;
+
+    // The native title is a no-JS fallback for the day text. Once the shared
+    // tooltip is live it would appear a second time after the pointer rests,
+    // so drop it now; the data attribute remains the single source.
+    map.querySelectorAll(".heatmap-cell[title]").forEach((cell) => {
+      cell.removeAttribute("title");
+    });
+
+    let frame = 0;
+    let current = null;
+
+    const place = (cell) => {
+      const box = map.getBoundingClientRect();
+      const cellBox = cell.getBoundingClientRect();
+      tip.hidden = false;
+      tip.textContent = cell.dataset.tip || "";
+      const half = tip.offsetWidth / 2 + 4;
+      const x = Math.min(
+        Math.max(cellBox.left - box.left + cellBox.width / 2, half),
+        Math.max(half, box.width - half),
+      );
+      tip.style.left = `${x}px`;
+      tip.style.top = `${cellBox.top - box.top - 7}px`;
+    };
+
+    const show = (event) => {
+      const cell =
+        event.target instanceof Element
+          ? event.target.closest(".heatmap-cell[data-tip]")
+          : null;
+      if (!cell || !map.contains(cell)) return;
+      current = cell;
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (current === cell) place(cell);
+      });
+    };
+
+    const hide = () => {
+      current = null;
+      tip.hidden = true;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
+    map.addEventListener("pointerover", show);
+    map.addEventListener("pointerleave", hide);
+    scroller?.addEventListener("scroll", hide, { passive: true });
+
+    // The grid is chronological, so the useful end is the right edge.
+    const align = () => {
+      if (!scroller || scroller.scrollWidth <= scroller.clientWidth) return;
+      scroller.scrollLeft = scroller.scrollWidth;
+    };
+    const alignFrame = requestAnimationFrame(align);
+
+    cleanups.push(() => {
+      map.removeEventListener("pointerover", show);
+      map.removeEventListener("pointerleave", hide);
+      scroller?.removeEventListener("scroll", hide);
+      cancelAnimationFrame(alignFrame);
+      if (frame) cancelAnimationFrame(frame);
+    });
+  });
+
+  return () => cleanups.forEach((fn) => fn());
+}

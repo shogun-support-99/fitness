@@ -7,8 +7,10 @@ import assert from "node:assert/strict";
 import { test, describe } from "node:test";
 
 import {
+  activityLevels,
   bestSet,
   compactNumber,
+  dailyTraining,
   estimatedOneRepMax,
   exerciseProgression,
   exerciseVolume,
@@ -20,6 +22,7 @@ import {
   round,
   setVolume,
   streaks,
+  trainingYear,
   weekKey,
   weeklyVolume,
   workoutDurationMinutes,
@@ -391,6 +394,141 @@ describe("weeklyVolume", () => {
     ];
     const weeks = weeklyVolume(workouts);
     assert.ok(weeks[0].week < weeks[1].week);
+  });
+});
+
+describe("dailyTraining", () => {
+  test("sums sessions, sets and volume per local day", () => {
+    const day = new Date(2026, 10, 3, 9);
+    const workouts = [
+      workout({
+        id: "w1",
+        startedAt: day.toISOString(),
+        endedAt: new Date(2026, 10, 3, 10).toISOString(),
+        exercises: [entry("bench", [set(100, 5), set(100, 5, false)])],
+      }),
+      workout({
+        id: "w2",
+        startedAt: new Date(2026, 10, 3, 17).toISOString(),
+        endedAt: new Date(2026, 10, 3, 18).toISOString(),
+        exercises: [entry("squat", [set(80, 5)])],
+      }),
+    ];
+    const days = dailyTraining(workouts);
+    assert.equal(days.size, 1);
+    const row = days.get("2026-11-03");
+    assert.equal(row.sessions, 2);
+    assert.equal(row.volume, 1400);
+    assert.equal(row.sets, 2);
+  });
+
+  test("ignores unfinished workouts and invalid dates", () => {
+    const workouts = [
+      workout({ id: "w1", status: "active", startedAt: iso(0), endedAt: null, exercises: [entry("bench", [set(100, 5)])] }),
+      workout({ id: "w2", startedAt: "not-a-date", endedAt: "not-a-date", exercises: [] }),
+    ];
+    assert.equal(dailyTraining(workouts).size, 0);
+  });
+});
+
+describe("trainingYear", () => {
+  const today = new Date(2026, 10, 5); // Thursday
+  const workouts = [
+    workout({
+      id: "w1",
+      startedAt: new Date(2026, 10, 5, 10).toISOString(),
+      endedAt: new Date(2026, 10, 5, 11).toISOString(),
+      exercises: [entry("bench", [set(100, 5)])],
+    }),
+    workout({
+      id: "w2",
+      startedAt: new Date(2026, 0, 15, 10).toISOString(),
+      endedAt: new Date(2026, 0, 15, 11).toISOString(),
+      exercises: [entry("squat", [set(90, 10)])],
+    }),
+  ];
+
+  test("builds 53 Monday-first weeks ending today", () => {
+    const year = trainingYear(workouts, { today });
+    assert.equal(year.weeks.length, 53);
+    assert.ok(year.weeks.every((week) => week.length === 7));
+    assert.equal(year.weeks[0][0].date, "2025-11-03");
+    assert.equal(new Date(`${year.weeks[0][0].date}T00:00:00`).getDay(), 1);
+    assert.equal(year.end, "2026-11-05");
+  });
+
+  test("leaves the rest of the current week empty and totals only real days", () => {
+    const year = trainingYear(workouts, { today });
+    const current = year.weeks[52];
+    assert.equal(current[3].date, "2026-11-05");
+    assert.equal(current[4], null);
+    assert.equal(current[6], null);
+    assert.deepEqual(year.totals, {
+      sessions: 2,
+      activeDays: 2,
+      sets: 2,
+      volume: 1400,
+    });
+  });
+
+  test("includes empty days without inventing sessions", () => {
+    const year = trainingYear([], { today });
+    assert.equal(year.totals.sessions, 0);
+    assert.equal(year.totals.activeDays, 0);
+    assert.ok(year.weeks[30][0].date);
+    assert.equal(year.weeks[30][0].sessions, 0);
+  });
+
+  test("labels months in chronological order", () => {
+    const year = trainingYear([], { today });
+    const columns = year.months.map((month) => month.col);
+    assert.deepEqual(columns, [...columns].sort((a, b) => a - b));
+    assert.ok(year.months.length >= 10);
+  });
+});
+
+describe("activityLevels", () => {
+  const today = new Date(2026, 10, 5);
+  let sequence = 0;
+
+  function sessionOn(dayOffset, exercises) {
+    const date = new Date(2026, 10, 5 - dayOffset, 10);
+    return workout({
+      id: `w${(sequence += 1)}`,
+      startedAt: date.toISOString(),
+      endedAt: new Date(date.getTime() + 3600_000).toISOString(),
+      exercises,
+    });
+  }
+
+  test("maps daily volume to four quartile levels", () => {
+    const workouts = [
+      sessionOn(0, [entry("bench", [set(100, 1)])]),
+      sessionOn(1, [entry("bench", [set(200, 1)])]),
+      sessionOn(2, [entry("bench", [set(300, 1)])]),
+      sessionOn(3, [entry("bench", [set(400, 1)])]),
+    ];
+    const levels = activityLevels(trainingYear(workouts, { today }));
+    assert.equal(levels.get("2026-11-05"), 1);
+    assert.equal(levels.get("2026-11-04"), 2);
+    assert.equal(levels.get("2026-11-03"), 3);
+    assert.equal(levels.get("2026-11-02"), 4);
+  });
+
+  test("falls back to session count when nothing has volume", () => {
+    const workouts = [
+      sessionOn(0, [entry("pullup", [set(0, 8)])]),
+      sessionOn(1, [entry("pullup", [set(0, 8)])]),
+      sessionOn(1, [entry("dip", [set(0, 8)])]),
+      sessionOn(1, [entry("row", [set(0, 8)])]),
+    ];
+    const levels = activityLevels(trainingYear(workouts, { today }));
+    assert.equal(levels.get("2026-11-05"), 1);
+    assert.equal(levels.get("2026-11-04"), 3);
+  });
+
+  test("returns no levels for an empty year", () => {
+    assert.equal(activityLevels(trainingYear([], { today })).size, 0);
   });
 });
 

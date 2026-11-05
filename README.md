@@ -45,8 +45,9 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   seconds mid-count, and it survives a page reload.
 - **Personal records** — three independent records per exercise: heaviest weight, most
   reps, and highest estimated 1RM. The session summary names exactly which you broke.
-- **Progress views** — weekly volume bars, muscle-group balance, lifetime totals, and a
-  training-day streak. Charts are plain HTML columns and bars, so no charting library loads.
+- **Progress views** — a training-year heatmap on Home, weekly volume bars, muscle-group
+  balance, lifetime totals, and a training-day streak. Charts are plain HTML squares,
+  columns and bars, so no charting library loads.
 - **Exercise library** — **1,316 exercises** from a single MIT data catalogue, deduplicated
   by normalised name so saved exercise IDs never change. Search is relevance-ranked and
   grouped by muscle and equipment. Custom exercises persist alongside them.

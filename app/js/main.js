@@ -17,6 +17,7 @@ import {
   initReveals,
   initCounters,
   initChartMotion,
+  initHeatmapTip,
   initPressFeedback,
   initTicker,
   initTilt,
@@ -71,6 +72,7 @@ function startMotion(root) {
   motionTeardowns.push(initReveals(root));
   motionTeardowns.push(initCounters(root));
   motionTeardowns.push(initChartMotion(root));
+  motionTeardowns.push(initHeatmapTip(root));
   motionTeardowns.push(initTicker(root));
   const hero = root.querySelector("[data-tilt]");
   if (hero) motionTeardowns.push(initTilt(hero, { max: 2.4 }));

@@ -239,6 +239,161 @@ export function streaks(workouts, today = new Date()) {
   return { current, best: Math.max(best, current), activeDays: days.size };
 }
 
+/**
+ * Completed training bucketed by local calendar day.
+ *
+ * The training-year heatmap needs one row per day, including the empty ones,
+ * so this returns a Map keyed by `YYYY-MM-DD` rather than a sorted list.
+ * Multiple sessions on the same day are summed, not replaced.
+ *
+ * @param {object[]} workouts
+ * @returns {Map<string, {date: string, sessions: number, sets: number, volume: number}>}
+ */
+export function dailyTraining(workouts) {
+  const days = new Map();
+  for (const w of workouts ?? []) {
+    if (w?.status !== "completed") continue;
+    const date = localDateKey(w.endedAt ?? w.startedAt);
+    if (!date) continue;
+
+    const row = days.get(date) ?? { date, sessions: 0, sets: 0, volume: 0 };
+    row.sessions += 1;
+    row.sets += workoutSetCount(w);
+    row.volume += workoutVolume(w);
+    days.set(date, row);
+  }
+  return days;
+}
+
+/** Shift a local date by whole days without crossing a DST boundary by hours. */
+function shiftLocalDate(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+/** Short month name for a local ISO date, fixed to the app's English UI. */
+function monthLabel(iso) {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+  });
+}
+
+/**
+ * Build a Monday-aligned training year ending today.
+ *
+ * Returns `weeks` as columns of seven cells: Monday to Sunday. Days still in
+ * the future (the tail of the current week) are `null`, so the grid keeps its
+ * shape without inventing rest days. Totals count only days up to today.
+ *
+ * @param {object[]} workouts
+ * @param {{today?: Date, weeks?: number}} [options]
+ */
+export function trainingYear(workouts, { today = new Date(), weeks = 53 } = {}) {
+  const span = Math.max(1, Math.trunc(Number(weeks) || 0) || 53);
+  const end = today instanceof Date ? new Date(today) : new Date(today);
+  if (Number.isNaN(end.getTime())) end.setTime(Date.now());
+  end.setHours(0, 0, 0, 0);
+
+  const mondayOffset = (end.getDay() + 6) % 7;
+  const start = shiftLocalDate(end, -mondayOffset - (span - 1) * 7);
+  const days = dailyTraining(workouts);
+  const grid = [];
+  const totals = { sessions: 0, activeDays: 0, sets: 0, volume: 0 };
+  const cursor = new Date(start);
+
+  for (let col = 0; col < span; col += 1) {
+    const week = [];
+    for (let row = 0; row < 7; row += 1) {
+      if (cursor > end) {
+        week.push(null);
+      } else {
+        const date = localDateKey(cursor);
+        const found = days.get(date);
+        const day = found
+          ? { ...found }
+          : { date, sessions: 0, sets: 0, volume: 0 };
+        week.push(day);
+        totals.sessions += day.sessions;
+        totals.sets += day.sets;
+        totals.volume += day.volume;
+        if (day.sessions > 0) totals.activeDays += 1;
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    grid.push(week);
+  }
+
+  // One label per month, anchored to the week containing the 1st. A partial
+  // first month keeps its label only when there is room before the next one.
+  const months = [];
+  for (let col = 0; col < grid.length; col += 1) {
+    const firstOfMonth = grid[col].find(
+      (day) => day && day.date.endsWith("-01"),
+    );
+    if (firstOfMonth) months.push({ col, label: monthLabel(firstOfMonth.date) });
+  }
+  const firstDay = grid[0].find(Boolean);
+  if (firstDay && (months.length === 0 || months[0].col > 0)) {
+    months.unshift({ col: 0, label: monthLabel(firstDay.date) });
+  }
+  if (months.length > 1 && months[1].col - months[0].col < 3) months.shift();
+
+  totals.volume = Math.round(totals.volume);
+  return {
+    start: localDateKey(start),
+    end: localDateKey(end),
+    weeks: grid,
+    months,
+    totals,
+  };
+}
+
+/**
+ * Map each active day to one of four intensity levels, 0-4.
+ *
+ * Volume is the fairest single measure of a strength session, so the four
+ * levels are quartiles of the active days themselves rather than fractions of
+ * the single heaviest day. Splitting by rank keeps the calendar readable when
+ * every session is broadly similar: a normal week still shows light, medium
+ * and heavy squares instead of one dark day and a year of pale ones.
+ *
+ * A bodyweight-only log has no volume to divide; in that case the number of
+ * sessions becomes the level.
+ *
+ * @param {ReturnType<typeof trainingYear>} year
+ * @returns {Map<string, number>} date -> level (1-4; absent means level 0)
+ */
+export function activityLevels(year) {
+  const levels = new Map();
+  const active = [];
+  for (const week of year?.weeks ?? []) {
+    for (const day of week) {
+      if (day && Number(day.sessions) > 0) active.push(day);
+    }
+  }
+
+  const volumes = active
+    .map((day) => Number(day.volume) || 0)
+    .sort((a, b) => a - b);
+  const maxVolume = volumes[volumes.length - 1] ?? 0;
+  const at = (share) =>
+    volumes[Math.min(volumes.length - 1, Math.floor(volumes.length * share))];
+  const bounds = maxVolume > 0 ? [at(0.25), at(0.5), at(0.75)] : null;
+
+  for (const day of active) {
+    let level;
+    if (bounds) {
+      const volume = Number(day.volume) || 0;
+      level = volume < bounds[0] ? 1 : volume < bounds[1] ? 2 : volume < bounds[2] ? 3 : 4;
+    } else {
+      level = Math.min(4, Math.max(1, Number(day.sessions) || 1));
+    }
+    levels.set(day.date, level);
+  }
+  return levels;
+}
+
 /** Weekly aggregate: workouts, total volume and total sets per ISO week. */
 export function weeklyVolume(workouts) {
   const buckets = new Map();

@@ -2158,3 +2158,305 @@ html.js.motion-ok [data-reveal].is-in {
     width: 100%;
   }
 }
+
+/* -- Progress: the training year --------------------------------------- */
+
+.year-section {
+  border-top: 1px solid var(--line);
+}
+
+.year-board {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(18px, 2.6vw, 28px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.year-board-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(18px, 2.4vw, 26px);
+}
+
+.year-kicker {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.year-summary {
+  margin-top: 6px;
+  font-size: 17px;
+  color: var(--ink-2);
+}
+
+.year-summary strong {
+  font-family: var(--mono);
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.year-stats {
+  display: flex;
+  gap: clamp(18px, 3vw, 36px);
+}
+
+.year-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.year-stats span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.year-stats strong {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.year-heatmap {
+  --hm-cell: 14px;
+  --hm-gap: 3px;
+}
+
+.heatmap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.heatmap-plot {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.heatmap-weekdays {
+  display: grid;
+  grid-template-rows: repeat(7, var(--hm-cell));
+  gap: var(--hm-gap);
+  margin-top: 22px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  line-height: var(--hm-cell);
+  color: var(--faint);
+}
+
+.heatmap-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(var(--weeks), var(--hm-cell));
+  gap: var(--hm-gap);
+  height: 16px;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--faint);
+}
+
+.heatmap-month {
+  grid-row: 1;
+  white-space: nowrap;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: var(--hm-gap);
+  width: max-content;
+}
+
+.heatmap-week {
+  display: grid;
+  grid-template-rows: repeat(7, var(--hm-cell));
+  gap: var(--hm-gap);
+}
+
+.heatmap-cell {
+  width: var(--hm-cell);
+  height: var(--hm-cell);
+  border-radius: 2.5px;
+  background: var(--sunken);
+}
+
+.heatmap-cell[data-level="1"],
+.heatmap-key[data-level="1"] {
+  background: color-mix(in srgb, var(--data) 20%, var(--sunken));
+}
+
+.heatmap-cell[data-level="2"],
+.heatmap-key[data-level="2"] {
+  background: color-mix(in srgb, var(--data) 42%, var(--sunken));
+}
+
+.heatmap-cell[data-level="3"],
+.heatmap-key[data-level="3"] {
+  background: color-mix(in srgb, var(--data) 68%, var(--sunken));
+}
+
+.heatmap-cell[data-level="4"],
+.heatmap-key[data-level="4"] {
+  background: var(--data);
+}
+
+.heatmap-cell.is-empty {
+  background: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heatmap-cell[data-level]:hover {
+    outline: 1px solid var(--ink);
+    outline-offset: 1px;
+  }
+}
+
+.heatmap-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.year-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.heatmap-keys {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.heatmap-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--sunken);
+}
+
+.heatmap-tip {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -100%);
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(15, 42, 29, 0.18);
+}
+
+.heatmap-tip[hidden] {
+  display: none;
+}
+
+.year-noscript {
+  padding: 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js.motion-ok .year-board.is-in .heatmap-cell[data-level] {
+    animation: heatmap-cell-in 380ms var(--ease) both;
+    animation-delay: calc(var(--col) * 6ms + var(--row) * 10ms);
+  }
+}
+
+@keyframes heatmap-cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 620px) {
+  .year-board {
+    padding: 16px;
+  }
+
+  .year-board-head {
+    gap: 16px;
+  }
+
+  .year-summary {
+    font-size: 15px;
+  }
+
+  .year-summary strong {
+    font-size: 18px;
+  }
+
+  .year-stats {
+    gap: 18px;
+  }
+
+  .year-heatmap {
+    --hm-cell: 10px;
+    --hm-gap: 2px;
+  }
+
+  .heatmap-weekdays {
+    margin-top: 20px;
+    font-size: 8px;
+  }
+
+  .heatmap-months {
+    height: 14px;
+    margin-bottom: 5px;
+    font-size: 8px;
+  }
+}
