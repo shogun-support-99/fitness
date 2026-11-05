@@ -22,7 +22,7 @@
 // The deploy workflow rewrites this value with the commit SHA, so every
 // published build gets a fresh cache and waiting updates can be detected. When
 // editing locally, bump the suffix if an old shell keeps winning during tests.
-const CACHE = "ironlog-shell-v10";
+const CACHE = "ironlog-shell-v11";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [
@@ -42,6 +42,7 @@ const PRECACHE = [
   "./js/ui.js",
   "./js/motion.js",
   "./js/diagrams.js",
+  "./js/body.js",
   "./js/views/home.js",
   "./js/views/workout.js",
   "./js/views/history.js",
@@ -49,6 +50,12 @@ const PRECACHE = [
   "./js/views/library.js",
   "./js/views/settings.js",
   "./js/views/routines.js",
+  "./js/views/profile-common.js",
+  "./js/views/statistics.js",
+  "./js/views/muscle-distribution.js",
+  "./js/views/body-distribution.js",
+  "./js/views/measures.js",
+  "./js/views/calendar.js",
   "../assets/img/logo.svg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

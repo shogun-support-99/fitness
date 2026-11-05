@@ -50,13 +50,17 @@ test("routineExerciseIds", async (t) => {
 });
 
 test("renderRoutineCards", async (t) => {
-  await t.test("emits the four real routine actions as buttons", () => {
+  await t.test("emits every real routine action as a button", () => {
     const html = renderRoutineCards();
-    assert.equal((html.match(/data-action="start-split"/g) ?? []).length, 4);
+    // Four named splits plus the custom split, which carries no preset muscles
+    // because the user picks them at start time.
+    assert.equal((html.match(/data-action="start-split"/g) ?? []).length, 5);
     assert.match(html, /data-split="Push"/);
     assert.match(html, /data-split="Pull"/);
     assert.match(html, /data-split="Legs"/);
     assert.match(html, /data-split="Full body"/);
+    assert.match(html, /data-split="Custom split"/);
+    assert.match(html, /data-muscles=""/);
   });
 
   await t.test("keeps motion classes and the sheen decoration", () => {

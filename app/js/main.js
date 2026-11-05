@@ -29,6 +29,11 @@ import { renderHome } from "./views/home.js";
 import { renderWorkout, renderPickerRow, PICKER_CAP } from "./views/workout.js";
 import { renderHistory } from "./views/history.js";
 import { renderStats } from "./views/stats.js";
+import { renderStatistics } from "./views/statistics.js";
+import { renderMuscleDistribution } from "./views/muscle-distribution.js";
+import { renderBodyDistribution } from "./views/body-distribution.js";
+import { renderMeasures } from "./views/measures.js";
+import { renderCalendar } from "./views/calendar.js";
 import { renderLibrary, renderLibraryRow, renderExerciseDetail, renderCustomSheet, RESULT_CAP } from "./views/library.js";
 import { renderSettings } from "./views/settings.js";
 import { routineExerciseIds } from "./views/routines.js";
@@ -83,9 +88,29 @@ const VIEWS = {
   home: () => renderHome(store),
   workout: () => renderWorkout(store, { elapsed: currentElapsed(), timer: restTimer.snapshot() }),
   history: (params) => renderHistory(store, { openId: params.get("id") }),
-  stats: () => renderStats(store),
+  stats: (params) => renderStats(store, params),
   library: () => renderLibrary(store, libraryState),
   settings: () => renderSettings(store),
+  statistics: (params) => renderStatistics(store, params),
+  "muscle-distribution": (params) => renderMuscleDistribution(store, params),
+  "body-distribution": (params) => renderBodyDistribution(store, params),
+  measures: (params) => renderMeasures(store, params),
+  calendar: (params) => renderCalendar(store, params),
+};
+
+/**
+ * Routes that belong to a sidebar entry without being one.
+ *
+ * Statistics, muscle distribution, body distribution, measures and calendar all
+ * hang off Profile. Without this the sidebar shows no active item at all while
+ * the user is three levels into what is still the Profile section.
+ */
+const ROUTE_PARENT = {
+  statistics: "stats",
+  "muscle-distribution": "stats",
+  "body-distribution": "stats",
+  measures: "stats",
+  calendar: "stats",
 };
 
 function currentElapsed() {
@@ -159,13 +184,14 @@ function render(navigation = router.current) {
 }
 
 function syncNav(route) {
+  const navRoute = ROUTE_PARENT[route] ?? route;
   $$(".nav-item").forEach((item) => {
-    const isActive = item.dataset.route === route;
+    const isActive = item.dataset.route === navRoute;
     item.classList.toggle("is-active", isActive);
     item.setAttribute("aria-current", isActive ? "page" : "false");
   });
   const primaryItems = $$(".sidebar .nav-item");
-  const index = Math.max(0, primaryItems.findIndex((item) => item.dataset.route === route));
+  const index = Math.max(0, primaryItems.findIndex((item) => item.dataset.route === navRoute));
   primaryItems[0]?.parentElement?.style.setProperty("--active-nav-index", String(index));
 }
 
@@ -747,6 +773,49 @@ const actions = {
   "view-stats-from-summary": () => {
     closeSheet("summary-modal");
     router.go("stats");
+  },
+
+  // ── Profile ──────────────────────────────────────────────────────────────
+
+  "save-profile": (form, event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    store.setProfile({
+      displayName: String(data.get("displayName") ?? ""),
+      handle: String(data.get("handle") ?? ""),
+    });
+    toast("Profile saved");
+    // Close the disclosure: leaving it open would hide the new name behind the
+    // form the user just submitted.
+    form.closest("details")?.removeAttribute("open");
+    render();
+  },
+
+  "add-measurement": (form, event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const result = store.addMeasurement({
+      date: String(data.get("date") ?? ""),
+      weight: Number(data.get("weight")),
+      note: String(data.get("note") ?? ""),
+    });
+    if (!result.ok) {
+      toast(result.error ?? "Could not save that entry");
+      return;
+    }
+    form.reset();
+    toast(result.replaced ? "Entry updated" : "Measurement saved");
+    render();
+  },
+
+  "delete-measurement": (el) => {
+    const result = store.deleteMeasurement(el.dataset.id);
+    if (!result.ok) {
+      toast(result.error ?? "Could not delete that entry");
+      return;
+    }
+    toast("Entry deleted");
+    render();
   },
 };
 

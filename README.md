@@ -47,6 +47,21 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   reps, and highest estimated 1RM. The session summary names exactly which you broke.
 - **Progress views** — weekly volume bars, muscle-group balance, lifetime totals, and a
   training-day streak. Charts are plain HTML columns and bars, so no charting library loads.
+- **A profile with a time range** — every figure on Profile answers one window at a time:
+  last 7 days, 30 days, 3 months, year or all time. The range lives in the URL, so it
+  survives a reload and carries across screens.
+- **Muscle map** — where the work went, drawn as a mannequin of geometric plates authored on
+  one side of the centre line and mirrored. Heat is proportional to sets landed, so a
+  chest-heavy block reads before any number does. Front and back, on Statistics and Body
+  distribution.
+- **Muscle distribution** — six body parts with set counts, each compared against the period
+  immediately before it. The comparison window is always the same length as the one you
+  selected, so the two are genuinely comparable.
+- **Body distribution** — a Sunday-first week picker, a day strip, a body map heat-mapped to
+  that day, and a muscle table underneath. Stepping a week keeps the weekday you were on.
+- **Measures** — bodyweight entries, one per day, charted against your training.
+- **Calendar** — a month grid built from the workouts already in the log, so there is no
+  separate calendar to fall out of sync. Trained days are marked; tap one for its sessions.
 - **Exercise library** — **1,316 exercises** from a single MIT data catalogue, deduplicated
   by normalised name so saved exercise IDs never change. Search is relevance-ranked and
   grouped by muscle and equipment. Custom exercises persist alongside them.
@@ -139,13 +154,16 @@ media.
 │   └── js/
 │       ├── main.js            # Bootstrap, render loop, event delegation
 │       ├── store.js           # Persistence (injected storage)
-│       ├── stats.js           # Pure training maths
+│       ├── stats.js           # Pure training maths and range/calendar maths
+│       ├── body.js            # Muscle-map geometry: plates, groups, target labels
 │       ├── timer.js           # Rest timer (injected clock)
 │       ├── exercises.js       # Curated starter library + search ranking
 │       ├── catalogue.js       # External catalogue: fetch, merge, instructions
 │       ├── router.js          # Hash router
 │       ├── ui.js              # Escaping, icons, chart primitives
-│       └── views/             # home, routines, workout, history, stats, library, settings
+│       └── views/             # home, routines, workout, history, stats, library, settings,
+│                              # plus the profile family below stats: statistics,
+│                              # muscle-distribution, body-distribution, measures, calendar
 ├── scripts/
 │   ├── build-exercise-data.mjs    # Regenerates the original MIT data catalogue
 │   ├── check-links.mjs            # CI check: every local link resolves
