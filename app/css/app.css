@@ -5696,6 +5696,22 @@ select {
   transition-duration: 70ms;
 }
 
+.btn[data-magnetic] {
+  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 6px);
+  transform-style: preserve-3d;
+  transition:
+    transform 80ms linear,
+    background-color var(--dur-fast) var(--ease-out-soft),
+    border-color var(--dur-fast) var(--ease-out-soft),
+    color var(--dur-fast) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.btn[data-magnetic].is-pressed,
+.btn[data-magnetic]:active {
+  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 2px) scale(0.97);
+}
+
 /* Nav: an ink underline that draws rather than appearing. */
 .nav-item {
   position: relative;
@@ -5789,12 +5805,12 @@ select {
 }
 
 [data-tilt].is-tilt-ready {
-  transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
-    translateY(var(--tilt-lift, 0px));
+  transform: perspective(720px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+    translate3d(0, var(--tilt-lift, 0px), 10px);
   transform-style: preserve-3d;
   animation: none !important;
   transition:
-    transform 380ms var(--ease-out-soft),
+    transform 280ms var(--ease-out-soft),
     border-color 0.18s var(--ease),
     box-shadow 0.18s var(--ease);
   will-change: transform;
@@ -5802,7 +5818,7 @@ select {
 
 [data-tilt].is-tilt-ready.is-tilting {
   transition:
-    transform 80ms linear,
+    transform 60ms linear,
     border-color 0.18s var(--ease),
     box-shadow 0.18s var(--ease);
 }
@@ -5944,6 +5960,107 @@ select {
 
 .app-ambient.is-live {
   opacity: 1;
+}
+
+/* Dual cursor: the same language as the landing page, quieter so a ledger
+   still reads as a ledger. The OS pointer stays visible. Hidden on touch
+   and under reduced motion. */
+.cursor-core,
+.cursor-orbit {
+  position: fixed;
+  z-index: 80;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.cursor-core {
+  z-index: 81;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  background: var(--text);
+  box-shadow: 0 0 0 2px var(--signal, #f6e016);
+  transition: width 180ms var(--ease), height 180ms var(--ease), margin 180ms var(--ease),
+    background-color 180ms var(--ease), opacity 180ms var(--ease);
+}
+
+.cursor-orbit {
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 1.5px solid color-mix(in srgb, var(--text) 45%, transparent);
+  background: color-mix(in srgb, var(--signal, #f6e016) 14%, transparent);
+  opacity: 0.92;
+  transition: width 200ms var(--ease), height 200ms var(--ease), margin 200ms var(--ease),
+    background-color 180ms var(--ease), opacity 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.cursor-core.is-over-control {
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  background: var(--signal, #f6e016);
+}
+
+.cursor-orbit.is-over-control {
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-color: var(--text);
+  background: color-mix(in srgb, var(--signal, #f6e016) 22%, transparent);
+}
+
+.cursor-core.is-down {
+  transform: scale(0.72);
+}
+
+.cursor-orbit.is-down {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+}
+
+.cursor-core.is-away,
+.cursor-orbit.is-away {
+  opacity: 0;
+}
+
+.tap-glow {
+  position: fixed;
+  z-index: 70;
+  width: 148px;
+  height: 148px;
+  margin: -74px 0 0 -74px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--signal, #f6e016) 48%, transparent),
+    color-mix(in srgb, var(--signal, #f6e016) 12%, transparent) 38%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: tap-glow 0.68s var(--ease-out-soft) forwards;
+}
+
+@keyframes tap-glow {
+  from {
+    opacity: 0.95;
+    transform: scale(0.24);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor-core,
+  .cursor-orbit {
+    display: none;
+  }
 }
 
 .shell {
@@ -6358,6 +6475,16 @@ select {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+
+  .cursor-core,
+  .cursor-orbit,
+  .tap-glow {
+    display: none !important;
+  }
+
+  .btn[data-magnetic] {
+    transform: none !important;
+  }
 }
 
 /* ── Print ───────────────────────────────────────────────────────────────
@@ -6372,7 +6499,10 @@ select {
   .btn,
   .icon-btn,
   .search-bar,
-  .chip-row {
+  .chip-row,
+  .cursor-core,
+  .cursor-orbit,
+  .tap-glow {
     display: none !important;
   }
 

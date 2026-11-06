@@ -150,7 +150,7 @@ function renderActiveBanner(workout, units) {
         <h2>${esc(workout.name)}</h2>
         <p>${workout.exercises.length} exercise${workout.exercises.length === 1 ? "" : "s"} · ${sets} set${sets === 1 ? "" : "s"} · ${compactNumber(volume)} ${esc(units)} · ${Math.max(1, Math.round(elapsed / 60000))} min</p>
       </div>
-      <a class="btn btn-primary btn-lg" href="#/workout" data-action="resume-workout">
+      <a class="btn btn-primary btn-lg" href="#/workout" data-action="resume-workout" data-magnetic>
         ${icon("play")} Resume
       </a>
     </div>`;
@@ -170,7 +170,7 @@ function renderStartPanel(store, weekCount) {
           <h2>Small sets. <span class="text-gradient">Big momentum.</span></h2>
           <p>Pick a routine, beat your previous numbers, and let every completed set move you forward.</p>
           <div class="hero-actions">
-            <button class="btn btn-primary btn-lg" data-action="start-workout">
+            <button class="btn btn-primary btn-lg" data-action="start-workout" data-magnetic>
               ${icon("play")} Start empty workout ${icon("chevron")}
             </button>
             ${template ? `<button class="btn btn-sub" data-action="repeat-last">${icon("history")} Repeat last <span class="btn-sub-note">${esc(template.exercises.length)} ${template.exercises.length === 1 ? "exercise" : "exercises"}</span></button>` : ""}

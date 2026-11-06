@@ -3,10 +3,11 @@
  *
  * Eight small behaviours, no runtime dependency: the mobile menu, the workout
  * preview tabs (roving focus, arrow keys, a shared travelling pill), the
- * pointer-driven hero cards, pointer spotlights on routine cards, magnetic
+ * spring-smoothed 3D hero, pointer spotlights on routine cards, magnetic
  * hero/final CTAs, a reveal-on-scroll pass that never leaves content hidden
  * when the observer is unavailable, the sample training-year heatmap, and the
- * nav scroll spy.
+ * nav scroll spy. Cursor, tilt, magnetic pull, gyro lean and tap ripples
+ * come from the shared motion engine so landing and app speak one language.
  */
 
 import {
@@ -15,6 +16,16 @@ import {
   streaks,
   trainingYear,
 } from "../../app/js/stats.js";
+import {
+  clampUnit,
+  initCursor,
+  initGyroTilt,
+  initMagnetic,
+  initTapRipple,
+  initTilt,
+  pointerNorm,
+  springStep,
+} from "../../app/js/motion.js";
 
 const doc = document;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -148,57 +159,7 @@ const heroArt = doc.querySelector(".hero-art");
 const heroStack = heroArt?.querySelector(".folder-stack");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-/* A deliberately visible pointer response gives the landing page a clear
-   desktop affordance: a small signal ring trails the cursor and expands over
-   controls. It never replaces the OS cursor and is absent on touch/reduced
-   motion so it cannot interfere with reading or accessibility. */
-if (finePointer.matches && !reduceMotion.matches) {
-  const cursorOrbit = doc.createElement("span");
-  cursorOrbit.className = "cursor-orbit";
-  cursorOrbit.setAttribute("aria-hidden", "true");
-  doc.body.append(cursorOrbit);
-
-  let pointerX = -40;
-  let pointerY = -40;
-  let orbitX = pointerX;
-  let orbitY = pointerY;
-  let cursorFrame = 0;
-
-  const moveOrbit = () => {
-    orbitX += (pointerX - orbitX) * 0.22;
-    orbitY += (pointerY - orbitY) * 0.22;
-    cursorOrbit.style.transform = `translate3d(${orbitX}px, ${orbitY}px, 0)`;
-    if (Math.abs(pointerX - orbitX) + Math.abs(pointerY - orbitY) > 0.25) {
-      cursorFrame = requestAnimationFrame(moveOrbit);
-    } else {
-      cursorFrame = 0;
-    }
-  };
-
-  doc.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse") return;
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-    const target = event.target instanceof Element ? event.target : null;
-    cursorOrbit.classList.toggle(
-      "is-over-control",
-      Boolean(target?.closest("a, button, summary, [role=tab]")),
-    );
-    if (!cursorFrame) cursorFrame = requestAnimationFrame(moveOrbit);
-  }, { passive: true });
-
-  doc.documentElement.addEventListener("pointerleave", () => {
-    cursorOrbit.classList.add("is-away");
-  });
-  doc.documentElement.addEventListener("pointerenter", () => {
-    cursorOrbit.classList.remove("is-away");
-  });
-  reduceMotion.addEventListener("change", (event) => {
-    if (!event.matches) return;
-    if (cursorFrame) cancelAnimationFrame(cursorFrame);
-    cursorOrbit.remove();
-  });
-}
+initCursor(doc);
 
 if (heroArt && heroStack) {
   let frame = 0;
@@ -208,20 +169,37 @@ if (heroArt && heroStack) {
   let spotY = 45;
   let pressed = false;
 
+  let rx = 0;
+  let ry = 0;
+  let vx = 0;
+  let vy = 0;
+  let aimX = 0;
+  let aimY = 0;
+
   const paint = () => {
     frame = 0;
+    const sx = springStep(rx, aimX, vx, { stiffness: 0.16, damping: 0.74 });
+    const sy = springStep(ry, aimY, vy, { stiffness: 0.16, damping: 0.74 });
+    rx = sx.value;
+    vx = sx.velocity;
+    ry = sy.value;
+    vy = sy.velocity;
+    x = rx;
+    y = ry;
     heroStack.style.setProperty("--hero-x", x.toFixed(3));
     heroStack.style.setProperty("--hero-y", y.toFixed(3));
     heroArt.style.setProperty("--hero-x", x.toFixed(3));
     heroArt.style.setProperty("--hero-y", y.toFixed(3));
     // Make the depth cue readable at a glance: the stack leans toward the
     // pointer while each paper layer gets a slightly different Z offset.
-    heroArt.style.setProperty("--tilt-x", `${(-y * 9).toFixed(2)}deg`);
-    heroArt.style.setProperty("--tilt-y", `${(x * 11).toFixed(2)}deg`);
+    heroArt.style.setProperty("--tilt-x", `${(-y * 11).toFixed(2)}deg`);
+    heroArt.style.setProperty("--tilt-y", `${(x * 14).toFixed(2)}deg`);
     heroStack.style.setProperty("--hero-depth", (Math.abs(x) + Math.abs(y)).toFixed(3));
-    heroArt.style.setProperty("--spot-size", "340px");
+    heroArt.style.setProperty("--spot-size", "360px");
     heroArt.style.setProperty("--spot-x", `${spotX.toFixed(1)}%`);
     heroArt.style.setProperty("--spot-y", `${spotY.toFixed(1)}%`);
+    const leftover = Math.abs(aimX - rx) + Math.abs(aimY - ry) + Math.abs(vx) + Math.abs(vy);
+    if (leftover > 0.002) frame = requestAnimationFrame(paint);
   };
 
   // One style write per frame: pointermove fires far faster than paint.
@@ -234,8 +212,9 @@ if (heroArt && heroStack) {
     spotX = ((event.clientX - rect.left) / rect.width) * 100;
     spotY = ((event.clientY - rect.top) / rect.height) * 100;
     if (!reduceMotion.matches) {
-      x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-      y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+      const n = pointerNorm(event.clientX, event.clientY, rect);
+      aimX = clampUnit(n.x * 2, 1);
+      aimY = clampUnit(n.y * 2, 1);
     }
     queue();
   };
@@ -243,6 +222,8 @@ if (heroArt && heroStack) {
   const reset = () => {
     x = 0;
     y = 0;
+    aimX = 0;
+    aimY = 0;
     spotX = 50;
     spotY = 45;
     heroStack?.style.setProperty("--hero-depth", "0");
@@ -486,131 +467,11 @@ if (spotlit.length && finePointer.matches) {
   );
 }
 
-/* ── Pointer tilt ──────────────────────────────────────────────────────── */
+/* ── Pointer tilt, magnetic pull, gyro lean ────────────────────────────── */
 
-const tiltables = [...doc.querySelectorAll("[data-tilt]")];
-
-const coarsePointer = window.matchMedia("(pointer: coarse)");
-
-if (tiltables.length && (finePointer.matches || coarsePointer.matches) && !reduceMotion.matches) {
-  let frame = 0;
-  let target = null;
-  let activeTouch = null;
-  let max = 3.2;
-  let x = 0;
-  let y = 0;
-
-  const paint = () => {
-    frame = 0;
-    if (!target) return;
-    target.style.setProperty("--tilt-x", `${(-y * max).toFixed(2)}deg`);
-    target.style.setProperty("--tilt-y", `${(x * max).toFixed(2)}deg`);
-    target.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
-    target.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
-  };
-
-  const rest = () => {
-    if (!target) return;
-    if (frame) {
-      cancelAnimationFrame(frame);
-      frame = 0;
-    }
-    target.style.setProperty("--tilt-x", "0deg");
-    target.style.setProperty("--tilt-y", "0deg");
-    target.classList.remove("is-tilting");
-    target = null;
-  };
-
-  const queue = () => {
-    if (!frame) frame = requestAnimationFrame(paint);
-  };
-
-  const trackTilt = (event) => {
-    if (reduceMotion.matches) return;
-    const isTouch = event.pointerType === "touch";
-    if (isTouch && event.pointerId !== activeTouch) return;
-    if (!isTouch && event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
-      return;
-    }
-    const next = event.target instanceof Element ? event.target.closest("[data-tilt]") : null;
-    if (!next) {
-      if (!isTouch) rest();
-      return;
-    }
-    if (next !== target) {
-      rest();
-      target = next;
-      const value = Number(next.dataset.tiltMax);
-      max = Number.isFinite(value) && value > 0 ? value : 3.2;
-      // Add the 3D transform on first interaction, after reveal animations settle.
-      next.classList.add("is-tilt-ready", "is-tilting");
-    }
-    const rect = next.getBoundingClientRect();
-    x = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
-    y = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
-    queue();
-  };
-
-  doc.addEventListener("pointermove", trackTilt, { passive: true });
-  doc.addEventListener("pointerdown", (event) => {
-    if (event.pointerType !== "touch" || reduceMotion.matches) return;
-    activeTouch = event.pointerId;
-    trackTilt(event);
-  }, { passive: true });
-  const finishTouchTilt = (event) => {
-    if (event.pointerId !== activeTouch) return;
-    activeTouch = null;
-    rest();
-  };
-  window.addEventListener("pointerup", finishTouchTilt, { passive: true });
-  window.addEventListener("pointercancel", finishTouchTilt, { passive: true });
-
-  doc.addEventListener("pointerleave", rest);
-  doc.addEventListener("pointercancel", rest);
-  window.addEventListener("blur", rest);
-  reduceMotion.addEventListener("change", (event) => {
-    if (event.matches) rest();
-  });
-}
-
-/* ── Magnetic buttons ──────────────────────────────────────────────────── */
-
-const magnetic = [...doc.querySelectorAll("[data-magnetic]")];
-
-if (magnetic.length && finePointer.matches) {
-  magnetic.forEach((button) => {
-    let frame = 0;
-    let x = 0;
-    let y = 0;
-
-    const paint = () => {
-      frame = 0;
-      button.style.setProperty("--mag-x", `${x.toFixed(2)}px`);
-      button.style.setProperty("--mag-y", `${y.toFixed(2)}px`);
-    };
-
-    const queue = () => {
-      if (!frame) frame = requestAnimationFrame(paint);
-    };
-
-    button.addEventListener("pointermove", (event) => {
-      if (reduceMotion.matches) return;
-      const rect = button.getBoundingClientRect();
-      x = ((event.clientX - rect.left) / rect.width - 0.5) * 7;
-      y = ((event.clientY - rect.top) / rect.height - 0.5) * 5;
-      queue();
-    });
-
-    const reset = () => {
-      x = 0;
-      y = 0;
-      queue();
-    };
-
-    button.addEventListener("pointerleave", reset);
-    button.addEventListener("pointercancel", reset);
-  });
-}
+initTilt(doc, { max: 4.2 });
+initMagnetic(doc, { strength: 9 });
+initGyroTilt(doc, { max: 6 });
 
 /* ── Reveal on scroll ──────────────────────────────────────────────────── */
 
@@ -746,52 +607,7 @@ if (scrollMeter || siteHeader) {
   paint();
 }
 
-/* ── Touch tap glow ──────────────────────────────────────────────────────
-   Tilt needs a mouse. A finger gets a different signal: a soft pool of light
-   where it landed, only when the gesture was a tap and not a scroll. */
-
-let tapStart = null;
-
-const interactiveTarget = (node) =>
-  node instanceof Element
-    ? node.closest("a, button, summary, .routine-card, .stat, .feature-row, .faq-item")
-    : null;
-
-doc.addEventListener(
-  "pointerdown",
-  (event) => {
-    if (event.pointerType === "mouse" || reduceMotion.matches) return;
-    if (!interactiveTarget(event.target)) return;
-    tapStart = {
-      x: event.clientX,
-      y: event.clientY,
-      time: performance.now(),
-      id: event.pointerId,
-    };
-  },
-  { passive: true },
-);
-
-const releaseTap = (event) => {
-  if (!tapStart || event.pointerId !== tapStart.id) return;
-  const start = tapStart;
-  tapStart = null;
-  const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-  if (moved > 14 || performance.now() - start.time > 700) return;
-
-  const glow = doc.createElement("span");
-  glow.className = "tap-glow";
-  glow.style.left = `${event.clientX}px`;
-  glow.style.top = `${event.clientY}px`;
-  glow.addEventListener("animationend", () => glow.remove(), { once: true });
-  doc.body.append(glow);
-  window.setTimeout(() => glow.remove(), 900);
-};
-
-doc.addEventListener("pointerup", releaseTap, { passive: true });
-doc.addEventListener("pointercancel", () => {
-  tapStart = null;
-});
+initTapRipple(doc);
 
 /* -- Progress: sample training year -------------------------------------- */
 

@@ -70,7 +70,7 @@ export function statTile({ label, value, unit = "", hint = "", tone = "", countT
     ? `<span class="odo" data-count-to="${esc(countTo)}" data-count-decimals="0">${esc(value)}</span>`
     : esc(value);
   return `
-    <div class="tile ${tone} hover-lift" data-spotlight data-reveal="rise">
+    <div class="tile ${tone} hover-lift" data-spotlight data-tilt data-tilt-glare data-tilt-max="2.4" data-reveal="rise">
       <span class="tile-label">${esc(label)}</span>
       <span class="tile-value">${figure}${unit ? `<em>${esc(unit)}</em>` : ""}</span>
       ${hint ? `<span class="tile-hint">${esc(hint)}</span>` : ""}

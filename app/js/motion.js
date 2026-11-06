@@ -46,6 +46,40 @@ export function onMotionPreferenceChange(fn) {
   };
 }
 
+/**
+ * Pointer position inside a box, normalised to -0.5 … 0.5.
+ * Shared by tilt, magnetic buttons and the cursor so every surface speaks
+ * the same coordinate language.
+ */
+export function pointerNorm(clientX, clientY, rect) {
+  const width = Math.max(rect?.width || 0, 1);
+  const height = Math.max(rect?.height || 0, 1);
+  const left = rect?.left || 0;
+  const top = rect?.top || 0;
+  return {
+    x: (clientX - left) / width - 0.5,
+    y: (clientY - top) / height - 0.5,
+  };
+}
+
+/**
+ * One critically-damped spring step. Pure, so tests can assert the settle
+ * without a browser frame loop. Stiffness pulls toward the target; damping
+ * kills residual velocity so the plate does not wobble forever.
+ */
+export function springStep(current, target, velocity, { stiffness = 0.22, damping = 0.72 } = {}) {
+  const nextVelocity = (Number(velocity) + (Number(target) - Number(current)) * stiffness) * damping;
+  return { value: Number(current) + nextVelocity, velocity: nextVelocity };
+}
+
+/** Clamp a tilt sample so a fast flick cannot flip a card past `max`. */
+export function clampUnit(value, max = 0.5) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  const limit = Math.abs(Number(max)) || 0.5;
+  return Math.max(-limit, Math.min(limit, n));
+}
+
 /* ------------------------------------------------------------------------- *
  * Reveals
  * ------------------------------------------------------------------------- */
@@ -499,13 +533,26 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
   let px = 0;
   let py = 0;
 
+  let rx = 0;
+  let ry = 0;
+  let vx = 0;
+  let vy = 0;
+
   const paint = () => {
     frame = 0;
     if (!target) return;
-    target.style.setProperty("--tilt-x", `${(-py * tiltMax).toFixed(2)}deg`);
-    target.style.setProperty("--tilt-y", `${(px * tiltMax).toFixed(2)}deg`);
-    target.style.setProperty("--glare-x", `${((px + 0.5) * 100).toFixed(1)}%`);
-    target.style.setProperty("--glare-y", `${((py + 0.5) * 100).toFixed(1)}%`);
+    const sx = springStep(rx, px, vx);
+    const sy = springStep(ry, py, vy);
+    rx = sx.value;
+    vx = sx.velocity;
+    ry = sy.value;
+    vy = sy.velocity;
+    target.style.setProperty("--tilt-x", `${(-ry * tiltMax).toFixed(2)}deg`);
+    target.style.setProperty("--tilt-y", `${(rx * tiltMax).toFixed(2)}deg`);
+    target.style.setProperty("--glare-x", `${((rx + 0.5) * 100).toFixed(1)}%`);
+    target.style.setProperty("--glare-y", `${((ry + 0.5) * 100).toFixed(1)}%`);
+    const leftover = Math.abs(px - rx) + Math.abs(py - ry) + Math.abs(vx) + Math.abs(vy);
+    if (leftover > 0.001) frame = requestAnimationFrame(paint);
   };
 
   const reset = () => {
@@ -519,6 +566,12 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
       target.classList.remove("is-tilting");
     }
     target = null;
+    px = 0;
+    py = 0;
+    rx = 0;
+    ry = 0;
+    vx = 0;
+    vy = 0;
   };
 
   const onMove = (event) => {
@@ -542,8 +595,9 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
       next.classList.add("is-tilt-ready", "is-tilting");
     }
     const rect = next.getBoundingClientRect();
-    px = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
-    py = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
+    const n = pointerNorm(event.clientX, event.clientY, rect);
+    px = clampUnit(n.x);
+    py = clampUnit(n.y);
     if (!frame) frame = requestAnimationFrame(paint);
   };
 
@@ -827,5 +881,349 @@ export function initScrollMeter(root = document) {
     window.removeEventListener("resize", queue);
     if (frame) cancelAnimationFrame(frame);
     topbar?.classList.remove("is-scrolled");
+  };
+}
+
+/* ------------------------------------------------------------------------- *
+ * Cursor, magnetic pull, gyro lean, tap ripples
+ * ------------------------------------------------------------------------- */
+
+const CONTROL_SELECTOR = "a, button, summary, [role=tab], [role=button], .nav-item, .chip, .tick";
+
+/**
+ * A dual cursor for fine pointers: a tight core that tracks the pointer 1:1
+ * and a heavier ring that springs behind it. Expands over controls. Never
+ * replaces the OS cursor, never appears on touch or under reduced motion.
+ *
+ * @returns {() => void} teardown
+ */
+export function initCursor(root = document) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+  if (!fine?.matches) return () => {};
+
+  const scope = root || document;
+  const host = scope.body || (scope === document ? document.body : scope);
+  if (!host) return () => {};
+
+  const core = document.createElement("span");
+  core.className = "cursor-core";
+  core.setAttribute("aria-hidden", "true");
+  const ring = document.createElement("span");
+  ring.className = "cursor-orbit";
+  ring.setAttribute("aria-hidden", "true");
+  host.append(core, ring);
+  document.documentElement.classList.add("has-cursor");
+
+  let pointerX = -40;
+  let pointerY = -40;
+  let ringX = pointerX;
+  let ringY = pointerY;
+  let ringVx = 0;
+  let ringVy = 0;
+  let frame = 0;
+
+  const paint = () => {
+    frame = 0;
+    core.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0)`;
+    const sx = springStep(ringX, pointerX, ringVx, { stiffness: 0.18, damping: 0.68 });
+    const sy = springStep(ringY, pointerY, ringVy, { stiffness: 0.18, damping: 0.68 });
+    ringX = sx.value;
+    ringVx = sx.velocity;
+    ringY = sy.value;
+    ringVy = sy.velocity;
+    ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+    const leftover = Math.abs(pointerX - ringX) + Math.abs(pointerY - ringY) + Math.abs(ringVx) + Math.abs(ringVy);
+    if (leftover > 0.4) frame = requestAnimationFrame(paint);
+  };
+
+  const onMove = (event) => {
+    if (event.pointerType && event.pointerType !== "mouse") return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    const target = event.target instanceof Element ? event.target : null;
+    const over = Boolean(target?.closest(CONTROL_SELECTOR));
+    core.classList.toggle("is-over-control", over);
+    ring.classList.toggle("is-over-control", over);
+    core.classList.remove("is-away");
+    ring.classList.remove("is-away");
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const hide = () => {
+    core.classList.add("is-away");
+    ring.classList.add("is-away");
+  };
+  const show = () => {
+    core.classList.remove("is-away");
+    ring.classList.remove("is-away");
+  };
+
+  const down = () => {
+    core.classList.add("is-down");
+    ring.classList.add("is-down");
+  };
+  const up = () => {
+    core.classList.remove("is-down");
+    ring.classList.remove("is-down");
+  };
+
+  document.addEventListener("pointermove", onMove, { passive: true });
+  document.documentElement.addEventListener("pointerleave", hide);
+  document.documentElement.addEventListener("pointerenter", show);
+  document.addEventListener("pointerdown", down, { passive: true });
+  window.addEventListener("pointerup", up, { passive: true });
+  const unsub = onMotionPreferenceChange((reduced) => {
+    if (reduced) hide();
+  });
+
+  return () => {
+    document.removeEventListener("pointermove", onMove);
+    document.documentElement.removeEventListener("pointerleave", hide);
+    document.documentElement.removeEventListener("pointerenter", show);
+    document.removeEventListener("pointerdown", down);
+    window.removeEventListener("pointerup", up);
+    unsub();
+    if (frame) cancelAnimationFrame(frame);
+    core.remove();
+    ring.remove();
+    document.documentElement.classList.remove("has-cursor");
+  };
+}
+
+/**
+ * Magnetic pull on `[data-magnetic]` controls. Fine pointers only; springs
+ * back on leave. Delegated so re-rendered views stay magnetic without rebind.
+ *
+ * @returns {() => void} teardown
+ */
+export function initMagnetic(root, { selector = "[data-magnetic]", strength = 8 } = {}) {
+  const scope = root || document;
+  if (prefersReducedMotion()) return () => {};
+  const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+  if (!fine?.matches) return () => {};
+
+  let frame = 0;
+  let target = null;
+  let mx = 0;
+  let my = 0;
+  let rx = 0;
+  let ry = 0;
+  let vx = 0;
+  let vy = 0;
+  let pull = strength;
+
+  const paint = () => {
+    frame = 0;
+    if (!target) return;
+    const sx = springStep(rx, mx, vx, { stiffness: 0.28, damping: 0.7 });
+    const sy = springStep(ry, my, vy, { stiffness: 0.28, damping: 0.7 });
+    rx = sx.value;
+    vx = sx.velocity;
+    ry = sy.value;
+    vy = sy.velocity;
+    target.style.setProperty("--mag-x", `${rx.toFixed(2)}px`);
+    target.style.setProperty("--mag-y", `${ry.toFixed(2)}px`);
+    const leftover = Math.abs(mx - rx) + Math.abs(my - ry) + Math.abs(vx) + Math.abs(vy);
+    if (leftover > 0.05) frame = requestAnimationFrame(paint);
+  };
+
+  const rest = () => {
+    mx = 0;
+    my = 0;
+    if (target && !frame) frame = requestAnimationFrame(paint);
+  };
+
+  const onMove = (event) => {
+    if (prefersReducedMotion()) return;
+    if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+    const found = event.target instanceof Element ? event.target.closest(selector) : null;
+    const next = found && scope.contains(found) ? found : null;
+    if (!next) {
+      if (target) rest();
+      return;
+    }
+    if (next !== target) {
+      if (target) {
+        target.style.setProperty("--mag-x", "0px");
+        target.style.setProperty("--mag-y", "0px");
+      }
+      target = next;
+      rx = 0;
+      ry = 0;
+      vx = 0;
+      vy = 0;
+      const value = Number(next.dataset.magnetic);
+      pull = Number.isFinite(value) && value > 0 ? value : strength;
+    }
+    const rect = next.getBoundingClientRect();
+    const n = pointerNorm(event.clientX, event.clientY, rect);
+    mx = clampUnit(n.x) * pull * 2;
+    my = clampUnit(n.y) * pull * 1.4;
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const onLeave = () => {
+    rest();
+  };
+
+  scope.addEventListener("pointermove", onMove, { passive: true });
+  scope.addEventListener("pointerleave", onLeave);
+  window.addEventListener("blur", onLeave);
+
+  return () => {
+    scope.removeEventListener("pointermove", onMove);
+    scope.removeEventListener("pointerleave", onLeave);
+    window.removeEventListener("blur", onLeave);
+    if (frame) cancelAnimationFrame(frame);
+    if (target) {
+      target.style.setProperty("--mag-x", "0px");
+      target.style.setProperty("--mag-y", "0px");
+    }
+  };
+}
+
+/**
+ * Device-orientation lean for coarse pointers. A phone held in the rack
+ * tilts the `[data-tilt]` surfaces a few degrees — the same language as
+ * the cursor, without fighting a scroll. Permission is requested on the
+ * first touch so iOS 13+ can grant it from a user gesture.
+ *
+ * @returns {() => void} teardown
+ */
+export function initGyroTilt(root, { selector = "[data-tilt]", max = 5 } = {}) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const coarse = window.matchMedia?.("(pointer: coarse)");
+  if (coarse && !coarse.matches) return () => {};
+  if (typeof window.DeviceOrientationEvent === "undefined") return () => {};
+
+  const scope = root || document;
+  let frame = 0;
+  let gx = 0;
+  let gy = 0;
+  let listening = false;
+  let asked = false;
+
+  const paint = () => {
+    frame = 0;
+    const nodes = scope.querySelectorAll ? scope.querySelectorAll(selector) : [];
+    nodes.forEach((el) => {
+      el.classList.add("is-tilt-ready", "is-tilting");
+      el.style.setProperty("--tilt-x", `${(gy * max).toFixed(2)}deg`);
+      el.style.setProperty("--tilt-y", `${(gx * max).toFixed(2)}deg`);
+      el.style.setProperty("--glare-x", `${((gx + 0.5) * 100).toFixed(1)}%`);
+      el.style.setProperty("--glare-y", `${((gy + 0.5) * 100).toFixed(1)}%`);
+    });
+  };
+
+  const onOrient = (event) => {
+    if (prefersReducedMotion()) return;
+    const beta = Number(event.beta) || 0;
+    const gamma = Number(event.gamma) || 0;
+    gy = clampUnit(beta / 36, 0.5);
+    gx = clampUnit(gamma / 36, 0.5);
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const start = () => {
+    if (listening) return;
+    listening = true;
+    window.addEventListener("deviceorientation", onOrient, { passive: true });
+  };
+
+  const request = () => {
+    if (asked || prefersReducedMotion()) return;
+    asked = true;
+    const requestPermission = window.DeviceOrientationEvent?.requestPermission;
+    if (typeof requestPermission === "function") {
+      requestPermission()
+        .then((state) => {
+          if (state === "granted") start();
+        })
+        .catch(() => {});
+    } else {
+      start();
+    }
+  };
+
+  scope.addEventListener("pointerdown", request, { passive: true, once: true });
+  const unsub = onMotionPreferenceChange((reduced) => {
+    if (!reduced) return;
+    window.removeEventListener("deviceorientation", onOrient);
+    listening = false;
+  });
+
+  return () => {
+    scope.removeEventListener("pointerdown", request);
+    window.removeEventListener("deviceorientation", onOrient);
+    unsub();
+    if (frame) cancelAnimationFrame(frame);
+  };
+}
+
+/**
+ * A short ripple where a finger lands on a control. Mouse never sees it;
+ * reduced motion never sees it; a scroll that moved more than 14px is not
+ * a tap and does not fire.
+ *
+ * @returns {() => void} teardown
+ */
+export function initTapRipple(root = document) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const scope = root || document;
+  let tapStart = null;
+  const ripples = new Set();
+
+  const interactive = (node) =>
+    node instanceof Element ? node.closest(CONTROL_SELECTOR + ", .routine-card, .tile, .panel, [data-tilt], .feature-row, .faq-item") : null;
+
+  const onDown = (event) => {
+    if (event.pointerType === "mouse" || prefersReducedMotion()) return;
+    if (!interactive(event.target)) return;
+    tapStart = {
+      x: event.clientX,
+      y: event.clientY,
+      time: performance.now(),
+      id: event.pointerId,
+    };
+  };
+
+  const onUp = (event) => {
+    if (!tapStart || event.pointerId !== tapStart.id) return;
+    const start = tapStart;
+    tapStart = null;
+    const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+    if (moved > 14 || performance.now() - start.time > 700) return;
+    const host = scope.body || (scope === document ? document.body : scope);
+    if (!host) return;
+    const glow = document.createElement("span");
+    glow.className = "tap-glow";
+    glow.setAttribute("aria-hidden", "true");
+    glow.style.left = `${event.clientX}px`;
+    glow.style.top = `${event.clientY}px`;
+    const done = () => {
+      glow.remove();
+      ripples.delete(glow);
+    };
+    glow.addEventListener("animationend", done, { once: true });
+    host.append(glow);
+    ripples.add(glow);
+    window.setTimeout(done, 900);
+  };
+
+  const onCancel = () => {
+    tapStart = null;
+  };
+
+  scope.addEventListener("pointerdown", onDown, { passive: true });
+  scope.addEventListener("pointerup", onUp, { passive: true });
+  scope.addEventListener("pointercancel", onCancel, { passive: true });
+
+  return () => {
+    scope.removeEventListener("pointerdown", onDown);
+    scope.removeEventListener("pointerup", onUp);
+    scope.removeEventListener("pointercancel", onCancel);
+    ripples.forEach((node) => node.remove());
+    ripples.clear();
   };
 }

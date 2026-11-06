@@ -30,7 +30,7 @@ export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
             <h2>What are we training today?</h2>
             <p>Start with a blank log or jump into a routine below. Your previous numbers will be waiting.</p>
           </div>
-          <button class="btn btn-primary btn-lg" data-action="start-workout">${icon("plus")} Start empty workout ${icon("chevron")}</button>
+          <button class="btn btn-primary btn-lg" data-action="start-workout" data-magnetic>${icon("plus")} Start empty workout ${icon("chevron")}</button>
           <svg class="hero-plate" viewBox="0 0 64 64" aria-hidden="true">
             <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
           </svg>

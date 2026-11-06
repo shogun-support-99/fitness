@@ -23,6 +23,10 @@ import {
   initTilt,
   initAmbientLight,
   initScrollMeter,
+  initCursor,
+  initMagnetic,
+  initGyroTilt,
+  initTapRipple,
   drawTick,
   celebrateRecord,
   prefersReducedMotion,
@@ -77,7 +81,7 @@ function startMotion(root) {
   motionTeardowns.push(initChartMotion(root));
   motionTeardowns.push(initHeatmapTip(root));
   motionTeardowns.push(initTicker(root));
-  motionTeardowns.push(initTilt(root, { max: 2.6 }));
+  motionTeardowns.push(initTilt(root, { max: 3.4 }));
 }
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -1345,6 +1349,10 @@ function boot() {
   initSpotlight();
   initAmbientLight(document);
   initScrollMeter(document);
+  initCursor(document);
+  initMagnetic(document, { strength: 7 });
+  initTapRipple(document);
+  initGyroTilt(document, { max: 4.5 });
   if (!globalThis.location.hash) globalThis.location.hash = "#/home";
   router.start();
   initNavGlider();

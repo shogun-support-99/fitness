@@ -24,9 +24,12 @@ import {
 } from "../app/js/diagrams.js";
 
 import {
+  clampUnit,
   odometerChars,
   odometerMarkup,
+  pointerNorm,
   revealVariant,
+  springStep,
 } from "../app/js/motion.js";
 
 /* ------------------------------------------------------------------ *
@@ -556,5 +559,81 @@ describe("revealVariant", () => {
       ].map(revealVariant),
     );
     assert.ok(seen.size >= 5, `expected varied variants, got ${[...seen].join(", ")}`);
+  });
+});
+
+describe("pointerNorm", () => {
+  const box = { left: 100, top: 50, width: 200, height: 100 };
+
+  test("puts the centre at the origin", () => {
+    assert.deepEqual(pointerNorm(200, 100, box), { x: 0, y: 0 });
+  });
+
+  test("puts the top-left at -0.5, -0.5", () => {
+    assert.deepEqual(pointerNorm(100, 50, box), { x: -0.5, y: -0.5 });
+  });
+
+  test("puts the bottom-right at 0.5, 0.5", () => {
+    assert.deepEqual(pointerNorm(300, 150, box), { x: 0.5, y: 0.5 });
+  });
+
+  test("does not divide by a zero-size rect", () => {
+    const n = pointerNorm(10, 10, { left: 0, top: 0, width: 0, height: 0 });
+    assert.equal(n.x, 9.5);
+    assert.equal(n.y, 9.5);
+  });
+
+  test("treats a missing rect as a 1x1 box at the origin", () => {
+    assert.deepEqual(pointerNorm(0.5, 0.5, null), { x: 0, y: 0 });
+  });
+});
+
+describe("clampUnit", () => {
+  test("passes values inside the default ±0.5 band", () => {
+    assert.equal(clampUnit(0), 0);
+    assert.equal(clampUnit(0.25), 0.25);
+    assert.equal(clampUnit(-0.5), -0.5);
+  });
+
+  test("clips a flick past the band", () => {
+    assert.equal(clampUnit(2), 0.5);
+    assert.equal(clampUnit(-4), -0.5);
+  });
+
+  test("honours a custom max", () => {
+    assert.equal(clampUnit(2, 1), 1);
+    assert.equal(clampUnit(-0.8, 0.3), -0.3);
+  });
+
+  test("returns 0 for non-finite input rather than NaN", () => {
+    assert.equal(clampUnit(NaN), 0);
+    assert.equal(clampUnit(Infinity), 0);
+    assert.equal(clampUnit(undefined), 0);
+  });
+});
+
+describe("springStep", () => {
+  test("stays put when already at the target with no velocity", () => {
+    assert.deepEqual(springStep(4, 4, 0), { value: 4, velocity: 0 });
+  });
+
+  test("moves toward the target and damps residual velocity", () => {
+    const first = springStep(0, 10, 0, { stiffness: 0.22, damping: 0.72 });
+    assert.ok(first.value > 0 && first.value < 10, "first step advances toward the target");
+    assert.ok(first.velocity > 0, "first step has positive velocity");
+    const second = springStep(first.value, 10, first.velocity, { stiffness: 0.22, damping: 0.72 });
+    assert.ok(second.value > first.value, "second step continues toward the target");
+  });
+
+  test("settles close to the target after enough steps", () => {
+    let value = 0;
+    let velocity = 0;
+    for (let i = 0; i < 80; i += 1) {
+      const step = springStep(value, 1, velocity);
+      value = step.value;
+      velocity = step.velocity;
+    }
+    assert.ok(Math.abs(value - 1) < 0.01, `settled at ${value}`);
+    assert.ok(Math.abs(velocity) < 0.01, `residual velocity ${velocity}`);
   });
 });
