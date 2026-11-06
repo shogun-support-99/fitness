@@ -472,9 +472,9 @@ export function initPressFeedback(root, { selector = "[data-press]" } = {}) {
  *
  * The listener is delegated from the stable container, so cards repainted by a
  * view change keep responding without re-binding. Kept deliberately small
- * (under 5deg), disabled on touch and under reduced motion. The 3D class is
- * added on the first hover rather than at boot: by then any entrance has
- * finished, so the tilt can own `transform` without cancelling the animation.
+ * (under 5deg), disabled under reduced motion. Fine pointers steer continuously;
+ * touch gets a brief press-and-drag tilt that resets on release. The 3D class is
+ * added on first interaction, after entrance motion, so the two never fight.
  *
  * @param {Element|string} [el] element, container or selector; defaults to document
  * @param {{max?: number, selector?: string}} [options]
@@ -487,14 +487,14 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
       : el || (typeof document !== "undefined" ? document : null);
   if (!scope) return () => {};
   if (prefersReducedMotion()) return () => {};
-  if (typeof window !== "undefined") {
-    const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
-    if (fine && !fine.matches) return () => {};
-  }
+  const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+  const coarse = window.matchMedia?.("(pointer: coarse)");
+  if (fine && coarse && !fine.matches && !coarse.matches) return () => {};
 
   const isTarget = scope.matches?.(selector) ?? false;
   let frame = 0;
   let target = null;
+  let activeTouch = null;
   let tiltMax = max;
   let px = 0;
   let py = 0;
@@ -523,14 +523,15 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
 
   const onMove = (event) => {
     if (prefersReducedMotion()) return;
-    if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+    const isTouch = event.pointerType === "touch";
+    if (isTouch && event.pointerId !== activeTouch) return;
+    if (!isTouch && event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
       return;
     }
-    const found =
-      event.target instanceof Element ? event.target.closest(selector) : null;
+    const found = event.target instanceof Element ? event.target.closest(selector) : null;
     const next = found && (isTarget ? found === scope : scope.contains(found)) ? found : null;
     if (!next) {
-      reset();
+      if (!isTouch) reset();
       return;
     }
     if (next !== target) {
@@ -546,7 +547,23 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
     if (!frame) frame = requestAnimationFrame(paint);
   };
 
+  const onDown = (event) => {
+    if (event.pointerType !== "touch" || prefersReducedMotion()) return;
+    const found = event.target instanceof Element ? event.target.closest(selector) : null;
+    if (!found || (isTarget ? found !== scope : !scope.contains(found))) return;
+    activeTouch = event.pointerId;
+    onMove(event);
+  };
+  const onTouchEnd = (event) => {
+    if (event.pointerId !== activeTouch) return;
+    activeTouch = null;
+    reset();
+  };
+
   scope.addEventListener("pointermove", onMove, { passive: true });
+  scope.addEventListener("pointerdown", onDown, { passive: true });
+  window.addEventListener("pointerup", onTouchEnd, { passive: true });
+  window.addEventListener("pointercancel", onTouchEnd, { passive: true });
   scope.addEventListener("pointerleave", reset);
   scope.addEventListener("pointercancel", reset);
   window.addEventListener("blur", reset);
@@ -558,6 +575,9 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
 
   return () => {
     scope.removeEventListener("pointermove", onMove);
+    scope.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointerup", onTouchEnd);
+    window.removeEventListener("pointercancel", onTouchEnd);
     scope.removeEventListener("pointerleave", reset);
     scope.removeEventListener("pointercancel", reset);
     window.removeEventListener("blur", reset);
@@ -693,20 +713,23 @@ export function initHeatmapTip(root) {
  *
  * The app is a ledger, not a toy, so the light is fixed at low opacity and
  * sits behind the shell; it never sits on top of data or changes legibility.
- * Touch and reduced motion get nothing at all.
+ * Touch gets a short-lived light on press; reduced-motion users get none.
  *
  * @returns {() => void} teardown
  */
 export function initAmbientLight(root = document) {
   if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
   const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
-  if (fine && !fine.matches) return () => {};
+  const coarse = window.matchMedia?.("(pointer: coarse)");
+  if (fine && coarse && !fine.matches && !coarse.matches) return () => {};
 
   const scope = root || document;
   const el = scope.querySelector("[data-ambient]");
   if (!el) return () => {};
 
   let frame = 0;
+  let activeTouch = null;
+  let touchHideTimer = 0;
   let x = window.innerWidth * 0.5;
   let y = window.innerHeight * 0.18;
 
@@ -717,14 +740,31 @@ export function initAmbientLight(root = document) {
   };
 
   const move = (event) => {
-    if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+    const isTouch = event.pointerType === "touch";
+    if (isTouch && event.pointerId !== activeTouch) return;
+    if (!isTouch && event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
     x = event.clientX;
     y = event.clientY;
     el.classList.add("is-live");
     if (!frame) frame = requestAnimationFrame(paint);
   };
 
-  const hide = () => el.classList.remove("is-live");
+  const onDown = (event) => {
+    if (event.pointerType !== "touch" || prefersReducedMotion()) return;
+    activeTouch = event.pointerId;
+    if (touchHideTimer) clearTimeout(touchHideTimer);
+    move(event);
+  };
+  const onTouchEnd = (event) => {
+    if (event.pointerId !== activeTouch) return;
+    activeTouch = null;
+    touchHideTimer = window.setTimeout(hide, 520);
+  };
+  const hide = () => {
+    if (touchHideTimer) clearTimeout(touchHideTimer);
+    touchHideTimer = 0;
+    el.classList.remove("is-live");
+  };
 
   const onMotionChange = (event) => {
     if (event.matches) hide();
@@ -732,12 +772,18 @@ export function initAmbientLight(root = document) {
   const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
 
   scope.addEventListener("pointermove", move, { passive: true });
+  scope.addEventListener("pointerdown", onDown, { passive: true });
+  window.addEventListener("pointerup", onTouchEnd, { passive: true });
+  window.addEventListener("pointercancel", onTouchEnd, { passive: true });
   document.addEventListener("pointerleave", hide);
   window.addEventListener("blur", hide);
   motionQuery?.addEventListener?.("change", onMotionChange);
 
   return () => {
     scope.removeEventListener("pointermove", move);
+    scope.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointerup", onTouchEnd);
+    window.removeEventListener("pointercancel", onTouchEnd);
     document.removeEventListener("pointerleave", hide);
     window.removeEventListener("blur", hide);
     motionQuery?.removeEventListener?.("change", onMotionChange);

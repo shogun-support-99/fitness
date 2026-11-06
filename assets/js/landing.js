@@ -490,9 +490,12 @@ if (spotlit.length && finePointer.matches) {
 
 const tiltables = [...doc.querySelectorAll("[data-tilt]")];
 
-if (tiltables.length && finePointer.matches) {
+const coarsePointer = window.matchMedia("(pointer: coarse)");
+
+if (tiltables.length && (finePointer.matches || coarsePointer.matches) && !reduceMotion.matches) {
   let frame = 0;
   let target = null;
+  let activeTouch = null;
   let max = 3.2;
   let x = 0;
   let y = 0;
@@ -522,35 +525,45 @@ if (tiltables.length && finePointer.matches) {
     if (!frame) frame = requestAnimationFrame(paint);
   };
 
-  doc.addEventListener(
-    "pointermove",
-    (event) => {
-      if (reduceMotion.matches) return;
-      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
-        return;
-      }
-      const next =
-        event.target instanceof Element ? event.target.closest("[data-tilt]") : null;
-      if (!next) {
-        rest();
-        return;
-      }
-      if (next !== target) {
-        rest();
-        target = next;
-        const value = Number(next.dataset.tiltMax);
-        max = Number.isFinite(value) && value > 0 ? value : 3.2;
-        // The class is deliberately added on the first hover, not at boot:
-        // by then any entrance has finished, so the tilt can own `transform`.
-        next.classList.add("is-tilt-ready", "is-tilting");
-      }
-      const rect = next.getBoundingClientRect();
-      x = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
-      y = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
-      queue();
-    },
-    { passive: true },
-  );
+  const trackTilt = (event) => {
+    if (reduceMotion.matches) return;
+    const isTouch = event.pointerType === "touch";
+    if (isTouch && event.pointerId !== activeTouch) return;
+    if (!isTouch && event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+      return;
+    }
+    const next = event.target instanceof Element ? event.target.closest("[data-tilt]") : null;
+    if (!next) {
+      if (!isTouch) rest();
+      return;
+    }
+    if (next !== target) {
+      rest();
+      target = next;
+      const value = Number(next.dataset.tiltMax);
+      max = Number.isFinite(value) && value > 0 ? value : 3.2;
+      // Add the 3D transform on first interaction, after reveal animations settle.
+      next.classList.add("is-tilt-ready", "is-tilting");
+    }
+    const rect = next.getBoundingClientRect();
+    x = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
+    y = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
+    queue();
+  };
+
+  doc.addEventListener("pointermove", trackTilt, { passive: true });
+  doc.addEventListener("pointerdown", (event) => {
+    if (event.pointerType !== "touch" || reduceMotion.matches) return;
+    activeTouch = event.pointerId;
+    trackTilt(event);
+  }, { passive: true });
+  const finishTouchTilt = (event) => {
+    if (event.pointerId !== activeTouch) return;
+    activeTouch = null;
+    rest();
+  };
+  window.addEventListener("pointerup", finishTouchTilt, { passive: true });
+  window.addEventListener("pointercancel", finishTouchTilt, { passive: true });
 
   doc.addEventListener("pointerleave", rest);
   doc.addEventListener("pointercancel", rest);
