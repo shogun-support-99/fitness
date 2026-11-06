@@ -722,6 +722,25 @@ svg.tick,
   perspective: 920px;
 }
 
+/* A slow, always-on turntable yaw keeps the stack visibly three-dimensional
+   before the first pointer move. The pointer tilt on the artwork composes
+   on top of it. */
+@media (prefers-reduced-motion: no-preference) {
+  .folder-stack {
+    animation: stack-yaw 16s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+}
+
+@keyframes stack-yaw {
+  from {
+    transform: rotateY(-4.5deg) rotateX(0.8deg);
+  }
+  to {
+    transform: rotateY(4.5deg) rotateX(-0.8deg);
+  }
+}
+
 .folder {
   --tx: 0px;
   --ty: 0px;
