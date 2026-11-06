@@ -144,7 +144,7 @@ function renderActiveBanner(workout, units) {
   const volume = workoutVolume(workout);
   const elapsed = Date.now() - new Date(workout.startedAt).getTime();
   return `
-    <div class="active-banner" role="status" data-tilt data-reveal="rise">
+    <div class="active-banner" role="status" data-tilt data-tilt-glare data-tilt-max="2.2" data-reveal="rise">
       <div class="active-banner-text">
         <span class="pill pill-live"><span class="dot"></span>In progress</span>
         <h2>${esc(workout.name)}</h2>
@@ -164,7 +164,7 @@ function renderStartPanel(store, weekCount) {
   const goalProgress = Math.min(100, Math.round((weekCount / MOMENTUM_GOAL) * 100));
   return `
     <div class="home-training-grid">
-      <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-reveal="rise">
+      <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-tilt-glare data-tilt-max="2" data-reveal="rise">
         <div class="start-panel-copy">
           <span class="energy-badge">${icon("bolt")} Training mode</span>
           <h2>Small sets. <span class="text-gradient">Big momentum.</span></h2>

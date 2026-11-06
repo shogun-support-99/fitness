@@ -63,7 +63,7 @@ export function renderStats(store) {
         ${statTile({ label: "Current streak", value: String(streak.current), countTo: streak.current, unit: "d", hint: `best ${streak.best}d`, tone: "tone-orange" })}
       </div>
 
-      <section class="panel" data-reveal="rise">
+      <section class="panel" data-reveal="rise" data-tilt data-tilt-glare data-tilt-max="1.2">
         <div class="panel-head"><h2>Weekly volume</h2><span class="panel-note">last ${weeks.length} ${weeks.length === 1 ? "week" : "weeks"}</span></div>
         ${barChart(
           weeks.map((w) => ({
@@ -76,7 +76,7 @@ export function renderStats(store) {
         )}
       </section>
 
-      <section class="panel" data-reveal="rise">
+      <section class="panel" data-reveal="rise" data-tilt data-tilt-glare data-tilt-max="1.2">
         <div class="panel-head"><h2>Muscle balance</h2><span class="panel-note">sets per group</span></div>
         ${distributionBars(muscleDistribution(completed, index))}
       </section>

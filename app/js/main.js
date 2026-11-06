@@ -21,6 +21,8 @@ import {
   initPressFeedback,
   initTicker,
   initTilt,
+  initAmbientLight,
+  initScrollMeter,
   drawTick,
   celebrateRecord,
   prefersReducedMotion,
@@ -61,6 +63,7 @@ const $ = (selector, root = document) => root.querySelector(selector);
 let motionTeardowns = [];
 let lastRenderedRoute = null;
 let routeAnimationTimer = 0;
+let detailTiltBound = false;
 function teardownMotion() {
   for (const fn of motionTeardowns) {
     try { fn(); } catch { /* a torn-down observer is not an error */ }
@@ -74,8 +77,7 @@ function startMotion(root) {
   motionTeardowns.push(initChartMotion(root));
   motionTeardowns.push(initHeatmapTip(root));
   motionTeardowns.push(initTicker(root));
-  const hero = root.querySelector("[data-tilt]");
-  if (hero) motionTeardowns.push(initTilt(hero, { max: 2.4 }));
+  motionTeardowns.push(initTilt(root, { max: 2.6 }));
 }
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -1003,6 +1005,13 @@ function renderDetail() {
   });
   content.dataset.exerciseId = exerciseId;
 
+  // The sheet lives outside the view outlet, so its markup is repainted
+  // separately. Bind the delegated tilt once and let it follow every repaint.
+  if (!detailTiltBound) {
+    detailTiltBound = true;
+    initTilt(content, { max: 3.4 });
+  }
+
   const body = content.querySelector(".detail-body");
   if (body && scrollTop) body.scrollTop = scrollTop;
   if (languageFocused) {
@@ -1329,8 +1338,13 @@ function boot() {
   if (!$("#custom-exercise-sheet")) {
     document.body.insertAdjacentHTML("beforeend", renderCustomSheet());
   }
-  initPressFeedback(document, { selector: ".btn, .routine-card, .chip, .nav-item, .icon-btn, .timer-btn, .tick" });
+  initPressFeedback(document, {
+    selector:
+      ".btn, .routine-card, .chip, .nav-item, .icon-btn, .timer-btn, .tick, .session-row, .history-head, .library-open, .exercise-rest, .tile",
+  });
   initSpotlight();
+  initAmbientLight(document);
+  initScrollMeter(document);
   if (!globalThis.location.hash) globalThis.location.hash = "#/home";
   router.start();
   initNavGlider();

@@ -57,6 +57,14 @@ const tabList = doc.querySelector(".tabs");
 const tabs = [...doc.querySelectorAll("[data-tab]")];
 const panels = [...doc.querySelectorAll("[data-panel]")];
 const tabGlider = tabList?.querySelector(".tabs-glider");
+const mockScenes = [...doc.querySelectorAll("[data-mock-scene]")];
+const mockTitle = doc.querySelector("[data-mock-title]");
+const mockState = doc.querySelector("[data-mock-state]");
+const mockMeta = [
+  { title: "IronLog — live session", state: "Saved locally" },
+  { title: "IronLog — rest timer", state: "Countdown live" },
+  { title: "IronLog — session archive", state: "3 saved" },
+];
 
 if (tabList && tabs.length === panels.length) {
   let activeTab = Math.max(
@@ -99,6 +107,23 @@ if (tabList && tabs.length === panels.length) {
       panel.classList.add("is-switching");
     }
 
+    // The preview is a stage, not a screenshot: the ledger mock changes with
+    // the tab so the paragraph, the control and the artefact stay one story.
+    if (mockScenes.length === panels.length) {
+      mockScenes.forEach((scene, i) => {
+        const on = i === index;
+        scene.hidden = !on;
+        scene.classList.toggle("is-active", on);
+        if (on && !reduceMotion.matches) {
+          scene.classList.remove("is-switching");
+          void scene.offsetWidth;
+          scene.classList.add("is-switching");
+        }
+      });
+      if (mockTitle) mockTitle.textContent = mockMeta[index].title;
+      if (mockState) mockState.textContent = mockMeta[index].state;
+    }
+
     if (focus) tabs[index].focus();
   };
 
@@ -135,6 +160,8 @@ if (heroArt && heroStack) {
     frame = 0;
     heroStack.style.setProperty("--hero-x", x.toFixed(3));
     heroStack.style.setProperty("--hero-y", y.toFixed(3));
+    heroArt.style.setProperty("--hero-x", x.toFixed(3));
+    heroArt.style.setProperty("--hero-y", y.toFixed(3));
     heroArt.style.setProperty("--tilt-x", `${(-y * 4.5).toFixed(2)}deg`);
     heroArt.style.setProperty("--tilt-y", `${(x * 6.5).toFixed(2)}deg`);
     heroArt.style.setProperty("--spot-x", `${spotX.toFixed(1)}%`);
@@ -401,6 +428,80 @@ if (spotlit.length && finePointer.matches) {
   );
 }
 
+/* ── Pointer tilt ──────────────────────────────────────────────────────── */
+
+const tiltables = [...doc.querySelectorAll("[data-tilt]")];
+
+if (tiltables.length && finePointer.matches) {
+  let frame = 0;
+  let target = null;
+  let max = 3.2;
+  let x = 0;
+  let y = 0;
+
+  const paint = () => {
+    frame = 0;
+    if (!target) return;
+    target.style.setProperty("--tilt-x", `${(-y * max).toFixed(2)}deg`);
+    target.style.setProperty("--tilt-y", `${(x * max).toFixed(2)}deg`);
+    target.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
+    target.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
+  };
+
+  const rest = () => {
+    if (!target) return;
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    target.style.setProperty("--tilt-x", "0deg");
+    target.style.setProperty("--tilt-y", "0deg");
+    target.classList.remove("is-tilting");
+    target = null;
+  };
+
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  doc.addEventListener(
+    "pointermove",
+    (event) => {
+      if (reduceMotion.matches) return;
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+        return;
+      }
+      const next =
+        event.target instanceof Element ? event.target.closest("[data-tilt]") : null;
+      if (!next) {
+        rest();
+        return;
+      }
+      if (next !== target) {
+        rest();
+        target = next;
+        const value = Number(next.dataset.tiltMax);
+        max = Number.isFinite(value) && value > 0 ? value : 3.2;
+        // The class is deliberately added on the first hover, not at boot:
+        // by then any entrance has finished, so the tilt can own `transform`.
+        next.classList.add("is-tilt-ready", "is-tilting");
+      }
+      const rect = next.getBoundingClientRect();
+      x = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
+      y = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
+      queue();
+    },
+    { passive: true },
+  );
+
+  doc.addEventListener("pointerleave", rest);
+  doc.addEventListener("pointercancel", rest);
+  window.addEventListener("blur", rest);
+  reduceMotion.addEventListener("change", (event) => {
+    if (event.matches) rest();
+  });
+}
+
 /* ── Magnetic buttons ──────────────────────────────────────────────────── */
 
 const magnetic = [...doc.querySelectorAll("[data-magnetic]")];
@@ -479,6 +580,45 @@ if (revealables.length) {
 
 /* ── Scroll spy ────────────────────────────────────────────────────────── */
 
+/* ── Stats count-up ────────────────────────────────────────────────────── */
+
+const countEls = [...doc.querySelectorAll("[data-count]")];
+
+if (countEls.length && !reduceMotion.matches) {
+  const formatCount = new Intl.NumberFormat("en-US");
+
+  const countUp = (el) => {
+    const end = Number(el.dataset.count);
+    if (!Number.isFinite(end) || end <= 0) return;
+    const started = performance.now();
+    const duration = 900;
+    const tick = (now) => {
+      const t = Math.min(1, (now - started) / duration);
+      const eased = 1 - (1 - t) ** 3;
+      el.textContent = formatCount.format(Math.round(end * eased));
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = formatCount.format(end);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  if ("IntersectionObserver" in window) {
+    const countObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          countUp(entry.target);
+          countObserver.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.5 },
+    );
+    countEls.forEach((el) => countObserver.observe(el));
+  } else {
+    countEls.forEach(countUp);
+  }
+}
+
 const spyLinks = [...doc.querySelectorAll(".site-nav a")].filter((link) =>
   (link.getAttribute("href") ?? "").startsWith("#"),
 );
@@ -506,6 +646,80 @@ if (spyLinks.length && spySections.length && "IntersectionObserver" in window) {
 
 doc.querySelectorAll("[data-year]").forEach((el) => {
   el.textContent = String(new Date().getFullYear());
+});
+
+/* ── Scroll meter ──────────────────────────────────────────────────────── */
+
+const scrollMeter = doc.querySelector("[data-scroll-meter]");
+const siteHeader = doc.querySelector("[data-header]");
+
+if (scrollMeter || siteHeader) {
+  let frame = 0;
+
+  const paint = () => {
+    frame = 0;
+    const max = doc.documentElement.scrollHeight - window.innerHeight;
+    const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    if (scrollMeter) {
+      scrollMeter.parentElement.style.setProperty("--scroll-progress", progress.toFixed(4));
+    }
+    if (siteHeader) siteHeader.classList.toggle("is-scrolled", window.scrollY > 10);
+  };
+
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  window.addEventListener("scroll", queue, { passive: true });
+  window.addEventListener("resize", queue);
+  paint();
+}
+
+/* ── Touch tap glow ──────────────────────────────────────────────────────
+   Tilt needs a mouse. A finger gets a different signal: a soft pool of light
+   where it landed, only when the gesture was a tap and not a scroll. */
+
+let tapStart = null;
+
+const interactiveTarget = (node) =>
+  node instanceof Element
+    ? node.closest("a, button, summary, .routine-card, .stat, .feature-row, .faq-item")
+    : null;
+
+doc.addEventListener(
+  "pointerdown",
+  (event) => {
+    if (event.pointerType === "mouse" || reduceMotion.matches) return;
+    if (!interactiveTarget(event.target)) return;
+    tapStart = {
+      x: event.clientX,
+      y: event.clientY,
+      time: performance.now(),
+      id: event.pointerId,
+    };
+  },
+  { passive: true },
+);
+
+const releaseTap = (event) => {
+  if (!tapStart || event.pointerId !== tapStart.id) return;
+  const start = tapStart;
+  tapStart = null;
+  const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+  if (moved > 14 || performance.now() - start.time > 700) return;
+
+  const glow = doc.createElement("span");
+  glow.className = "tap-glow";
+  glow.style.left = `${event.clientX}px`;
+  glow.style.top = `${event.clientY}px`;
+  glow.addEventListener("animationend", () => glow.remove(), { once: true });
+  doc.body.append(glow);
+  window.setTimeout(() => glow.remove(), 900);
+};
+
+doc.addEventListener("pointerup", releaseTap, { passive: true });
+doc.addEventListener("pointercancel", () => {
+  tapStart = null;
 });
 
 /* -- Progress: sample training year -------------------------------------- */

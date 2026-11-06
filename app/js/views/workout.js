@@ -24,7 +24,7 @@ export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
         <header class="view-head">
           <div><h1>Workout</h1><p class="view-subline">Build a session or start from a routine.</p></div>
         </header>
-        <section class="quick-start-panel workout-launch" data-reveal="rise">
+        <section class="quick-start-panel workout-launch" data-tilt data-tilt-glare data-tilt-max="2.2" data-reveal="rise">
           <div class="quick-start-copy">
             <span class="energy-badge">${icon("bolt")} Build your session</span>
             <h2>What are we training today?</h2>

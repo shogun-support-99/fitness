@@ -70,7 +70,7 @@ export function statTile({ label, value, unit = "", hint = "", tone = "", countT
     ? `<span class="odo" data-count-to="${esc(countTo)}" data-count-decimals="0">${esc(value)}</span>`
     : esc(value);
   return `
-    <div class="tile ${tone} hover-lift" data-reveal="rise">
+    <div class="tile ${tone} hover-lift" data-spotlight data-reveal="rise">
       <span class="tile-label">${esc(label)}</span>
       <span class="tile-value">${figure}${unit ? `<em>${esc(unit)}</em>` : ""}</span>
       ${hint ? `<span class="tile-hint">${esc(hint)}</span>` : ""}
@@ -116,7 +116,7 @@ export function barChart(points, { height = 132, ariaLabel = "chart" } = {}) {
   ].join("");
 
   return `
-    <div class="chart" style="--chart-h:${height}px" role="img" aria-label="${esc(ariaLabel)}">
+    <div class="chart" style="--chart-h:${height}px" role="img" aria-label="${esc(ariaLabel)}" data-spotlight>
       <div class="chart-plot">
         <span class="chart-grid" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="chart-cols" style="grid-template-columns:repeat(${slots}, minmax(0, 1fr))">${cols}</span>
@@ -136,7 +136,7 @@ export function distributionBars(rows) {
   const max = Math.max(...rows.map((r) => r.value), 1);
   const total = rows.reduce((sum, r) => sum + r.value, 0);
   return `
-    <ul class="dist">
+    <ul class="dist" data-spotlight>
       ${rows
         .map((r, i) => {
           const share = total > 0 ? Math.round((r.value / total) * 100) : 0;

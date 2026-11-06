@@ -48,6 +48,7 @@
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scroll-meter" aria-hidden="true"><i data-scroll-meter></i></div>
 
     <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       <defs>
@@ -140,6 +141,9 @@
           </div>
 
           <div class="hero-art" role="group" aria-label="IronLog session preview. Log the fourth set to try it.">
+            <div class="hero-floor" aria-hidden="true"><span></span></div>
+            <span class="hero-float hero-float-a" aria-hidden="true"><b>100 kg</b><i>bench PR</i></span>
+            <span class="hero-float hero-float-b" aria-hidden="true"><b>3</b><i>sets left</i></span>
             <svg class="plate-watermark" viewBox="0 0 64 64" aria-hidden="true">
               <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
             </svg>
@@ -204,11 +208,11 @@
         </div>
       </section>
 
-      <section class="stats-band" aria-label="IronLog in numbers">
+      <section class="stats-band" aria-label="IronLog in numbers" data-spotlight>
         <div class="shell stats-grid">
-          <div class="stat"><strong>1,316</strong><span>exercises with instructions</span></div>
-          <div class="stat"><strong>2,632</strong><span>GIFs and stills from Gym Visual</span></div>
-          <div class="stat"><strong>10</strong><span>instruction languages</span></div>
+          <div class="stat"><strong data-count="1316">1,316</strong><span>exercises with instructions</span></div>
+          <div class="stat"><strong data-count="1316">1,316</strong><span>GIF demos from Gym Visual</span></div>
+          <div class="stat"><strong data-count="10">10</strong><span>instruction languages</span></div>
           <div class="stat"><strong>0</strong><span>accounts, servers or trackers</span></div>
         </div>
       </section>
@@ -225,31 +229,37 @@
 
           <div class="feature-list" data-reveal>
             <article class="feature-row">
+              <span class="feature-index" aria-hidden="true">01</span>
               <h3>Log a set in three taps</h3>
               <p>Weight and reps are prefilled from last week. Tick the set and the rest timer starts on its own.</p>
               <span class="feature-meta">3 taps</span>
             </article>
             <article class="feature-row">
+              <span class="feature-index" aria-hidden="true">02</span>
               <h3>A rest timer that survives reloads</h3>
               <p>Two minutes, or whatever you preset. Add fifteen seconds mid-count, switch tabs, and it is still counting.</p>
               <span class="feature-meta">presets · +15s</span>
             </article>
             <article class="feature-row">
+              <span class="feature-index" aria-hidden="true">03</span>
               <h3>Records you can name</h3>
               <p>Heaviest weight, most reps and best estimated 1RM are tracked separately, so the summary can tell you which one fell.</p>
               <span class="feature-meta">3 per lift</span>
             </article>
             <article class="feature-row">
+              <span class="feature-index" aria-hidden="true">04</span>
               <h3>Progress without a chart library</h3>
               <p>Weekly volume, muscle balance, lifetime totals and a training-day streak, drawn inline from your own log.</p>
               <span class="feature-meta">4 views</span>
             </article>
             <article class="feature-row">
+              <span class="feature-index" aria-hidden="true">05</span>
               <h3>Find the right lift at the rack</h3>
               <p>Search the 1,316-exercise dataset by muscle and equipment, with written instructions and 1,316 licensed GIF demos.</p>
               <span class="feature-meta">1,316 entries</span>
             </article>
             <article class="feature-row">
+              <span class="feature-index" aria-hidden="true">06</span>
               <h3>Offline by default</h3>
               <p>Install it once. It opens on a basement wifi bar and keeps working when the screen locks mid-set.</p>
               <span class="feature-meta">no network</span>
@@ -316,34 +326,75 @@
           </div>
 
           <div class="showcase-art" aria-hidden="true">
-            <div class="ledger-mock">
-              <div class="ledger-mock-head">
-                <span class="ledger-mock-mark"><svg viewBox="0 0 64 64"><path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" /><path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" /></svg></span>
-                <span class="ledger-mock-title">IronLog — live session</span>
-                <span class="ledger-mock-live"><i></i>Saved locally</span>
+            <div class="showcase-stage">
+              <span class="stage-grid" aria-hidden="true"></span>
+              <span class="stage-float stage-float-a" aria-hidden="true"><b>1,316</b><i>GIF demos</i></span>
+              <span class="stage-float stage-float-b" aria-hidden="true"><b>0</b><i>accounts</i></span>
+
+              <div class="ledger-mock" data-tilt data-tilt-glare data-tilt-max="3.4">
+                <div class="ledger-mock-head">
+                  <span class="ledger-mock-mark"><svg viewBox="0 0 64 64"><path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" /><path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" /></svg></span>
+                  <span class="ledger-mock-title" data-mock-title>IronLog — live session</span>
+                  <span class="ledger-mock-live"><i></i><span data-mock-state>Saved locally</span></span>
+                </div>
+                <div class="ledger-mock-body">
+                  <div class="mock-scene is-active" data-mock-scene="log">
+                    <div class="mock-totals">
+                      <div><span>Duration</span><strong>00:42:18</strong></div>
+                      <div><span>Volume</span><strong>6,140 kg</strong></div>
+                      <div><span>Records</span><strong>2</strong></div>
+                    </div>
+                    <div class="mock-list">
+                      <div class="mock-list-head"><strong>Barbell Bench Press</strong><span>3 of 4 sets</span></div>
+                      <div class="mock-set is-done"><span>1</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
+                      <div class="mock-set is-done"><span>2</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
+                      <div class="mock-set is-done"><span>3</span><b>82.5 kg</b><span>× 6</span><i><svg><use href="#i-check" /></svg></i></div>
+                      <div class="mock-set"><span>4</span><b>82.5 kg</b><span>× 6</span><i class="is-idle"></i></div>
+                    </div>
+                    <div class="mock-rest">
+                      <svg><use href="#i-timer" /></svg>
+                      <span>Rest</span>
+                      <strong>01:24</strong>
+                      <span class="mock-rest-bar"><i></i></span>
+                    </div>
+                  </div>
+
+                  <div class="mock-scene" data-mock-scene="rest" hidden>
+                    <div class="mock-rest-stage">
+                      <span class="mock-rest-kicker">Rest before set 4</span>
+                      <strong class="mock-rest-clock">01:24</strong>
+                      <span class="mock-rest-meter"><i></i></span>
+                      <span class="mock-rest-actions"><b>+15s</b><b>Skip rest</b></span>
+                    </div>
+                    <div class="mock-list">
+                      <div class="mock-list-head"><strong>Up next</strong><span>Bench press</span></div>
+                      <div class="mock-set"><span>4</span><b>82.5 kg</b><span>× 6</span><i class="is-idle"></i></div>
+                      <div class="mock-set"><span>5</span><b>82.5 kg</b><span>× 6</span><i class="is-idle"></i></div>
+                    </div>
+                  </div>
+
+                  <div class="mock-scene" data-mock-scene="history" hidden>
+                    <div class="mock-totals">
+                      <div><span>Sessions</span><strong>12</strong></div>
+                      <div><span>Volume</span><strong>62.4 t</strong></div>
+                      <div><span>Records</span><strong>3</strong></div>
+                    </div>
+                    <ul class="mock-history-list">
+                      <li><span>Nov 06</span><strong>Push</strong><b>6,140 kg</b></li>
+                      <li><span>Nov 04</span><strong>Pull</strong><b>5,820 kg</b></li>
+                      <li><span>Nov 02</span><strong>Legs</strong><b>7,360 kg</b></li>
+                    </ul>
+                    <div class="mock-rest mock-rest-quiet">
+                      <svg><use href="#i-check" /></svg>
+                      <span>All sets on record</span>
+                      <strong>12 sessions</strong>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="ledger-mock-body">
-                <div class="mock-totals">
-                  <div><span>Duration</span><strong>00:42:18</strong></div>
-                  <div><span>Volume</span><strong>6,140 kg</strong></div>
-                  <div><span>Records</span><strong>2</strong></div>
-                </div>
-                <div class="mock-list">
-                  <div class="mock-list-head"><strong>Barbell Bench Press</strong><span>3 of 4 sets</span></div>
-                  <div class="mock-set is-done"><span>1</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
-                  <div class="mock-set is-done"><span>2</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
-                  <div class="mock-set is-done"><span>3</span><b>82.5 kg</b><span>× 6</span><i><svg><use href="#i-check" /></svg></i></div>
-                  <div class="mock-set"><span>4</span><b>82.5 kg</b><span>× 6</span><i class="is-idle"></i></div>
-                </div>
-                <div class="mock-rest">
-                  <svg><use href="#i-timer" /></svg>
-                  <span>Rest</span>
-                  <strong>01:24</strong>
-                  <span class="mock-rest-bar"><i></i></span>
-                </div>
-              </div>
+
+              <span class="showcase-note">The whole session: one sheet.</span>
             </div>
-            <span class="showcase-note">The whole session: one sheet.</span>
           </div>
         </div>
       </section>
@@ -359,7 +410,7 @@
             </p>
           </header>
 
-          <div class="year-board" data-reveal>
+          <div class="year-board" data-reveal data-tilt data-tilt-glare data-tilt-max="1.1">
             <div class="year-board-head">
               <div>
                 <p class="year-kicker">Sample training year</p>
@@ -394,25 +445,29 @@
           </header>
 
           <div class="routine-grid">
-            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Push routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal data-tilt data-tilt-glare data-tilt-max="3.6" aria-label="Start the Push routine in IronLog">
+              <span class="routine-index" aria-hidden="true">01</span>
               <span class="routine-tag">Chest · shoulders · triceps</span>
               <h3>Push</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Pull routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal data-tilt data-tilt-glare data-tilt-max="3.6" aria-label="Start the Pull routine in IronLog">
+              <span class="routine-index" aria-hidden="true">02</span>
               <span class="routine-tag">Back · biceps</span>
               <h3>Pull</h3>
               <p>6 exercises · 18 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Legs routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal data-tilt data-tilt-glare data-tilt-max="3.6" aria-label="Start the Legs routine in IronLog">
+              <span class="routine-index" aria-hidden="true">03</span>
               <span class="routine-tag">Quads · hamstrings · calves</span>
               <h3>Legs</h3>
               <p>5 exercises · 17 sets</p>
               <span class="routine-link">Start routine <svg aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
-            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal aria-label="Start the Full body routine in IronLog">
+            <a class="routine-card hover-lift" href="./app/#/workout" data-spotlight data-reveal data-tilt data-tilt-glare data-tilt-max="3.6" aria-label="Start the Full body routine in IronLog">
+              <span class="routine-index" aria-hidden="true">04</span>
               <span class="routine-tag">Whole body</span>
               <h3>Full body</h3>
               <p>6 exercises · 18 sets</p>
@@ -438,15 +493,19 @@
               <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Erase it all from Settings, permanently</li>
             </ul>
           </div>
-          <div class="privacy-card" data-reveal>
-            <p class="privacy-card-label">What a server would know</p>
-            <ul class="know-list">
-              <li><span>Who you are</span><b>Nothing</b></li>
-              <li><span>What you lifted</span><b>Nothing</b></li>
-              <li><span>When you trained</span><b>Nothing</b></li>
-              <li><span>Where you are</span><b>Nothing</b></li>
-            </ul>
-            <p class="privacy-card-foot">Because there is no server to ask.</p>
+          <div class="privacy-stage">
+            <div class="privacy-stack" aria-hidden="true"><span></span><span></span></div>
+            <div class="privacy-card" data-reveal data-tilt data-tilt-glare data-tilt-max="2.4">
+              <span class="privacy-ghost" aria-hidden="true">0 requests</span>
+              <p class="privacy-card-label">What a server would know</p>
+              <ul class="know-list">
+                <li><span>Who you are</span><b>Nothing</b></li>
+                <li><span>What you lifted</span><b>Nothing</b></li>
+                <li><span>When you trained</span><b>Nothing</b></li>
+                <li><span>Where you are</span><b>Nothing</b></li>
+              </ul>
+              <p class="privacy-card-foot">Because there is no server to ask.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -483,7 +542,14 @@
         </div>
       </section>
 
-      <section class="final-cta">
+      <section class="final-cta" data-spotlight>
+        <div class="final-scene" aria-hidden="true">
+          <span class="final-grid"></span>
+          <svg class="final-plate" viewBox="0 0 64 64">
+            <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+          </svg>
+          <span class="final-orbit"></span>
+        </div>
         <div class="shell final-inner" data-reveal>
           <h2>Your next session is one tap away.</h2>
           <p>No account. No install step required. Just the log.</p>

@@ -172,7 +172,7 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
 
     <div class="detail-body">
       <section class="detail-hero">
-        <div class="detail-media-card ${exercise.media?.provider ? "has-media" : ""}" data-reveal="draw">
+        <div class="detail-media-card ${exercise.media?.provider ? "has-media" : ""}" data-tilt data-tilt-glare data-tilt-max="4" data-reveal="draw">
           <span class="detail-media-tag">${mediaLabel}</span>
           ${/*
             Licensed media: Gym Visual 180x180 GIFs (operator-held licence) render

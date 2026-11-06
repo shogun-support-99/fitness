@@ -468,48 +468,103 @@ export function initPressFeedback(root, { selector = "[data-press]" } = {}) {
  * ------------------------------------------------------------------------- */
 
 /**
- * Pointer-reactive tilt for one hero object.
+ * Pointer-reactive tilt for every `[data-tilt]` surface in a scope.
  *
- * Kept deliberately small (under 5deg) and disabled on touch, under reduced
- * motion, and when the element is offscreen. A whole page that tilts is
- * seasick; one artefact that responds to the cursor feels held.
+ * The listener is delegated from the stable container, so cards repainted by a
+ * view change keep responding without re-binding. Kept deliberately small
+ * (under 5deg), disabled on touch and under reduced motion. The 3D class is
+ * added on the first hover rather than at boot: by then any entrance has
+ * finished, so the tilt can own `transform` without cancelling the animation.
+ *
+ * @param {Element|string} [el] element, container or selector; defaults to document
+ * @param {{max?: number, selector?: string}} [options]
+ * @returns {() => void} teardown
  */
 export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
-  const target =
-    typeof el === "string" ? document.querySelector(el) : el || document.querySelector(selector);
-  if (!target) return () => {};
+  const scope =
+    typeof el === "string"
+      ? document.querySelector(el)
+      : el || (typeof document !== "undefined" ? document : null);
+  if (!scope) return () => {};
   if (prefersReducedMotion()) return () => {};
-  if (typeof window !== "undefined" && window.matchMedia?.("(hover: none)").matches) {
-    return () => {};
+  if (typeof window !== "undefined") {
+    const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+    if (fine && !fine.matches) return () => {};
   }
 
+  const isTarget = scope.matches?.(selector) ?? false;
   let frame = 0;
-  const onMove = (e) => {
-    const r = target.getBoundingClientRect();
-    const px = (e.clientX - r.left) / Math.max(r.width, 1) - 0.5;
-    const py = (e.clientY - r.top) / Math.max(r.height, 1) - 0.5;
-    if (frame) cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => {
-      target.style.setProperty("--tilt-x", `${(-py * max).toFixed(2)}deg`);
-      target.style.setProperty("--tilt-y", `${(px * max).toFixed(2)}deg`);
-      target.style.setProperty("--glare-x", `${((px + 0.5) * 100).toFixed(1)}%`);
-      target.style.setProperty("--glare-y", `${((py + 0.5) * 100).toFixed(1)}%`);
-    });
-  };
-  const onLeave = () => {
-    if (frame) cancelAnimationFrame(frame);
-    target.style.setProperty("--tilt-x", "0deg");
-    target.style.setProperty("--tilt-y", "0deg");
+  let target = null;
+  let tiltMax = max;
+  let px = 0;
+  let py = 0;
+
+  const paint = () => {
+    frame = 0;
+    if (!target) return;
+    target.style.setProperty("--tilt-x", `${(-py * tiltMax).toFixed(2)}deg`);
+    target.style.setProperty("--tilt-y", `${(px * tiltMax).toFixed(2)}deg`);
+    target.style.setProperty("--glare-x", `${((px + 0.5) * 100).toFixed(1)}%`);
+    target.style.setProperty("--glare-y", `${((py + 0.5) * 100).toFixed(1)}%`);
   };
 
-  target.addEventListener("pointermove", onMove);
-  target.addEventListener("pointerleave", onLeave);
-  target.classList.add("tilt-active");
+  const reset = () => {
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    if (target) {
+      target.style.setProperty("--tilt-x", "0deg");
+      target.style.setProperty("--tilt-y", "0deg");
+      target.classList.remove("is-tilting");
+    }
+    target = null;
+  };
+
+  const onMove = (event) => {
+    if (prefersReducedMotion()) return;
+    if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+      return;
+    }
+    const found =
+      event.target instanceof Element ? event.target.closest(selector) : null;
+    const next = found && (isTarget ? found === scope : scope.contains(found)) ? found : null;
+    if (!next) {
+      reset();
+      return;
+    }
+    if (next !== target) {
+      reset();
+      target = next;
+      const value = Number(next.dataset.tiltMax);
+      tiltMax = Number.isFinite(value) && value > 0 ? value : max;
+      next.classList.add("is-tilt-ready", "is-tilting");
+    }
+    const rect = next.getBoundingClientRect();
+    px = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
+    py = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  scope.addEventListener("pointermove", onMove, { passive: true });
+  scope.addEventListener("pointerleave", reset);
+  scope.addEventListener("pointercancel", reset);
+  window.addEventListener("blur", reset);
+  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  const onMotionChange = (event) => {
+    if (event.matches) reset();
+  };
+  motionQuery?.addEventListener?.("change", onMotionChange);
+
   return () => {
-    target.removeEventListener("pointermove", onMove);
-    target.removeEventListener("pointerleave", onLeave);
-    target.classList.remove("tilt-active");
-    if (frame) cancelAnimationFrame(frame);
+    scope.removeEventListener("pointermove", onMove);
+    scope.removeEventListener("pointerleave", reset);
+    scope.removeEventListener("pointercancel", reset);
+    window.removeEventListener("blur", reset);
+    motionQuery?.removeEventListener?.("change", onMotionChange);
+    reset();
+    const cleaned = isTarget ? [scope] : [...scope.querySelectorAll(".is-tilt-ready")];
+    cleaned.forEach((node) => node.classList.remove("is-tilt-ready", "is-tilting"));
   };
 }
 
@@ -627,4 +682,104 @@ export function initHeatmapTip(root) {
   });
 
   return () => cleanups.forEach((fn) => fn());
+}
+
+/* ------------------------------------------------------------------------- *
+ * Ambient pointer light and scroll meter
+ * ------------------------------------------------------------------------- */
+
+/**
+ * A very quiet shop-light behind the workspace that follows a fine pointer.
+ *
+ * The app is a ledger, not a toy, so the light is fixed at low opacity and
+ * sits behind the shell; it never sits on top of data or changes legibility.
+ * Touch and reduced motion get nothing at all.
+ *
+ * @returns {() => void} teardown
+ */
+export function initAmbientLight(root = document) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+  if (fine && !fine.matches) return () => {};
+
+  const scope = root || document;
+  const el = scope.querySelector("[data-ambient]");
+  if (!el) return () => {};
+
+  let frame = 0;
+  let x = window.innerWidth * 0.5;
+  let y = window.innerHeight * 0.18;
+
+  const paint = () => {
+    frame = 0;
+    el.style.setProperty("--ambient-x", `${x.toFixed(0)}px`);
+    el.style.setProperty("--ambient-y", `${y.toFixed(0)}px`);
+  };
+
+  const move = (event) => {
+    if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+    x = event.clientX;
+    y = event.clientY;
+    el.classList.add("is-live");
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const hide = () => el.classList.remove("is-live");
+
+  const onMotionChange = (event) => {
+    if (event.matches) hide();
+  };
+  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+
+  scope.addEventListener("pointermove", move, { passive: true });
+  document.addEventListener("pointerleave", hide);
+  window.addEventListener("blur", hide);
+  motionQuery?.addEventListener?.("change", onMotionChange);
+
+  return () => {
+    scope.removeEventListener("pointermove", move);
+    document.removeEventListener("pointerleave", hide);
+    window.removeEventListener("blur", hide);
+    motionQuery?.removeEventListener?.("change", onMotionChange);
+    if (frame) cancelAnimationFrame(frame);
+    hide();
+  };
+}
+
+/**
+ * Thin progress rule under the topbar. It is a reading aid, not a loading
+ * indicator: it tracks the document, never a route transition.
+ *
+ * @returns {() => void} teardown
+ */
+export function initScrollMeter(root = document) {
+  const scope = root || document;
+  const bar = scope.querySelector("[data-app-scroll]");
+  if (!bar) return () => {};
+
+  const topbar = document.querySelector(".app-topbar");
+  let frame = 0;
+
+  const paint = () => {
+    frame = 0;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    bar.style.setProperty("--app-progress", progress.toFixed(4));
+    topbar?.classList.toggle("is-scrolled", window.scrollY > 8);
+  };
+
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  window.addEventListener("scroll", queue, { passive: true });
+  window.addEventListener("resize", queue);
+  paint();
+
+  return () => {
+    window.removeEventListener("scroll", queue);
+    window.removeEventListener("resize", queue);
+    if (frame) cancelAnimationFrame(frame);
+    topbar?.classList.remove("is-scrolled");
+  };
 }

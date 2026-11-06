@@ -1609,50 +1609,86 @@ select {
 
 /* ── Rest timer ────────────────────────────────────────────────────────── */
 
-/* A thin rule that drains, pinned under the shell's top edge. No glow, no
-   gradient: the fill is one flat step of the data hue. */
+/* A strip that sticks under the topbar while the set ladder scrolls past.
+   The rail drains; the readout is tabular mono; the last fifth turns amber.
+   It floats, so it is one of the few surfaces allowed a shadow. */
 .timer-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 60;
-  height: 2px;
+  position: sticky;
+  top: 58px;
+  z-index: 26;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--surface) 93%, transparent);
+  -webkit-backdrop-filter: saturate(150%) blur(14px);
+  backdrop-filter: saturate(150%) blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: 0 18px 38px -30px rgba(15, 42, 29, 0.5);
+}
+
+.timer-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 6px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
   background: var(--rule);
 }
 
 .timer-fill {
+  display: block;
   height: 100%;
   width: 0%;
+  border-radius: inherit;
   background: var(--data);
   transition: width 0.4s linear;
 }
 
-.timer-track {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-}
-
 .timer-icon {
   display: inline-flex;
-  color: var(--muted);
+  color: var(--data);
 }
 
 .timer-read {
   font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+  line-height: 1;
   color: var(--text);
 }
 
 .timer-btn {
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border-control);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.timer-btn:hover {
+  border-color: var(--text);
+  background: var(--raised);
+}
+
+.timer-btn .icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* ── Charts ──────────────────────────────────────────────────────────────
@@ -3586,6 +3622,7 @@ select {
 }
 
 .routine-card:hover {
+  --tilt-lift: -2px;
   transform: translateY(-2px);
   border-color: var(--text);
   box-shadow: var(--shadow-menu);
@@ -5747,11 +5784,47 @@ select {
    page that tilts is seasick; one object that responds to the cursor feels
    held. Disabled on touch and under reduced motion by motion.js. */
 
-.tilt-active {
-  transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-  transition: transform 380ms var(--ease-out-soft);
+[data-tilt-glare] {
+  position: relative;
+}
+
+[data-tilt].is-tilt-ready {
+  transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+    translateY(var(--tilt-lift, 0px));
   transform-style: preserve-3d;
+  animation: none !important;
+  transition:
+    transform 380ms var(--ease-out-soft),
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease);
   will-change: transform;
+}
+
+[data-tilt].is-tilt-ready.is-tilting {
+  transition:
+    transform 80ms linear,
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease);
+}
+
+[data-tilt-glare].is-tilt-ready::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: radial-gradient(
+    220px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(255, 255, 255, 0.16),
+    transparent 66%
+  );
+  opacity: 0;
+  transition: opacity 0.24s var(--ease);
+  pointer-events: none;
+}
+
+[data-tilt-glare].is-tilt-ready.is-tilting::after {
+  opacity: 1;
 }
 
 /* ── 12. Skeleton ─────────────────────────────────────────────────────────
@@ -5840,6 +5913,335 @@ select {
   }
 }
 
+/* ── 15. Depth pass ───────────────────────────────────────────────────────
+   The ledger stays paper. The depth is the desk around it: a quiet light that
+   follows a fine pointer, a rail of progress under the topbar, a floating
+   rest strip, a goal ring that comes off the page, and rows that step toward
+   the reader. Every layer is decorative, none carries data on its own, and
+   the whole pass is switched off under reduced motion. */
+
+/* The ambient light sits BEHIND the shell so it can never wash out a figure.
+   opacity starts at zero and only rises once a real pointer has moved. */
+.app-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      560px circle at var(--ambient-x, 50%) var(--ambient-y, 12%),
+      color-mix(in srgb, var(--data) 9%, transparent),
+      transparent 64%
+    ),
+    radial-gradient(
+      260px circle at var(--ambient-x, 50%) var(--ambient-y, 12%),
+      color-mix(in srgb, var(--signal) 7%, transparent),
+      transparent 72%
+    );
+  transition: opacity 600ms var(--ease-out-soft);
+}
+
+.app-ambient.is-live {
+  opacity: 1;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+}
+
+.app-scroll-meter {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 45;
+  height: 2px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.app-scroll-meter i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--data);
+  transform: scaleX(var(--app-progress, 0));
+  transform-origin: left center;
+}
+
+.app-topbar {
+  transition: box-shadow 240ms var(--ease-out-soft);
+}
+
+.app-topbar.is-scrolled {
+  box-shadow: 0 18px 34px -34px rgba(15, 42, 29, 0.65);
+}
+
+/* Home: a ghost plate pressed behind the hero, and a goal ring that lifts. */
+.training-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -46%;
+  right: -20%;
+  width: min(62%, 340px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 34px color-mix(in srgb, currentColor 4%, transparent),
+    0 0 0 68px color-mix(in srgb, currentColor 2.5%, transparent);
+  pointer-events: none;
+  transform: translateZ(-30px);
+}
+
+.hero-goal {
+  transform-origin: 40% 50%;
+  transition: transform 520ms var(--ease-out-soft);
+}
+
+.goal-ring {
+  /* The ring already breathes on its own; the parent carries the perspective. */
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.18));
+}
+
+.quick-start-panel .hero-plate {
+  transform: translateZ(-24px) rotate(-4deg);
+  transition: transform 560ms var(--ease-out-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .training-hero:hover .hero-goal {
+    transform: perspective(760px) rotateX(2deg) rotateY(-7deg);
+  }
+
+  .quick-start-panel:hover .hero-plate {
+    transform: translateZ(-6px) rotate(2deg) scale(1.04);
+  }
+}
+
+/* KPI tiles: a light on the paper and a figure that steps up a hair. The
+   grid's hairlines stay exactly where they are, so the ledger does not move. */
+.tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.tile > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tile[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    190px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in srgb, var(--data) 9%, transparent),
+    transparent 72%
+  );
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+  pointer-events: none;
+}
+
+.tile-value {
+  transition: transform 0.22s var(--ease-out-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tile[data-spotlight]:hover::before {
+    opacity: 1;
+  }
+
+  .tile:hover .tile-value {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+/* Charts: light behind the plot, the hovered bar brightens, and a
+   distribution row steps toward the reader rather than sliding its track. */
+.chart,
+.dist {
+  position: relative;
+}
+
+.chart[data-spotlight]::before,
+.dist[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  z-index: 0;
+  border-radius: 8px;
+  background: radial-gradient(
+    230px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in srgb, var(--data) 8%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+  pointer-events: none;
+}
+
+.chart > *,
+.dist > * {
+  position: relative;
+  z-index: 1;
+}
+
+.chart-bar {
+  transition: filter 0.18s var(--ease);
+}
+
+.dist > li {
+  transition: transform 0.2s var(--ease-out-soft);
+}
+
+.dist-fill {
+  transition: filter 0.18s var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chart[data-spotlight]:hover::before,
+  .dist[data-spotlight]:hover::before {
+    opacity: 1;
+  }
+
+  .chart-col.has-point:hover .chart-bar {
+    filter: brightness(1.14) saturate(1.04);
+  }
+
+  .dist > li:hover {
+    transform: translateX(3px);
+  }
+
+  .dist > li:hover .dist-fill {
+    filter: brightness(1.08);
+  }
+
+  .panel[data-tilt].is-tilt-ready:hover {
+    border-color: var(--border-control);
+  }
+}
+
+/* Rows: history, sessions and the library step toward the reader; the small
+   marks at the end of the row follow a beat later. */
+.history-item,
+.session-row {
+  transition:
+    background-color 0.14s var(--ease),
+    transform 0.22s var(--ease-out-soft);
+}
+
+.library-row {
+  transition:
+    background-color 0.14s var(--ease),
+    transform 0.22s var(--ease-out-soft);
+}
+
+.session-avatar,
+.session-go,
+.history-chev,
+.library-go,
+.exercise-thumb {
+  transition:
+    transform 0.22s var(--ease-out-soft),
+    color 0.18s var(--ease);
+}
+
+.exercise-card {
+  transition:
+    transform 0.22s var(--ease-out-soft),
+    border-color 0.18s var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .history-item:hover,
+  .session-row:hover,
+  .library-row:hover {
+    transform: translate3d(3px, 0, 0);
+  }
+
+  .session-row:hover .session-avatar {
+    transform: translateY(-2px) scale(1.06);
+  }
+
+  .session-row:hover .session-go,
+  .history-item:hover .history-chev,
+  .library-row:hover .library-go {
+    transform: translateX(3px);
+    color: var(--text);
+  }
+
+  .library-row:hover .exercise-thumb {
+    transform: translateY(-1px) scale(1.045);
+  }
+
+  .exercise-card:hover {
+    border-color: var(--border-control);
+  }
+}
+
+/* An expanded session unfolds from its header rather than appearing. */
+.history-detail {
+  transform-origin: top center;
+  animation: history-unfold 300ms var(--ease-expo) both;
+}
+
+@keyframes history-unfold {
+  from {
+    opacity: 0.4;
+    transform: translate3d(0, -6px, 0) scaleY(0.985);
+  }
+}
+
+.timer-bar .timer-btn {
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    background-color var(--dur-fast) var(--ease-out-soft),
+    border-color var(--dur-fast) var(--ease-out-soft),
+    color var(--dur-fast) var(--ease-out-soft);
+}
+
+/* Sheets already float; the detail sheet also arrives from one step back in
+   depth, so the media plate feels laid down on the desk rather than pasted. */
+.detail-sheet-panel {
+  transform-origin: 50% 100%;
+  animation-name: detail-sheet-in;
+}
+
+@keyframes detail-sheet-in {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translate3d(0, 30px, -30px) rotateX(3deg) scale(0.98);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translate3d(0, 0, 0) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Touch has no hover, so it gets a direct press response instead. */
+@media (hover: none) {
+  .session-row:active,
+  .library-row:active,
+  .history-head:active {
+    background: var(--raised);
+  }
+
+  .tile:active .tile-value {
+    transform: scale(0.97);
+  }
+
+  .exercise-card:active {
+    border-color: var(--data);
+  }
+}
+
 /* ── Reduced motion ───────────────────────────────────────────────────────
    Last, and universal, so it wins over everything above. This removes the
    animation and leaves the FINAL state: content is never hidden behind a
@@ -5897,8 +6299,12 @@ select {
 
   .chart-bar.bar-animate,
   .dist-fill.bar-animate,
-  .tilt-active {
+  [data-tilt].is-tilt-ready {
     transform: none !important;
+  }
+
+  [data-tilt-glare].is-tilt-ready::after {
+    display: none;
   }
 
   .timer-fill {
@@ -5911,8 +6317,46 @@ select {
 
   /* The pointer spotlight is decorative; without pointer tracking it would be
      a stale glow parked at the card centre. */
-  .routine-card[data-spotlight]::before {
+  .routine-card[data-spotlight]::before,
+  .tile[data-spotlight]::before,
+  .chart[data-spotlight]::before,
+  .dist[data-spotlight]::before {
     display: none;
+  }
+
+  /* Depth-pass motion is decoration. Under reduced motion it lands in its
+     final, unrotated state rather than waiting on a transition. */
+  .app-ambient {
+    display: none;
+  }
+
+  .app-scroll-meter i {
+    transition: none;
+  }
+
+  .history-detail {
+    animation: none !important;
+  }
+
+  .hero-goal,
+  .quick-start-panel .hero-plate,
+  .tile-value,
+  .dist > li,
+  .history-item,
+  .session-row,
+  .library-row,
+  .exercise-card,
+  .session-avatar,
+  .session-go,
+  .history-chev,
+  .library-go,
+  .exercise-thumb {
+    transform: none !important;
+  }
+
+  .timer-bar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 
@@ -5922,6 +6366,8 @@ select {
 @media print {
   .sidebar,
   .timer-bar,
+  .app-ambient,
+  .app-scroll-meter,
   #toast-host,
   .btn,
   .icon-btn,
