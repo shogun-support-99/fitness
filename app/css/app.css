@@ -4823,9 +4823,8 @@ select {
         Nothing fades up from opacity 0 - that is what makes motion feel cheap.
      2. Only transform, opacity, clip-path, filter and stroke-dashoffset are
         animated. No width/height/top/left: those relayout every frame.
-     3. prefers-reduced-motion removes all of it and leaves the final state,
-        so nothing is ever trapped behind a transition that will not run.
-        motion.js also declines to start loops, so this is belt and braces. */
+     3. Motion is always enabled; effects are kept bounded and use transforms
+        and opacity so they remain responsive without relayout. */
 
 :root {
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -5558,8 +5557,7 @@ select {
 
 /* ── 8. Ticker ────────────────────────────────────────────────────────────
    A strip of real exercise names. Pauses on hover, on focus within, and when
-   the tab is hidden; never starts under reduced motion. An unstoppable
-   scrolling strip is both an accessibility failure and a battery one. */
+   the tab is hidden. */
 
 .ticker {
   position: relative;
@@ -5735,11 +5733,11 @@ select {
 }
 
 /* The active destination gets one small, springy icon pop when it changes. */
-@media (prefers-reduced-motion: no-preference) {
+
   .nav-item.is-active .nav-icon .icon {
     animation: nav-icon-pop 380ms var(--ease-spring);
   }
-}
+
 
 @keyframes nav-icon-pop {
   0% {
@@ -5755,8 +5753,8 @@ select {
 
 /* ── 10. Charts ───────────────────────────────────────────────────────────
    Bars grow from the baseline with a stagger. The true height is already in
-   markup, so the chart is correct without JS and under reduced motion; this
-   animates a transform, never the data. */
+   markup, so the chart is correct without JS; this animates a transform,
+   never the data. */
 
 .chart-bar {
   transform-box: fill-box;
@@ -5796,9 +5794,8 @@ select {
 }
 
 /* ── 11. Tilt ─────────────────────────────────────────────────────────────
-   Pointer-reactive, under 5deg, and only on the one hero artefact. A whole
-   page that tilts is seasick; one object that responds to the cursor feels
-   held. Disabled on touch and under reduced motion by motion.js. */
+   Pointer-reactive and deliberately under 5deg. A whole page that tilts is
+   seasick; one object that responds to the cursor feels held. */
 
 [data-tilt-glare] {
   position: relative;
@@ -5933,8 +5930,7 @@ select {
    The ledger stays paper. The depth is the desk around it: a quiet light that
    follows a fine pointer, a rail of progress under the topbar, a floating
    rest strip, a goal ring that comes off the page, and rows that step toward
-   the reader. Every layer is decorative, none carries data on its own, and
-   the whole pass is switched off under reduced motion. */
+   the reader. Every layer is decorative and none carries data on its own. */
 
 /* The ambient light sits BEHIND the shell so it can never wash out a figure.
    opacity starts at zero and only rises once a real pointer has moved. */
@@ -5963,8 +5959,7 @@ select {
 }
 
 /* Dual cursor: the same language as the landing page, quieter so a ledger
-   still reads as a ledger. The OS pointer stays visible. Hidden on touch
-   and under reduced motion. */
+   still reads as a ledger. The OS pointer stays visible. Hidden on touch. */
 .cursor-core,
 .cursor-orbit {
   position: fixed;
@@ -6359,134 +6354,6 @@ select {
   }
 }
 
-/* ── Reduced motion ───────────────────────────────────────────────────────
-   Last, and universal, so it wins over everything above. This removes the
-   animation and leaves the FINAL state: content is never hidden behind a
-   transition that will not run. motion.js additionally declines to start
-   loops, observers and the tilt. */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    animation-delay: 0ms !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  /* Loops must not merely be fast, they must stop: a 0.01ms infinite animation
-     is still an infinite animation. */
-  .ticker-running .ticker-track,
-  .empty-mark svg,
-  .is-animated .dg-mover,
-  .timer-bar[data-urgent="1"] .timer-read,
-  .spinner,
-  .skeleton {
-    animation: none !important;
-  }
-
-  /* Elements whose final state lives at the end of a keyframe need it applied
-     directly, or reduced motion would leave them at their "from" values. */
-  .dg-travel,
-  .dg-link {
-    stroke-dashoffset: 0 !important;
-  }
-
-  .dg-arc,
-  .dg-force,
-  .dg-node {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-
-  .dg-mover {
-    offset-distance: 100% !important;
-  }
-
-  .is-done [data-action="toggle-set"] svg path {
-    stroke-dashoffset: 0 !important;
-  }
-
-  .odo-strip {
-    transition: none !important;
-  }
-
-  .chart-bar.bar-animate,
-  .dist-fill.bar-animate,
-  [data-tilt].is-tilt-ready {
-    transform: none !important;
-  }
-
-  [data-tilt-glare].is-tilt-ready::after {
-    display: none;
-  }
-
-  .timer-fill {
-    transition: none;
-  }
-
-  .pr-burst {
-    display: none !important;
-  }
-
-  /* The pointer spotlight is decorative; without pointer tracking it would be
-     a stale glow parked at the card centre. */
-  .routine-card[data-spotlight]::before,
-  .tile[data-spotlight]::before,
-  .chart[data-spotlight]::before,
-  .dist[data-spotlight]::before {
-    display: none;
-  }
-
-  /* Depth-pass motion is decoration. Under reduced motion it lands in its
-     final, unrotated state rather than waiting on a transition. */
-  .app-ambient {
-    display: none;
-  }
-
-  .app-scroll-meter i {
-    transition: none;
-  }
-
-  .history-detail {
-    animation: none !important;
-  }
-
-  .hero-goal,
-  .quick-start-panel .hero-plate,
-  .tile-value,
-  .dist > li,
-  .history-item,
-  .session-row,
-  .library-row,
-  .exercise-card,
-  .session-avatar,
-  .session-go,
-  .history-chev,
-  .library-go,
-  .exercise-thumb {
-    transform: none !important;
-  }
-
-  .timer-bar {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-
-  .cursor-core,
-  .cursor-orbit,
-  .tap-glow {
-    display: none !important;
-  }
-
-  .btn[data-magnetic] {
-    transform: none !important;
-  }
-}
-
 /* ── Print ───────────────────────────────────────────────────────────────
    A log is a thing people print. Ink on paper, rules kept, chrome dropped. */
 
@@ -6703,12 +6570,12 @@ select {
   display: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   .training-year.is-revealed .heatmap-cell[data-level] {
     animation: heatmap-cell-in 380ms var(--ease) both;
     animation-delay: calc(var(--col) * 6ms + var(--row) * 10ms);
   }
-}
+
 
 @keyframes heatmap-cell-in {
   from {

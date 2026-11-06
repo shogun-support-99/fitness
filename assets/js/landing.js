@@ -28,7 +28,8 @@ import {
 } from "../../app/js/motion.js";
 
 const doc = document;
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+// Landing motion is deliberately always enabled.
+const motionSuppressed = false;
 
 /* ── Mobile menu ───────────────────────────────────────────────────────── */
 
@@ -111,7 +112,7 @@ if (tabList && tabs.length === panels.length) {
     activeTab = index;
     placeGlider(index);
 
-    if (!reduceMotion.matches) {
+    if (!motionSuppressed) {
       const panel = panels[index];
       panel.classList.remove("is-switching");
       void panel.offsetWidth;
@@ -125,7 +126,7 @@ if (tabList && tabs.length === panels.length) {
         const on = i === index;
         scene.hidden = !on;
         scene.classList.toggle("is-active", on);
-        if (on && !reduceMotion.matches) {
+        if (on && !motionSuppressed) {
           scene.classList.remove("is-switching");
           void scene.offsetWidth;
           scene.classList.add("is-switching");
@@ -211,7 +212,7 @@ if (heroArt && heroStack) {
     const rect = heroArt.getBoundingClientRect();
     spotX = ((event.clientX - rect.left) / rect.width) * 100;
     spotY = ((event.clientY - rect.top) / rect.height) * 100;
-    if (!reduceMotion.matches) {
+    if (!motionSuppressed) {
       const n = pointerNorm(event.clientX, event.clientY, rect);
       aimX = clampUnit(n.x * 2, 1);
       aimY = clampUnit(n.y * 2, 1);
@@ -235,24 +236,23 @@ if (heroArt && heroStack) {
   heroArt.addEventListener("pointerenter", (event) => {
     if (event.pointerType === "mouse") {
       heroArt.classList.add("is-pointing");
-      if (!reduceMotion.matches) heroArt.classList.add("is-tilting");
+      if (!motionSuppressed) heroArt.classList.add("is-tilting");
     }
   });
 
   heroArt.addEventListener("pointermove", (event) => {
     // A finger only steers while it is down; a swipe that scrolls the page
-    // must not leave the stack leaning afterwards. The spotlight still tracks
-    // under reduced motion; only the tilt and parallax are withheld.
+    // must not leave the stack leaning afterwards.
     if (event.pointerType !== "mouse" && !pressed) return;
     heroArt.classList.add("is-pointing");
-    if (!reduceMotion.matches) heroArt.classList.add("is-tilting");
+    if (!motionSuppressed) heroArt.classList.add("is-tilting");
     track(event);
   });
 
   heroArt.addEventListener("pointerdown", (event) => {
     pressed = true;
     heroArt.classList.add("is-pressed", "is-pointing");
-    if (event.pointerType !== "mouse" && !reduceMotion.matches) {
+    if (event.pointerType !== "mouse" && !motionSuppressed) {
       heroArt.classList.add("is-tilting");
     }
     track(event);
@@ -278,11 +278,6 @@ if (heroArt && heroStack) {
     }
   });
 
-  reduceMotion.addEventListener("change", (event) => {
-    if (!event.matches) return;
-    heroArt.classList.remove("is-pressed", "is-tilting");
-    reset();
-  });
 }
 
 /* Set 4 is a real button: the demo runs itself until the first tap, then the
@@ -320,7 +315,7 @@ if (heroArt && heroSet) {
   };
 
   const pop = (el) => {
-    if (!el || reduceMotion.matches) return;
+    if (!el || motionSuppressed) return;
     el.classList.remove("is-bumped");
     void el.offsetWidth;
     el.classList.add("is-bumped");
@@ -329,7 +324,7 @@ if (heroArt && heroSet) {
   const animateStat = (key, to) => {
     const el = statEls[key];
     if (statFrames[key]) cancelAnimationFrame(statFrames[key]);
-    if (!el || reduceMotion.matches) {
+    if (!el || motionSuppressed) {
       paintStat(key, to);
       pop(el);
       return;
@@ -369,7 +364,7 @@ if (heroArt && heroSet) {
   const startRest = () => {
     if (restFrame) cancelAnimationFrame(restFrame);
     restEl?.classList.add("is-resting");
-    if (reduceMotion.matches) {
+    if (motionSuppressed) {
       if (restTime) restTime.textContent = "00:00";
       return;
     }
@@ -385,7 +380,7 @@ if (heroArt && heroSet) {
   };
 
   const burstSparks = () => {
-    if (!burst || reduceMotion.matches) return;
+    if (!burst || motionSuppressed) return;
     for (let i = 0; i < 12; i += 1) {
       const spark = doc.createElement("i");
       spark.style.setProperty("--a", `${-165 + Math.random() * 150}deg`);
@@ -454,7 +449,7 @@ if (spotlit.length && finePointer.matches) {
   doc.addEventListener(
     "pointermove",
     (event) => {
-      if (reduceMotion.matches) return;
+      if (motionSuppressed) return;
       const next = event.target instanceof Element ? event.target.closest("[data-spotlight]") : null;
       if (!next) return;
       const rect = next.getBoundingClientRect();
@@ -480,7 +475,7 @@ const revealables = [...doc.querySelectorAll("[data-reveal]")];
 if (revealables.length) {
   const showAll = () => revealables.forEach((el) => el.classList.add("is-in"));
 
-  if (reduceMotion.matches || !("IntersectionObserver" in window)) {
+  if (motionSuppressed || !("IntersectionObserver" in window)) {
     showAll();
   } else {
     const observer = new IntersectionObserver(
@@ -516,7 +511,7 @@ if (revealables.length) {
 
 const countEls = [...doc.querySelectorAll("[data-count]")];
 
-if (countEls.length && !reduceMotion.matches) {
+if (countEls.length && !motionSuppressed) {
   const formatCount = new Intl.NumberFormat("en-US");
 
   const countUp = (el) => {

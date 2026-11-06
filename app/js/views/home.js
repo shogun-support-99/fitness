@@ -28,7 +28,7 @@ export function renderHome(store) {
 
   return `
     <section class="view view-home">
-      <header class="view-head motion-safe:animate-fade-down">
+      <header class="view-head animate-fade-down">
         <div>
           <h1>Home</h1>
           <p class="view-subline">${esc(homeSubline(streak, completed))}</p>
@@ -75,8 +75,8 @@ export function renderHome(store) {
  * pretending to be data. Only when the log is genuinely empty does it fall back
  * to library content, and then it says so in the strip's own label.
  *
- * motion.js clones the track for a seamless loop, pauses it on hover, on focus
- * within and when the tab is hidden, and never starts it under reduced motion.
+ * motion.js clones the track for a seamless loop and pauses it on hover, on
+ * focus within and when the tab is hidden.
  */
 function renderTicker(store, completed) {
   const items = [];
@@ -164,7 +164,7 @@ function renderStartPanel(store, weekCount) {
   const goalProgress = Math.min(100, Math.round((weekCount / MOMENTUM_GOAL) * 100));
   return `
     <div class="home-training-grid">
-      <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-tilt-glare data-tilt-max="2" data-reveal="rise">
+      <section class="start-panel training-hero animate-fade-up" data-tilt data-tilt-glare data-tilt-max="2" data-reveal="rise">
         <div class="start-panel-copy">
           <span class="energy-badge">${icon("bolt")} Training mode</span>
           <h2>Small sets. <span class="text-gradient">Big momentum.</span></h2>
@@ -177,7 +177,7 @@ function renderStartPanel(store, weekCount) {
           </div>
         </div>
         <div class="hero-goal" style="--goal-offset:${100 - goalProgress}">
-          <div class="goal-ring motion-safe:animate-breathe" role="img" aria-label="${shownCount} of ${MOMENTUM_GOAL} weekly momentum sessions completed">
+          <div class="goal-ring animate-breathe" role="img" aria-label="${shownCount} of ${MOMENTUM_GOAL} weekly momentum sessions completed">
             <svg viewBox="0 0 120 120" aria-hidden="true">
               <circle class="goal-ring-track" cx="60" cy="60" r="50" pathLength="100" />
               <circle class="goal-ring-value" cx="60" cy="60" r="50" pathLength="100" />

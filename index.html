@@ -39,10 +39,7 @@
     <link rel="stylesheet" href="assets/css/landing.css" />
     <script>
       document.documentElement.classList.remove("no-js");
-      document.documentElement.classList.add("js");
-      if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
-        document.documentElement.classList.add("motion-ok");
-      }
+      document.documentElement.classList.add("js", "motion-ok");
     </script>
     <script type="module" src="assets/js/landing.js"></script>
   </head>
@@ -119,7 +116,7 @@
     <main id="main">
       <section class="hero" id="top">
         <div class="shell hero-grid">
-          <div class="hero-copy motion-safe:animate-fade-up">
+          <div class="hero-copy animate-fade-up">
             <p class="eyebrow">Offline-first strength log</p>
             <h1>Track every set.<br /><mark class="hl">Get stronger.</mark></h1>
             <p class="lede">

@@ -496,28 +496,3 @@
     color: #767d87;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .feature-row,
-  .faq-item,
-  .routine-card {
-    transition: none;
-  }
-
-  /* Tailwind's own animation utilities disappear too, so the utilities added
-     for decoration can never outrank the user's preference. The authored app
-     motion lives in app.css and guards itself the same way. */
-  [class*="animate-"],
-  .hover-lift,
-  .sheen-host,
-  .routine-shine,
-  .showcase-art .panel-mock {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .hover-lift:hover {
-    transform: none;
-    box-shadow: none;
-  }
-}

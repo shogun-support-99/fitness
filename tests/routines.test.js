@@ -63,7 +63,7 @@ test("renderRoutineCards", async (t) => {
 
   await t.test("keeps motion classes and the spotlight decoration", () => {
     const html = renderRoutineCards();
-    assert.match(html, /motion-safe:animate-scale-in/);
+    assert.match(html, /animate-scale-in/);
     assert.match(html, /data-spotlight/);
     assert.match(html, /hover-lift/);
   });

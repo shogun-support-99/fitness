@@ -119,7 +119,7 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
   const previous = store.previousPerformance(entry.exerciseId);
 
   return `
-    <article class="exercise-card motion-safe:animate-fade-up" data-entry="${esc(entry.id)}" data-muscle="${esc(exercise?.muscle ?? "other")}" style="--exercise-order:${exerciseIndex};animation-delay:calc(var(--exercise-order) * 60ms)">
+    <article class="exercise-card animate-fade-up" data-entry="${esc(entry.id)}" data-muscle="${esc(exercise?.muscle ?? "other")}" style="--exercise-order:${exerciseIndex};animation-delay:calc(var(--exercise-order) * 60ms)">
       <header class="exercise-head">
         ${exercise ? exerciseThumbnail(exercise) : ""}
         <div>

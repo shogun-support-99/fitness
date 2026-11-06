@@ -64,7 +64,7 @@ export function emptyState({ icon: iconName = "info", title, body, action = "" }
 export function statTile({ label, value, unit = "", hint = "", tone = "", countTo = null }) {
   // A real count can roll like an odometer; a formatted figure (12.4k) cannot,
   // because the digits are no longer the value. `countTo` is opt-in for that
-  // reason, and motion.js settles the text immediately under reduced motion.
+  // reason, and motion.js settles the text immediately when animation is unavailable.
   const canCount = countTo !== null && countTo !== undefined && Number.isFinite(Number(countTo));
   const figure = canCount
     ? `<span class="odo" data-count-to="${esc(countTo)}" data-count-decimals="0">${esc(value)}</span>`
