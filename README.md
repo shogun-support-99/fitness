@@ -277,8 +277,8 @@ from `app/js/diagrams.js`:
   joined by linework that draws in sequence.
 
 Gym Visual's 180×180 GIFs ship under the media licence held by the app operator, with the
-required attribution retained. If you independently hold rights to other media,
-`app/media/README.md` documents the override slot and required credit.
+required attribution retained on every catalogue record. If you independently hold rights to
+other media, `app/media/README.md` documents the override slot and required credit.
 
 ## Architecture notes
 
@@ -341,11 +341,11 @@ MIT — see [LICENSE](./LICENSE).
 
 The exercise catalogue data and instruction text come from
 [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset), also MIT
-licensed (© 2026 Hasan Emir Yıldırım), and are attributed in [`NOTICE`](./NOTICE) and in the
-app itself. That project's exercise media is © Gym Visual and is **not** covered by its MIT
+licensed (© 2026 Hasan Emir Yıldırım), and are attributed in [`NOTICE`](./NOTICE). That
+project's exercise media is © Gym Visual and is **not** covered by its MIT
 grant; it is redistributed here under a media licence held by the app operator, with
-attribution retained. See [Exercise catalogue](#exercise-catalogue) and
-[`NOTICE`](./NOTICE).
+attribution retained on every record and in `NOTICE`. See
+[Exercise catalogue](#exercise-catalogue) and [`NOTICE`](./NOTICE).
 
 This is an independent project. It is not affiliated with, endorsed by, or derived from
 any other fitness product.

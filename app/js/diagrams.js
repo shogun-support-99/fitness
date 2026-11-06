@@ -371,7 +371,7 @@ export function muscleDiagram(exercise, opts = {}) {
  * Licensed Gym Visual animations are reused at list size; entries without media
  * get the same small local dumbbell mark. The adjacent exercise name supplies
  * the accessible label, so the thumbnail itself is hidden from assistive tech.
- * Full attribution and pose controls remain in the exercise detail sheet.
+ * Per-record credit lives in the catalogue data and NOTICE, not in the list.
  */
 export function exerciseThumbnail(exercise) {
   const media = exercise?.media?.provider === "gymvisual" ? exercise.media : null;
@@ -388,11 +388,10 @@ export function exerciseThumbnail(exercise) {
  *
  * The slot resolves in this order:
  *   1. an explicitly supplied licensed file at app/media/<id>.<ext>
- *   2. the catalogue's licensed Gym Visual animation, with its attribution
+ *   2. the catalogue's licensed Gym Visual animation
  *   3. the original drawn movement diagram above
  *
- * User-supplied media keeps the caller's credit, defaulting to the attribution
- * Gym Visual requires.
+ * User-supplied media keeps the caller's credit wording.
  *
  * @param {object} exercise
  * @param {object} [opts]
@@ -411,19 +410,18 @@ export function exerciseMedia(exercise, opts = {}) {
 </figure>`;
   }
 
-  // Licensed Gym Visual media: an animated 180x180 GIF (primary) with the
-  // required attribution. The static poster sits underneath so the media card
-  // is never blank while the larger GIF is fetched or decoded.
+  // Licensed Gym Visual media: an animated 180x180 GIF (primary). The static
+  // poster sits underneath so the media card is never blank while the larger
+  // GIF is fetched or decoded. Per-record credit stays in the catalogue data
+  // and in NOTICE; the detail card itself stays free of caption clutter.
   if (exercise?.media?.provider === "gymvisual" && exercise.media.gif) {
     const gif = esc(exercise.media.gif);
     const still = exercise.media.image ? esc(exercise.media.image) : "";
-    const credit = esc(exercise.media.credit ?? "© Gym visual — https://gymvisual.com/");
     return `<figure class="media media-file media-gymvisual">
   <span class="media-frame">
     ${still ? `<img class="media-poster" src="${still}" alt="" aria-hidden="true" width="180" height="180" decoding="async" />` : ""}
     <img class="media-anim" src="${gif}" alt="${name} demonstration" loading="eager" decoding="async" width="180" height="180" />
   </span>
-  <figcaption><span class="media-credit">${credit}</span></figcaption>
 </figure>`;
   }
 

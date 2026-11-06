@@ -15,9 +15,9 @@ instruction text with translations, derived from:
 
 Used in accordance with that licence, which requires the copyright notice and
 permission notice to be retained in all copies or substantial portions of the
-software. This file is that retention, and the notice is additionally surfaced
-to users in the app at **Settings → About**, in the exercise library, and in
-relevant exercise detail sheets.
+software. This file is that retention. The notice is reachable from the app at
+**Settings → About → Third-party notices** and is not duplicated inline in the
+interface.
 
 The derived artefacts live in `app/data/` and are produced by
 `scripts/build-exercise-data.mjs`. Their exact provenance — upstream commit,
@@ -36,11 +36,12 @@ The upstream project states that cloning its repository grants no licence to
 the media and that you must obtain your own licence directly from Gym Visual.
 IronLog's operator holds that media licence, so the 180×180 exercise GIFs
 (and their static posters) from this source **are** redistributed in
-`app/media/gymvisual/`, with the required attribution retained on every record.
-`scripts/build-exercise-data.mjs` copies only referenced local GIFs/stills,
-keeps the attribution field, and fails closed on remote or raw-upstream media
-references. The unit test `tests/catalogue.test.js` re-asserts the licensed,
-local-only shape of the media against the committed artefacts.
+`app/media/gymvisual/`, with the credit retained on every record's `media`
+field and in this file. `scripts/build-exercise-data.mjs` copies only referenced
+local GIFs/stills, keeps the attribution field, and fails closed on remote or
+raw-upstream media references. The unit test `tests/catalogue.test.js`
+re-asserts the licensed, local-only shape of the media against the committed
+artefacts.
 
 ## Original movement diagrams and user-supplied media
 

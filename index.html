@@ -139,13 +139,13 @@
             </ul>
           </div>
 
-          <div class="hero-art" aria-hidden="true">
-            <svg class="plate-watermark" viewBox="0 0 64 64">
+          <div class="hero-art" role="group" aria-label="IronLog session preview. Log the fourth set to try it.">
+            <svg class="plate-watermark" viewBox="0 0 64 64" aria-hidden="true">
               <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
             </svg>
 
             <div class="folder-stack">
-              <div class="folder folder-back">
+              <div class="folder folder-back" aria-hidden="true">
                 <span class="folder-tab"></span>
                 <div class="folder-edge-stats">
                   <span>Volume</span>
@@ -153,7 +153,7 @@
                 </div>
               </div>
 
-              <div class="folder folder-mid">
+              <div class="folder folder-mid" aria-hidden="true">
                 <span class="folder-tab"></span>
                 <div class="folder-strip">
                   <span class="folder-strip-line"></span>
@@ -163,33 +163,40 @@
               </div>
 
               <div class="folder folder-front">
-                <span class="folder-tab folder-tab-signal"></span>
-                <div class="front-head">
+                <span class="folder-tab folder-tab-signal" aria-hidden="true"></span>
+                <div class="front-head" aria-hidden="true">
                   <strong>IronLog</strong>
-                  <span>live session</span>
+                  <span data-hero-live>live session</span>
                 </div>
-                <div class="front-totals">
-                  <div><span>Volume</span><strong>6,140 kg</strong></div>
-                  <div><span>Sets</span><strong>14</strong></div>
-                  <div><span>Records</span><strong>2</strong></div>
+                <div class="front-totals" aria-hidden="true">
+                  <div><span>Volume</span><strong data-hero-volume>6,140 kg</strong></div>
+                  <div><span>Sets</span><strong data-hero-sets>14</strong></div>
+                  <div><span>Records</span><strong data-hero-records>2</strong></div>
                 </div>
                 <div class="front-exercise">
-                  <div class="front-exercise-head">
+                  <div class="front-exercise-head" aria-hidden="true">
                     <span class="avatar">BP</span>
                     <strong>Barbell Bench Press</strong>
                   </div>
                   <div class="front-list">
-                    <div class="front-set is-done"><span>1</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
-                    <div class="front-set is-done"><span>2</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
-                    <div class="front-set is-done"><span>3</span><b>82.5 kg</b><span>× 6</span><i><svg><use href="#i-check" /></svg></i></div>
-                    <div class="front-set front-set-tick"><span>4</span><b>82.5 kg</b><span>× 6</span><i class="is-idle"><svg><use href="#i-check" /></svg></i></div>
+                    <div class="front-set is-done" aria-hidden="true"><span>1</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
+                    <div class="front-set is-done" aria-hidden="true"><span>2</span><b>80 kg</b><span>× 8</span><i><svg><use href="#i-check" /></svg></i></div>
+                    <div class="front-set is-done" aria-hidden="true"><span>3</span><b>82.5 kg</b><span>× 6</span><i><svg><use href="#i-check" /></svg></i></div>
+                    <button class="front-set front-set-tick" type="button" data-hero-set aria-pressed="false" aria-label="Log set 4: 82.5 kilograms for 6 reps">
+                      <span>4</span>
+                      <b>82.5 kg</b>
+                      <span>× 6</span>
+                      <i class="is-idle"><svg><use href="#i-check" /></svg></i>
+                      <span class="hero-burst" aria-hidden="true"></span>
+                    </button>
                   </div>
-                  <div class="front-rest">
+                  <div class="front-rest" aria-hidden="true">
                     <svg><use href="#i-timer" /></svg>
                     <span>Rest</span>
-                    <strong>01:24</strong>
+                    <strong data-hero-rest>01:24</strong>
                     <span class="front-rest-bar"><i></i></span>
                   </div>
+                  <p class="sr-only" aria-live="polite" data-hero-status></p>
                 </div>
               </div>
             </div>

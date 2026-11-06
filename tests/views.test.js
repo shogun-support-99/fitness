@@ -67,11 +67,11 @@ test("home momentum goal", async (t) => {
   });
 });
 
-test("settings keeps the licence attribution without the catalogue panel", () => {
+test("settings keeps the notices link without inline attribution", () => {
   const html = renderSettings(makeStore(1));
   assert.doesNotMatch(html, /Exercise catalogue/);
-  assert.match(html, /hasaneyldrm\/exercises-dataset/);
-  assert.match(html, /MIT licence/);
-  assert.match(html, /Gym Visual/);
+  assert.doesNotMatch(html, /hasaneyldrm\/exercises-dataset/);
+  assert.doesNotMatch(html, /MIT licence/);
   assert.match(html, /Third-party notices/);
+  assert.match(html, /href="\.\.\/NOTICE"/);
 });

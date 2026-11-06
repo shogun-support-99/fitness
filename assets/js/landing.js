@@ -123,15 +123,22 @@ const heroArt = doc.querySelector(".hero-art");
 const heroStack = heroArt?.querySelector(".folder-stack");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-if (heroArt && heroStack && finePointer.matches) {
+if (heroArt && heroStack) {
   let frame = 0;
   let x = 0;
   let y = 0;
+  let spotX = 50;
+  let spotY = 45;
+  let pressed = false;
 
   const paint = () => {
     frame = 0;
     heroStack.style.setProperty("--hero-x", x.toFixed(3));
     heroStack.style.setProperty("--hero-y", y.toFixed(3));
+    heroArt.style.setProperty("--tilt-x", `${(-y * 4.5).toFixed(2)}deg`);
+    heroArt.style.setProperty("--tilt-y", `${(x * 6.5).toFixed(2)}deg`);
+    heroArt.style.setProperty("--spot-x", `${spotX.toFixed(1)}%`);
+    heroArt.style.setProperty("--spot-y", `${spotY.toFixed(1)}%`);
   };
 
   // One style write per frame: pointermove fires far faster than paint.
@@ -139,24 +146,225 @@ if (heroArt && heroStack && finePointer.matches) {
     if (!frame) frame = requestAnimationFrame(paint);
   };
 
-  const reset = () => {
-    x = 0;
-    y = 0;
+  const track = (event) => {
+    const rect = heroArt.getBoundingClientRect();
+    spotX = ((event.clientX - rect.left) / rect.width) * 100;
+    spotY = ((event.clientY - rect.top) / rect.height) * 100;
+    if (!reduceMotion.matches) {
+      x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+      y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    }
     queue();
   };
 
-  heroArt.addEventListener("pointermove", (event) => {
-    if (reduceMotion.matches) return;
-    const rect = heroArt.getBoundingClientRect();
-    x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-    y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+  const reset = () => {
+    x = 0;
+    y = 0;
+    spotX = 50;
+    spotY = 45;
+    heroArt.classList.remove("is-tilting");
     queue();
+  };
+
+  heroArt.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "mouse") {
+      heroArt.classList.add("is-pointing");
+      if (!reduceMotion.matches) heroArt.classList.add("is-tilting");
+    }
   });
 
-  heroArt.addEventListener("pointerleave", reset);
-  heroArt.addEventListener("pointercancel", reset);
+  heroArt.addEventListener("pointermove", (event) => {
+    // A finger only steers while it is down; a swipe that scrolls the page
+    // must not leave the stack leaning afterwards. The spotlight still tracks
+    // under reduced motion; only the tilt and parallax are withheld.
+    if (event.pointerType !== "mouse" && !pressed) return;
+    heroArt.classList.add("is-pointing");
+    if (!reduceMotion.matches) heroArt.classList.add("is-tilting");
+    track(event);
+  });
+
+  heroArt.addEventListener("pointerdown", (event) => {
+    pressed = true;
+    heroArt.classList.add("is-pressed", "is-pointing");
+    if (event.pointerType !== "mouse" && !reduceMotion.matches) {
+      heroArt.classList.add("is-tilting");
+    }
+    track(event);
+  });
+
+  const release = (event) => {
+    if (!pressed) return;
+    pressed = false;
+    heroArt.classList.remove("is-pressed");
+    if (event.pointerType !== "mouse") {
+      heroArt.classList.remove("is-pointing");
+      reset();
+    }
+  };
+
+  window.addEventListener("pointerup", release);
+  window.addEventListener("pointercancel", release);
+
+  heroArt.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse") {
+      heroArt.classList.remove("is-pointing");
+      reset();
+    }
+  });
+
   reduceMotion.addEventListener("change", (event) => {
-    if (event.matches) reset();
+    if (!event.matches) return;
+    heroArt.classList.remove("is-pressed", "is-tilting");
+    reset();
+  });
+}
+
+/* Set 4 is a real button: the demo runs itself until the first tap, then the
+   stats count up, sparks fly and the rest bar starts at demo speed. */
+const heroSet = heroArt?.querySelector("[data-hero-set]");
+const heroStatus = heroArt?.querySelector("[data-hero-status]");
+
+if (heroArt && heroSet) {
+  const volumeEl = heroArt.querySelector("[data-hero-volume]");
+  const setsEl = heroArt.querySelector("[data-hero-sets]");
+  const recordsEl = heroArt.querySelector("[data-hero-records]");
+  const restEl = heroArt.querySelector(".front-rest");
+  const restTime = heroArt.querySelector("[data-hero-rest]");
+  const liveLabel = heroArt.querySelector("[data-hero-live]");
+  const burst = heroSet.querySelector(".hero-burst");
+
+  const numberFormat = new Intl.NumberFormat("en-US");
+  const statEls = { volume: volumeEl, sets: setsEl, records: recordsEl };
+  const statValues = { volume: 6140, sets: 14, records: 2 };
+  const statSuffix = { volume: " kg", sets: "", records: "" };
+  const statFrames = { volume: 0, sets: 0, records: 0 };
+  const loggedValues = { volume: 6635, sets: 15, records: 3 };
+  const restSeconds = 84;
+  const restDuration = 6000;
+
+  let logged = false;
+  let restFrame = 0;
+  let restStart = 0;
+
+  const paintStat = (key, value) => {
+    statValues[key] = value;
+    if (statEls[key]) {
+      statEls[key].textContent = `${numberFormat.format(value)}${statSuffix[key]}`;
+    }
+  };
+
+  const pop = (el) => {
+    if (!el || reduceMotion.matches) return;
+    el.classList.remove("is-bumped");
+    void el.offsetWidth;
+    el.classList.add("is-bumped");
+  };
+
+  const animateStat = (key, to) => {
+    const el = statEls[key];
+    if (statFrames[key]) cancelAnimationFrame(statFrames[key]);
+    if (!el || reduceMotion.matches) {
+      paintStat(key, to);
+      pop(el);
+      return;
+    }
+    const from = statValues[key];
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / 560);
+      const eased = 1 - (1 - t) ** 3;
+      paintStat(key, Math.round(from + (to - from) * eased));
+      if (t < 1) {
+        statFrames[key] = requestAnimationFrame(step);
+      } else {
+        statFrames[key] = 0;
+        pop(el);
+      }
+    };
+    statFrames[key] = requestAnimationFrame(step);
+  };
+
+  const formatRest = (seconds) => {
+    const whole = Math.max(0, Math.ceil(seconds));
+    const minutes = String(Math.floor(whole / 60)).padStart(2, "0");
+    return `${minutes}:${String(whole % 60).padStart(2, "0")}`;
+  };
+
+  const tickRest = (now) => {
+    const elapsed = Math.min(now - restStart, restDuration);
+    if (restTime) restTime.textContent = formatRest(restSeconds * (1 - elapsed / restDuration));
+    if (elapsed < restDuration) {
+      restFrame = requestAnimationFrame(tickRest);
+    } else {
+      restFrame = 0;
+    }
+  };
+
+  const startRest = () => {
+    if (restFrame) cancelAnimationFrame(restFrame);
+    restEl?.classList.add("is-resting");
+    if (reduceMotion.matches) {
+      if (restTime) restTime.textContent = "00:00";
+      return;
+    }
+    restStart = performance.now();
+    restFrame = requestAnimationFrame(tickRest);
+  };
+
+  const stopRest = () => {
+    if (restFrame) cancelAnimationFrame(restFrame);
+    restFrame = 0;
+    restEl?.classList.remove("is-resting");
+    if (restTime) restTime.textContent = "01:24";
+  };
+
+  const burstSparks = () => {
+    if (!burst || reduceMotion.matches) return;
+    for (let i = 0; i < 12; i += 1) {
+      const spark = doc.createElement("i");
+      spark.style.setProperty("--a", `${-165 + Math.random() * 150}deg`);
+      spark.style.setProperty("--d", `${28 + Math.random() * 46}px`);
+      spark.style.setProperty("--delay", `${Math.random() * 80}ms`);
+      spark.style.setProperty("--s", `${8 + Math.random() * 4}px`);
+      spark.addEventListener("animationend", () => spark.remove(), { once: true });
+      burst.append(spark);
+    }
+  };
+
+  heroSet.addEventListener("click", () => {
+    heroArt.classList.add("is-live");
+    logged = !logged;
+    heroSet.classList.toggle("is-done", logged);
+    heroSet.querySelector("i")?.classList.toggle("is-idle", !logged);
+    heroSet.setAttribute("aria-pressed", String(logged));
+    heroSet.setAttribute(
+      "aria-label",
+      logged
+        ? "Set 4 logged: 82.5 kilograms for 6 reps. Activate to undo."
+        : "Log set 4: 82.5 kilograms for 6 reps",
+    );
+
+    animateStat("volume", logged ? loggedValues.volume : 6140);
+    animateStat("sets", logged ? loggedValues.sets : 14);
+    animateStat("records", logged ? loggedValues.records : 2);
+
+    if (liveLabel) {
+      liveLabel.textContent = logged ? "set logged" : "live session";
+      liveLabel.classList.toggle("is-logged", logged);
+    }
+
+    if (logged) {
+      startRest();
+      burstSparks();
+    } else {
+      stopRest();
+    }
+
+    if (heroStatus) {
+      heroStatus.textContent = logged
+        ? "Set 4 logged. Session volume 6,635 kilograms, 15 sets, 3 records."
+        : "Set 4 undone. Session volume 6,140 kilograms, 14 sets, 2 records.";
+    }
   });
 }
 

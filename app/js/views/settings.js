@@ -140,12 +140,6 @@ export function renderSettings(store) {
               Training carries risk. IronLog records what you do; it is not medical, coaching or
               safety advice. Work within your limits and get professional guidance when you need it.
             </p>
-            <p class="panel-hint attribution">
-              Exercise names, taxonomy and instructions come from
-              <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
-              used under the MIT licence — © 2026 Hasan Emir Yıldırım. Its Gym Visual GIFs are
-              used under a licence held by the app operator (© Gym Visual).
-            </p>
             <div class="settings-actions">
               <a class="link" href="../privacy.html">Privacy &amp; data ${icon("chevron")}</a>
               <a class="link" href="../NOTICE">Third-party notices ${icon("chevron")}</a>

@@ -5237,12 +5237,6 @@ select {
   height: auto;
 }
 
-.media-credit a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 .media-poses {
   display: inline-flex;
   padding: 2px;

@@ -385,7 +385,8 @@ describe("exerciseMedia", () => {
     assert.match(html, /class="media-anim" src="media\/gymvisual\/x\.gif"/);
     assert.match(html, /class="media-poster" src="media\/gymvisual\/x\.jpg"/);
     assert.match(html, /loading="eager"/);
-    assert.match(html, /© Gym Visual/);
+    assert.doesNotMatch(html, /figcaption/);
+    assert.doesNotMatch(html, /media-credit/);
   });
 });
 
