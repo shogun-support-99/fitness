@@ -148,6 +148,58 @@ const heroArt = doc.querySelector(".hero-art");
 const heroStack = heroArt?.querySelector(".folder-stack");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 
+/* A deliberately visible pointer response gives the landing page a clear
+   desktop affordance: a small signal ring trails the cursor and expands over
+   controls. It never replaces the OS cursor and is absent on touch/reduced
+   motion so it cannot interfere with reading or accessibility. */
+if (finePointer.matches && !reduceMotion.matches) {
+  const cursorOrbit = doc.createElement("span");
+  cursorOrbit.className = "cursor-orbit";
+  cursorOrbit.setAttribute("aria-hidden", "true");
+  doc.body.append(cursorOrbit);
+
+  let pointerX = -40;
+  let pointerY = -40;
+  let orbitX = pointerX;
+  let orbitY = pointerY;
+  let cursorFrame = 0;
+
+  const moveOrbit = () => {
+    orbitX += (pointerX - orbitX) * 0.22;
+    orbitY += (pointerY - orbitY) * 0.22;
+    cursorOrbit.style.transform = `translate3d(${orbitX}px, ${orbitY}px, 0)`;
+    if (Math.abs(pointerX - orbitX) + Math.abs(pointerY - orbitY) > 0.25) {
+      cursorFrame = requestAnimationFrame(moveOrbit);
+    } else {
+      cursorFrame = 0;
+    }
+  };
+
+  doc.addEventListener("pointermove", (event) => {
+    if (event.pointerType !== "mouse") return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    const target = event.target instanceof Element ? event.target : null;
+    cursorOrbit.classList.toggle(
+      "is-over-control",
+      Boolean(target?.closest("a, button, summary, [role=tab]")),
+    );
+    if (!cursorFrame) cursorFrame = requestAnimationFrame(moveOrbit);
+  }, { passive: true });
+
+  doc.documentElement.addEventListener("pointerleave", () => {
+    cursorOrbit.classList.add("is-away");
+  });
+  doc.documentElement.addEventListener("pointerenter", () => {
+    cursorOrbit.classList.remove("is-away");
+  });
+  reduceMotion.addEventListener("change", (event) => {
+    if (!event.matches) return;
+    if (cursorFrame) cancelAnimationFrame(cursorFrame);
+    cursorOrbit.remove();
+  });
+}
+
 if (heroArt && heroStack) {
   let frame = 0;
   let x = 0;

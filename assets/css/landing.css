@@ -602,6 +602,57 @@ svg.tick,
   scale: 0.985;
 }
 
+/* A visible cursor signal for desktop: the native pointer remains intact,
+   while this offset ring follows with a little weight and reacts over actions. */
+.cursor-orbit {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 1px solid color-mix(in srgb, var(--ink) 58%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--signal) 26%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--signal) 12%, transparent);
+  pointer-events: none;
+  opacity: 1;
+  transition: width 180ms var(--ease), height 180ms var(--ease), margin 180ms var(--ease),
+    background-color 180ms var(--ease), opacity 180ms var(--ease), box-shadow 180ms var(--ease);
+  will-change: transform;
+}
+
+.cursor-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: inherit;
+  background: var(--ink);
+}
+
+.cursor-orbit.is-over-control {
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  background: color-mix(in srgb, var(--signal) 48%, transparent);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--signal) 16%, transparent);
+}
+
+.cursor-orbit.is-over-control::after {
+  inset: 17px;
+}
+
+.cursor-orbit.is-away {
+  opacity: 0;
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .cursor-orbit {
+    display: none;
+  }
+}
+
 /* The one motif at the largest scale: a plate outline behind the folders. */
 .plate-watermark {
   position: absolute;
