@@ -16,8 +16,8 @@ instruction text with translations, derived from:
 Used in accordance with that licence, which requires the copyright notice and
 permission notice to be retained in all copies or substantial portions of the
 software. This file is that retention, and the notice is additionally surfaced
-to users in the app at **Settings → Exercise catalogue** and in relevant
-exercise detail sheets.
+to users in the app at **Settings → About**, in the exercise library, and in
+relevant exercise detail sheets.
 
 The derived artefacts live in `app/data/` and are produced by
 `scripts/build-exercise-data.mjs`. Their exact provenance — upstream commit,

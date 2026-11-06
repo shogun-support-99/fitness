@@ -21,7 +21,11 @@ export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
   const results = searchExercises(all, query, muscle);
   const shown = results.slice(0, RESULT_CAP);
   const customCount = store.doc.customExercises.length;
-  const catalogueReady = store.catalogueReady;
+  const catalogueNote = store.catalogueReady
+    ? ""
+    : store.catalogueState === "unavailable"
+      ? " · catalogue unavailable"
+      : " · loading catalogue…";
 
   return `
     <section class="view view-library">
@@ -30,7 +34,7 @@ export function renderLibrary(store, { query = "", muscle = "all" } = {}) {
           <h1>Exercises</h1>
           <p class="view-subline">
             ${all.length} exercise${all.length === 1 ? "" : "s"}${customCount ? ` · ${customCount} custom` : ""}
-            ${catalogueReady ? "" : " · loading catalogue…"}
+            ${catalogueNote}
           </p>
         </div>
         <button class="btn btn-primary" data-action="open-custom-exercise">${icon("plus")} New</button>

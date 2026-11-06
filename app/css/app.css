@@ -4242,6 +4242,7 @@ select {
 }
 
 .exercise-thumb {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4264,6 +4265,37 @@ select {
 .exercise-thumb.has-image {
   border: 1px solid var(--border);
   background: var(--surface);
+}
+
+/* The library gives the demos more room than the compact logger and picker, so
+   the GIF actually reads as a demonstration rather than a grey smudge. */
+.library-row .exercise-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+}
+
+.thumb-gif {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .library-row:hover .exercise-thumb.is-motion,
+  .library-row:focus-within .exercise-thumb.is-motion {
+    outline: 2px solid color-mix(in srgb, var(--signal) 62%, transparent);
+    outline-offset: 2px;
+  }
 }
 
 /* Recorded set detail inside History */
@@ -5167,6 +5199,28 @@ select {
   border-radius: var(--radius-control);
   border: 1px solid var(--rule);
   background: var(--sunken);
+}
+
+/* Poster and GIF share one cell: the still appears immediately, then the
+   animation covers it when its frames are ready. */
+.media-frame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 190px;
+}
+
+.media-frame > img {
+  grid-area: 1 / 1;
+}
+
+.media-frame .media-poster {
+  filter: saturate(0.75);
+}
+
+.media-frame .media-anim {
+  position: relative;
+  z-index: 1;
 }
 
 .media figcaption {

@@ -7,7 +7,8 @@
  * carries an explicit MEDIA EXCEPTION: that media is (c) Gym Visual, included in
  * the dataset with the rights holder's written permission, and "cloning this
  * repository does not grant you any license to the media". IronLog therefore
- * ships none of it. See NOTICE and app/media/README.md.
+ * redistributes it only under the app operator's separate Gym Visual media
+ * licence, with every record's credit retained. See NOTICE and app/media/README.md.
  *
  * Where no licensed catalogue media exists, original vector geometry is drawn from the
  * dataset's own MIT-licensed fields (category, muscle, equipment, target,
@@ -373,12 +374,11 @@ export function muscleDiagram(exercise, opts = {}) {
  * Full attribution and pose controls remain in the exercise detail sheet.
  */
 export function exerciseThumbnail(exercise) {
-  const url =
-    exercise?.media?.provider === "gymvisual"
-      ? exercise.media.gif || exercise.media.image || ""
-      : "";
+  const media = exercise?.media?.provider === "gymvisual" ? exercise.media : null;
+  const gif = media?.gif || "";
+  const url = gif || media?.image || "";
   if (url) {
-    return `<span class="exercise-thumb has-image" aria-hidden="true"><img src="${esc(url)}" alt="" loading="lazy" decoding="async" width="52" height="52" /></span>`;
+    return `<span class="exercise-thumb has-image${gif ? " is-motion" : ""}" aria-hidden="true"><img src="${esc(url)}" alt="" loading="lazy" decoding="async" width="52" height="52" />${gif ? `<span class="thumb-gif">GIF</span>` : ""}</span>`;
   }
   return `<span class="exercise-thumb" aria-hidden="true">${icon("dumbbell")}</span>`;
 }
@@ -412,12 +412,17 @@ export function exerciseMedia(exercise, opts = {}) {
   }
 
   // Licensed Gym Visual media: an animated 180x180 GIF (primary) with the
-  // required attribution.
+  // required attribution. The static poster sits underneath so the media card
+  // is never blank while the larger GIF is fetched or decoded.
   if (exercise?.media?.provider === "gymvisual" && exercise.media.gif) {
     const gif = esc(exercise.media.gif);
+    const still = exercise.media.image ? esc(exercise.media.image) : "";
     const credit = esc(exercise.media.credit ?? "© Gym visual — https://gymvisual.com/");
     return `<figure class="media media-file media-gymvisual">
-  <img src="${gif}" alt="${name} demonstration" loading="lazy" decoding="async" width="180" height="180" />
+  <span class="media-frame">
+    ${still ? `<img class="media-poster" src="${still}" alt="" aria-hidden="true" width="180" height="180" decoding="async" />` : ""}
+    <img class="media-anim" src="${gif}" alt="${name} demonstration" loading="eager" decoding="async" width="180" height="180" />
+  </span>
   <figcaption><span class="media-credit">${credit}</span></figcaption>
 </figure>`;
   }

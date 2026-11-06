@@ -126,8 +126,6 @@ export function renderSettings(store) {
             </div>
           </section>
 
-          ${renderCataloguePanel(store)}
-
           <section class="panel" data-reveal="rise">
             <div class="panel-head"><h2>About</h2></div>
             <dl class="fact-list">
@@ -142,8 +140,15 @@ export function renderSettings(store) {
               Training carries risk. IronLog records what you do; it is not medical, coaching or
               safety advice. Work within your limits and get professional guidance when you need it.
             </p>
+            <p class="panel-hint attribution">
+              Exercise names, taxonomy and instructions come from
+              <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
+              used under the MIT licence — © 2026 Hasan Emir Yıldırım. Its Gym Visual GIFs are
+              used under a licence held by the app operator (© Gym Visual).
+            </p>
             <div class="settings-actions">
               <a class="link" href="../privacy.html">Privacy &amp; data ${icon("chevron")}</a>
+              <a class="link" href="../NOTICE">Third-party notices ${icon("chevron")}</a>
               <a class="link" href="../" data-action="to-landing">Project landing page ${icon("chevron")}</a>
             </div>
           </section>
@@ -176,40 +181,6 @@ function renderLanguagePanel(store) {
         Applies to the step-by-step instructions shown on catalogue exercises. Each
         language pack is downloaded the first time you open an exercise in it, and
         falls back to English when a translation is missing.
-      </p>
-    </section>`;
-}
-
-/** Provenance and licensing for the external catalogue. */
-function renderCataloguePanel(store) {
-  const meta = store.catalogueMeta;
-  const state = store.catalogueState;
-  const counts = meta?.counts ?? {};
-  const source = meta?.sources?.dataset ?? meta?.source ?? {};
-  const commit = source.commit ? String(source.commit).slice(0, 7) : null;
-
-  const stateLine =
-    state === "ready"
-      ? `${store.catalogue.length} source records loaded · ${store.exercises().length} unique in the library`
-      : state === "loading"
-        ? "Catalogue is loading…"
-        : state === "unavailable"
-          ? "Catalogue unavailable — the built-in library could not load. Check the connection and reload."
-          : "Catalogue not loaded yet.";
-
-  return `
-    <section class="panel" data-reveal="rise">
-      <div class="panel-head"><h2>Exercise catalogue</h2></div>
-      <dl class="fact-list">
-        <div><dt>Status</dt><dd>${esc(stateLine)}</dd></div>
-        <div><dt>Languages</dt><dd>${counts.languages ?? availableLanguages(meta).length}</dd></div>
-        ${commit ? `<div><dt>Data commit</dt><dd>${esc(commit)}</dd></div>` : ""}
-      </dl>
-      <p class="panel-hint attribution">
-        Exercise names, taxonomy and step-by-step instruction text come from
-        <a href="https://github.com/hasaneyldrm/exercises-dataset" rel="noopener noreferrer" target="_blank">hasaneyldrm/exercises-dataset</a>,
-        used under the MIT licence — © 2026 Hasan Emir Yıldırım. Its Gym Visual GIFs
-        are used under a licence held by the app operator (© Gym Visual).
       </p>
     </section>`;
 }

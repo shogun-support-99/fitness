@@ -957,6 +957,251 @@ svg.tick,
   background: var(--signal);
 }
 
+/* The mock session runs itself: on a twelve-second loop the fourth set ticks,
+   a PR stamp lands, the rest bar drains and the stack gives a little cheer.
+   Everything is declarative, and every bit of it is absent under reduced motion. */
+.front-set-tick {
+  position: relative;
+}
+
+.front-set-tick i svg {
+  opacity: 0;
+}
+
+.front-set-tick::after {
+  content: "PR";
+  position: absolute;
+  top: -9px;
+  right: -4px;
+  z-index: 2;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--signal);
+  color: var(--signal-ink);
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  opacity: 0;
+  transform-origin: bottom right;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .front-head span::before {
+    animation: live-dot 2.4s ease-in-out infinite;
+  }
+
+  .front-set-tick {
+    animation: hero-set-row 12s var(--ease) infinite;
+  }
+
+  .front-set-tick > span:first-child {
+    animation: hero-set-chip 12s var(--ease) infinite;
+  }
+
+  .front-set-tick i {
+    animation: hero-set-dot 12s var(--ease) infinite;
+  }
+
+  .front-set-tick i svg {
+    animation: hero-set-check 12s var(--ease) infinite;
+  }
+
+  .front-set-tick::after {
+    animation: hero-pr-stamp 12s var(--ease) infinite;
+  }
+
+  .front-rest-bar i {
+    animation: hero-rest-drain 12s var(--ease) infinite;
+  }
+
+  .front-rest strong {
+    animation: hero-rest-time 12s var(--ease) infinite;
+  }
+
+  .folder-stack {
+    animation: hero-stack-cheer 12s var(--ease) infinite;
+  }
+
+  .folder-tab-signal {
+    animation: hero-tab-nudge 12s var(--ease) infinite;
+  }
+
+  .plate-watermark {
+    animation: hero-plate-breathe 14s ease-in-out infinite;
+  }
+}
+
+@keyframes live-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px var(--data-soft);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+    opacity: 0.55;
+  }
+}
+
+@keyframes hero-set-row {
+  0%,
+  18%,
+  90%,
+  100% {
+    background: var(--sunken);
+  }
+  22%,
+  82% {
+    background: var(--data-soft);
+  }
+}
+
+@keyframes hero-set-chip {
+  0%,
+  18%,
+  90%,
+  100% {
+    background: #dddcd2;
+    color: var(--ink-2);
+  }
+  22%,
+  82% {
+    background: #c9e2cf;
+    color: var(--data-ink);
+  }
+}
+
+@keyframes hero-set-dot {
+  0%,
+  18%,
+  90%,
+  100% {
+    background: #d8d8ce;
+    transform: scale(1);
+  }
+  22% {
+    background: var(--data);
+    transform: scale(1.24);
+  }
+  26%,
+  82% {
+    background: var(--data);
+    transform: scale(1);
+  }
+}
+
+@keyframes hero-set-check {
+  0%,
+  18%,
+  90%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-24deg);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.18) rotate(0deg);
+  }
+  26%,
+  82% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes hero-pr-stamp {
+  0%,
+  23%,
+  88%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-14deg);
+  }
+  26% {
+    opacity: 1;
+    transform: scale(1.14) rotate(2deg);
+  }
+  30%,
+  82% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes hero-rest-drain {
+  0%,
+  20%,
+  84%,
+  100% {
+    inset: 0 30% 0 0;
+    opacity: 0.75;
+  }
+  24% {
+    opacity: 1;
+  }
+  78% {
+    inset: 0 82% 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes hero-rest-time {
+  0%,
+  60%,
+  84%,
+  100% {
+    color: var(--paper);
+  }
+  68%,
+  78% {
+    color: var(--signal);
+  }
+}
+
+@keyframes hero-stack-cheer {
+  0%,
+  18%,
+  100% {
+    transform: translateY(0);
+  }
+  22% {
+    transform: translateY(-7px);
+  }
+  26% {
+    transform: translateY(1px);
+  }
+  30%,
+  90% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-tab-nudge {
+  0%,
+  18%,
+  100% {
+    translate: 0 0;
+  }
+  22% {
+    translate: 0 -4px;
+  }
+  26% {
+    translate: 0 0;
+  }
+}
+
+@keyframes hero-plate-breathe {
+  0%,
+  100% {
+    transform: translateY(-50%) rotate(8deg) scale(1);
+  }
+  50% {
+    transform: translateY(-50%) rotate(8deg) scale(1.035);
+  }
+}
+
 /* ── Stats band ────────────────────────────────────────────────────────── */
 
 .stats-band {

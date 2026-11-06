@@ -50,7 +50,8 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   columns and bars, so no charting library loads.
 - **Exercise library** — **1,316 exercises** from a single MIT data catalogue, deduplicated
   by normalised name so saved exercise IDs never change. Search is relevance-ranked and
-  grouped by muscle and equipment. Custom exercises persist alongside them.
+  grouped by muscle and equipment. Rows carry labelled animated Gym Visual thumbnails, and
+  custom exercises persist alongside them.
 - **Step-by-step instructions across 10 languages** — English, Spanish, French, Italian,
   Polish, Russian, Turkish, Chinese, Hindi and Korean. Each language pack downloads only
   when needed, with English fallback.
@@ -182,7 +183,7 @@ The library has a single source:
 
 The generator drops duplicate names (8 skipped) and records the provenance in
 `catalogue-meta.json`. The catalogue is fetched after first paint rather than imported;
-a failed fetch is reported honestly in Settings and leaves custom exercises usable.
+a failed fetch is reported honestly in the library heading and leaves custom exercises usable.
 Instruction text is split by language and loaded only when an exercise detail needs it —
 not as one up-front multi-megabyte bundle. Sources without a requested translation fall
 back to English.

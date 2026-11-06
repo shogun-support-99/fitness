@@ -10,6 +10,9 @@ import { emptyState, esc, icon, statTile } from "../ui.js";
 import { renderTrainingYear } from "./heatmap.js";
 import { renderRoutineCards } from "./routines.js";
 
+/** Weekly sessions that complete the momentum goal. */
+const MOMENTUM_GOAL = 5;
+
 export function renderHome(store) {
   const active = store.activeWorkout();
   const completed = store.completedWorkouts();
@@ -155,7 +158,10 @@ function renderActiveBanner(workout, units) {
 
 function renderStartPanel(store, weekCount) {
   const template = store.lastWorkoutTemplate();
-  const goalProgress = Math.min(100, Math.round((weekCount / 3) * 100));
+  // More than five sessions in a week is a great week, not "7/5". The ring
+  // fills, the dots all tick, and the displayed count stops at the goal.
+  const shownCount = Math.min(weekCount, MOMENTUM_GOAL);
+  const goalProgress = Math.min(100, Math.round((weekCount / MOMENTUM_GOAL) * 100));
   return `
     <div class="home-training-grid">
       <section class="start-panel training-hero motion-safe:animate-fade-up" data-tilt data-reveal="rise">
@@ -171,17 +177,17 @@ function renderStartPanel(store, weekCount) {
           </div>
         </div>
         <div class="hero-goal" style="--goal-offset:${100 - goalProgress}">
-          <div class="goal-ring motion-safe:animate-breathe" role="img" aria-label="${weekCount} of 3 weekly momentum sessions completed">
+          <div class="goal-ring motion-safe:animate-breathe" role="img" aria-label="${shownCount} of ${MOMENTUM_GOAL} weekly momentum sessions completed">
             <svg viewBox="0 0 120 120" aria-hidden="true">
               <circle class="goal-ring-track" cx="60" cy="60" r="50" pathLength="100" />
               <circle class="goal-ring-value" cx="60" cy="60" r="50" pathLength="100" />
             </svg>
-            <span class="goal-value"><strong>${weekCount}<small>/3</small></strong><span>this week</span></span>
+            <span class="goal-value"><strong>${shownCount}<small>/${MOMENTUM_GOAL}</small></strong><span>this week</span></span>
           </div>
           <div class="goal-dots" aria-hidden="true">
-            ${[1, 2, 3].map((n) => `<span class="${weekCount >= n ? "is-reached" : ""}">${weekCount >= n ? icon("check") : n}</span>`).join("")}
+            ${Array.from({ length: MOMENTUM_GOAL }, (_, i) => i + 1).map((n) => `<span class="${shownCount >= n ? "is-reached" : ""}">${shownCount >= n ? icon("check") : n}</span>`).join("")}
           </div>
-          <span class="goal-caption">${weekCount >= 3 ? "Goal complete — nice work" : "3-session momentum goal"}</span>
+          <span class="goal-caption">${shownCount >= MOMENTUM_GOAL ? "Goal complete — nice work" : `${MOMENTUM_GOAL}-session momentum goal`}</span>
         </div>
       </section>
       <section class="routine-section" aria-labelledby="home-routines-title">

@@ -18,6 +18,7 @@ import {
   movementDiagram,
   muscleDiagram,
   exerciseMedia,
+  exerciseThumbnail,
   mediaPath,
   MEDIA_EXTENSIONS,
 } from "../app/js/diagrams.js";
@@ -369,6 +370,48 @@ describe("exerciseMedia", () => {
     );
     assert.match(html, /media\/own\.webp/);
     assert.doesNotMatch(html, /media\/gymvisual\/x\.gif/);
+  });
+
+  test("shows the licensed GIF eagerly over its still poster", () => {
+    const html = exerciseMedia({
+      ...bench,
+      media: {
+        provider: "gymvisual",
+        gif: "media/gymvisual/x.gif",
+        image: "media/gymvisual/x.jpg",
+        credit: "© Gym Visual — https://gymvisual.com/",
+      },
+    });
+    assert.match(html, /class="media-anim" src="media\/gymvisual\/x\.gif"/);
+    assert.match(html, /class="media-poster" src="media\/gymvisual\/x\.jpg"/);
+    assert.match(html, /loading="eager"/);
+    assert.match(html, /© Gym Visual/);
+  });
+});
+
+describe("exerciseThumbnail", () => {
+  test("uses the licensed animation and labels it as a GIF", () => {
+    const html = exerciseThumbnail({
+      name: "Bench Press",
+      media: { provider: "gymvisual", gif: "media/gymvisual/x.gif", image: "media/gymvisual/x.jpg" },
+    });
+    assert.match(html, /src="media\/gymvisual\/x\.gif"/);
+    assert.match(html, /class="exercise-thumb has-image is-motion"/);
+    assert.match(html, />GIF</);
+    assert.match(html, /loading="lazy"/);
+    assert.match(html, /aria-hidden="true"/);
+  });
+
+  test("falls back to the poster, then the dumbbell mark", () => {
+    const still = exerciseThumbnail({
+      media: { provider: "gymvisual", image: "media/gymvisual/x.jpg" },
+    });
+    assert.match(still, /src="media\/gymvisual\/x\.jpg"/);
+    assert.doesNotMatch(still, />GIF</);
+
+    const drawn = exerciseThumbnail({ name: "Custom" });
+    assert.match(drawn, /class="exercise-thumb"/);
+    assert.doesNotMatch(drawn, /<img/);
   });
 });
 
