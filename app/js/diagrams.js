@@ -23,7 +23,7 @@
  * randomness, no clock. That keeps them testable and keeps re-render cheap.
  *
  * Animation lives in CSS (app.css, "Motion" layer), driven by the class names
- * emitted here, and is disabled wholesale under prefers-reduced-motion.
+ * emitted here and runs consistently regardless of OS motion preferences.
  */
 
 import { esc, icon } from "./ui.js";

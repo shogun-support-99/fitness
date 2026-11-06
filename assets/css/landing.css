@@ -692,7 +692,7 @@ svg.tick,
   opacity: 0;
 }
 
-@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+@media (hover: none), (pointer: coarse) {
   .cursor-core,
   .cursor-orbit {
     display: none;
@@ -843,7 +843,7 @@ svg.tick,
 /* The three cards idle at different speeds, then fan a little wider when the
    pointer is over the artwork. The pointer itself adds depth-scaled parallax
    through --hero-x/--hero-y, set in landing.js. */
-@media (prefers-reduced-motion: no-preference) {
+
   .folder {
     animation: folder-drift var(--drift, 8s) ease-in-out infinite alternate;
     animation-delay: var(--drift-delay, 0s);
@@ -863,7 +863,7 @@ svg.tick,
     --drift: 6.8s;
     --drift-delay: -0.6s;
   }
-}
+
 
 @keyframes folder-drift {
   from {
@@ -874,7 +874,7 @@ svg.tick,
   }
 }
 
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+@media (hover: hover) and (pointer: fine) {
   .hero-art:hover .folder-back {
     --tx: -45px;
     --ty: 8px;
@@ -1327,7 +1327,7 @@ svg.tick,
   margin: -3.6px 0 0 -1.5px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   .front-head span::before {
     animation: live-dot 2.4s ease-in-out infinite;
   }
@@ -1375,61 +1375,9 @@ svg.tick,
   .plate-watermark {
     animation: hero-plate-breathe 14s ease-in-out infinite;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .hero-art,
-  .hero-art.is-pressed {
-    scale: 1;
-    transform: none;
-    transition: none;
-  }
 
-  .hero-art::after,
-  .folder-front::after {
-    opacity: 0;
-    transition: none;
-  }
 
-  .front-set-tick i svg,
-  .front-set-tick::after,
-  .front-rest-bar i,
-  .front-rest strong {
-    transition: none;
-  }
-
-  .front-rest.is-resting .front-rest-bar i {
-    transition: none;
-  }
-
-  /* Without the attract loop, a plain plus is the only hint that set 4 can be
-     tapped. It disappears as soon as the row is logged. */
-  .front-set-tick i.is-idle::after {
-    content: "+";
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    color: #7c7c70;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-  }
-
-  .front-set-tick:hover i.is-idle::after,
-  .front-set-tick:focus-visible i.is-idle::after {
-    content: none;
-  }
-
-  .front-set-tick i:not(.is-idle)::after {
-    content: none;
-  }
-
-  .front-totals strong.is-bumped {
-    animation: none;
-  }
-}
 
 @keyframes live-dot {
   0%,
@@ -2635,67 +2583,7 @@ html.js.motion-ok [data-reveal].is-in {
   translate: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
 
-  html.js.motion-ok [data-reveal] {
-    opacity: 1;
-    translate: none;
-    transition: none;
-  }
-
-  .tabs-glider,
-  .btn[data-magnetic],
-  .cursor-core,
-  .cursor-orbit {
-    transition: none;
-  }
-
-  .cursor-core,
-  .cursor-orbit,
-  .tap-glow {
-    display: none;
-  }
-
-  .btn[data-magnetic] {
-    transform: none !important;
-  }
-
-  .folder {
-    translate: var(--tx) var(--ty) 0;
-    animation: none !important;
-  }
-
-  .front-head,
-  .front-totals,
-  .front-exercise {
-    transform: none !important;
-    transition: none;
-  }
-
-  .tab-panel.is-switching {
-    animation: none;
-  }
-
-  .routine-card[data-spotlight]::before,
-  .stats-band[data-spotlight]::before,
-  .final-cta[data-spotlight]::before,
-  [data-tilt-glare].is-tilt-ready::after {
-    display: none;
-  }
-
-  [data-tilt].is-tilt-ready {
-    transform: none !important;
-    transition: none;
-  }
-
-  .stat strong {
-    transform: none !important;
-    transition: none;
-  }
-}
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
 
@@ -3230,12 +3118,12 @@ html.js.motion-ok [data-reveal].is-in {
   color: var(--muted);
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   html.js.motion-ok .year-board.is-in .heatmap-cell[data-level] {
     animation: heatmap-cell-in 380ms var(--ease) both;
     animation-delay: calc(var(--col) * 6ms + var(--row) * 10ms);
   }
-}
+
 
 @keyframes heatmap-cell-in {
   from {
@@ -3294,7 +3182,7 @@ html.js.motion-ok [data-reveal].is-in {
    floor under the scenes, floating slips of data, a ghost numeral pressed
    into each routine card, and a light that follows a finger or a cursor.
    Nothing here carries meaning on its own; every layer is decorative and
-   every transform is disabled under reduced motion.
+   pointer-driven transforms stay scoped to the individual cards.
    ========================================================================== */
 
 /* ── Scroll meter and settled header ──────────────────────────────────── */
@@ -3399,7 +3287,7 @@ html.js.motion-ok [data-reveal].is-in {
   rotate: 3deg;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   .hero-float-a {
     animation: hero-slip-drift 7.4s ease-in-out infinite alternate;
   }
@@ -3407,7 +3295,7 @@ html.js.motion-ok [data-reveal].is-in {
   .hero-float-b {
     animation: hero-slip-drift 8.6s ease-in-out -2.2s infinite alternate-reverse;
   }
-}
+
 
 @keyframes hero-slip-drift {
   from {
@@ -3540,7 +3428,7 @@ html.js.motion-ok [data-reveal].is-in {
   rotate: 3deg;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   .stage-float-a {
     animation: stage-slip 8.2s ease-in-out infinite alternate;
   }
@@ -3548,7 +3436,7 @@ html.js.motion-ok [data-reveal].is-in {
   .stage-float-b {
     animation: stage-slip 9.4s ease-in-out -3.4s infinite alternate-reverse;
   }
-}
+
 
 @keyframes stage-slip {
   from {
@@ -3840,11 +3728,11 @@ html.js.motion-ok [data-reveal].is-in {
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   .faq-item[open] > p {
     animation: faq-answer-in 0.3s var(--ease) both;
   }
-}
+
 
 @keyframes faq-answer-in {
   from {
@@ -3914,11 +3802,11 @@ html.js.motion-ok [data-reveal].is-in {
   box-shadow: 0 0 18px 3px rgba(246, 224, 22, 0.35);
 }
 
-@media (prefers-reduced-motion: no-preference) {
+
   .final-orbit {
     animation: final-orbit 44s linear infinite;
   }
-}
+
 
 @keyframes final-orbit {
   to {
@@ -3956,7 +3844,7 @@ html.js.motion-ok [data-reveal].is-in {
   }
 }
 
-@media (hover: none) and (prefers-reduced-motion: no-preference) {
+@media (hover: none) {
   .routine-card:active,
   .faq-item summary:active,
   .stat:active strong {
@@ -3969,7 +3857,7 @@ html.js.motion-ok [data-reveal].is-in {
   }
 }
 
-/* ── Depth pass responsive and reduced motion ─────────────────────────── */
+/* ── Depth pass responsive ─────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
   .stage-float {
@@ -4019,33 +3907,5 @@ html.js.motion-ok [data-reveal].is-in {
   .final-plate {
     right: -180px;
     width: 420px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scroll-meter i {
-    transition: none;
-  }
-
-  .hero-float,
-  .stage-float {
-    animation: none !important;
-    transform: none !important;
-  }
-
-  .mock-scene.is-switching,
-  .faq-item[open] > p,
-  .final-orbit,
-  .tap-glow {
-    animation: none !important;
-  }
-
-  .tap-glow {
-    display: none;
-  }
-
-  .routine-card > .routine-index,
-  .feature-index {
-    transition: none;
   }
 }

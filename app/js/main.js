@@ -942,7 +942,7 @@ function showSummary(workout, summary) {
   openSheet("summary-modal");
 
   // The session's authored moment: the summary mark stamps in and radiates
-  // linework when a record actually broke. Under reduced motion it simply lands.
+  // linework when a record actually broke.
   if (records.length > 0) {
     const mark = $("#summary-content .summary-mark");
     celebrateRecord(mark, {
@@ -1268,8 +1268,7 @@ store.subscribe((event) => {
 
 /**
  * A pointer-tracked light on routine cards. One delegated listener keeps the
- * cost flat as cards are re-rendered, and touch/reduced-motion users simply
- * never see the effect.
+ * cost flat as cards are re-rendered; touch devices use their press feedback.
  */
 function initSpotlight() {
   const fine = window.matchMedia("(hover: hover) and (pointer: fine)");

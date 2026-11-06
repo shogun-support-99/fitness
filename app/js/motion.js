@@ -8,42 +8,19 @@
  * is - a log row is written in, a figure rolls like an odometer, a chart bar
  * grows from the baseline, a record is stamped. Nothing shares a fade-up.
  *
- * Three rules hold everywhere in here:
+ * Motion is always enabled for this product: operating-system reduced-motion
+ * preferences do not suppress the authored transitions or pointer effects.
+ * The safety controls here are instead bounded effects, scoped listeners,
+ * reduced work offscreen, and teardown when views change.
  *
- *  1. Reduced motion wins. `prefers-reduced-motion: reduce` removes the
- *     animation and leaves the final state, so nothing is ever hidden behind a
- *     transition that will not run. CSS does the heavy lifting; JS also stops
- *     starting loops.
- *  2. Nothing leaks. Observers are disconnected, timers are cleared, and loops
- *     pause when the tab is hidden or the element scrolls offscreen. A logger is
- *     left open for an hour; a stray rAF loop drains a phone battery.
- *  3. Start from visible. Entrances settle INTO place from an already-legible
- *     default (a clip-path wipe, a small offset) rather than fading up from
- *     nothing, which is what makes motion feel cheap.
+ * Start from visible. Entrances settle INTO place from an already-legible
+ * default (a clip-path wipe, a small offset) rather than fading up from
+ * nothing, which is what makes motion feel cheap.
  */
 
-/** Live preference, not a one-shot read: users toggle this mid-session. */
-let reducedQuery = null;
-
+/** Motion is enabled in browsers, regardless of the operating-system setting. */
 export function prefersReducedMotion() {
-  if (typeof window === "undefined" || !window.matchMedia) return true;
-  if (!reducedQuery) {
-    reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  }
-  return reducedQuery.matches;
-}
-
-/** Run `fn` whenever the reduced-motion preference changes. */
-export function onMotionPreferenceChange(fn) {
-  if (typeof window === "undefined" || !window.matchMedia) return () => {};
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const handler = (e) => fn(e.matches);
-  if (mq.addEventListener) mq.addEventListener("change", handler);
-  else if (mq.addListener) mq.addListener(handler);
-  return () => {
-    if (mq.removeEventListener) mq.removeEventListener("change", handler);
-    else if (mq.removeListener) mq.removeListener(handler);
-  };
+  return typeof window === "undefined";
 }
 
 /**
@@ -124,8 +101,8 @@ export function revealVariant(el) {
  * Wire scroll reveals inside `root`.
  *
  * Elements opt in with `data-reveal` (optionally naming a variant) or are found
- * by `selector`. Under reduced motion, or without IntersectionObserver, every
- * element is placed in its final state immediately and nothing is observed.
+ * by `selector`. Without IntersectionObserver, every element is placed in its
+ * final state immediately and nothing is observed.
  *
  * @returns {() => void} teardown
  */
@@ -240,8 +217,7 @@ export function odometerMarkup(value, { decimals = 0, separator = true } = {}) {
  * Roll the digits of an element to `value`.
  *
  * Cheap and honest: it sets the final text immediately for assistive tech and
- * for the no-JS/reduced-motion case, then animates the strips. Under reduced
- * motion it does nothing but set the text.
+ * for the no-JS case, then animates the strips.
  */
 export function rollNumber(el, value, opts = {}) {
   if (!el) return;
@@ -407,10 +383,9 @@ export function transitionView(view, swap) {
 /**
  * A marquee of real data (exercise names, this week's sessions).
  *
- * Pauses on hover, on keyboard focus within, when the tab is hidden, and never
- * starts under reduced motion - an unstoppable scrolling strip is both an
- * accessibility failure and a battery one. The content is duplicated so the loop
- * is seamless, and the duplicate is hidden from assistive tech.
+ * Pauses on hover, on keyboard focus within and when the tab is hidden. The
+ * content is duplicated so the loop is seamless, and the duplicate is hidden
+ * from assistive tech.
  *
  * @returns {() => void} teardown
  */
@@ -506,7 +481,7 @@ export function initPressFeedback(root, { selector = "[data-press]" } = {}) {
  *
  * The listener is delegated from the stable container, so cards repainted by a
  * view change keep responding without re-binding. Kept deliberately small
- * (under 5deg), disabled under reduced motion. Fine pointers steer continuously;
+ * (under 5deg). Fine pointers steer continuously;
  * touch gets a brief press-and-drag tilt that resets on release. The 3D class is
  * added on first interaction, after entrance motion, so the two never fight.
  *
@@ -621,12 +596,6 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
   scope.addEventListener("pointerleave", reset);
   scope.addEventListener("pointercancel", reset);
   window.addEventListener("blur", reset);
-  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-  const onMotionChange = (event) => {
-    if (event.matches) reset();
-  };
-  motionQuery?.addEventListener?.("change", onMotionChange);
-
   return () => {
     scope.removeEventListener("pointermove", onMove);
     scope.removeEventListener("pointerdown", onDown);
@@ -635,7 +604,6 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
     scope.removeEventListener("pointerleave", reset);
     scope.removeEventListener("pointercancel", reset);
     window.removeEventListener("blur", reset);
-    motionQuery?.removeEventListener?.("change", onMotionChange);
     reset();
     const cleaned = isTarget ? [scope] : [...scope.querySelectorAll(".is-tilt-ready")];
     cleaned.forEach((node) => node.classList.remove("is-tilt-ready", "is-tilting"));
@@ -650,7 +618,7 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
  * Grow chart bars from the baseline with a stagger.
  *
  * The bars are already at their true height in markup (so the chart is correct
- * without JS and under reduced motion); this animates a transform, never the
+ * without JS); this animates a transform, never the
  * data. Animating height would relayout the axis on every frame.
  */
 export function initChartMotion(root, { selector = ".chart-bar, .dist-fill" } = {}) {
@@ -767,7 +735,7 @@ export function initHeatmapTip(root) {
  *
  * The app is a ledger, not a toy, so the light is fixed at low opacity and
  * sits behind the shell; it never sits on top of data or changes legibility.
- * Touch gets a short-lived light on press; reduced-motion users get none.
+ * Touch gets a short-lived light on press.
  *
  * @returns {() => void} teardown
  */
@@ -820,11 +788,6 @@ export function initAmbientLight(root = document) {
     el.classList.remove("is-live");
   };
 
-  const onMotionChange = (event) => {
-    if (event.matches) hide();
-  };
-  const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-
   scope.addEventListener("pointermove", move, { passive: true });
   scope.addEventListener("pointerdown", onDown, { passive: true });
   window.addEventListener("pointerup", onTouchEnd, { passive: true });
@@ -840,7 +803,6 @@ export function initAmbientLight(root = document) {
     window.removeEventListener("pointercancel", onTouchEnd);
     document.removeEventListener("pointerleave", hide);
     window.removeEventListener("blur", hide);
-    motionQuery?.removeEventListener?.("change", onMotionChange);
     if (frame) cancelAnimationFrame(frame);
     hide();
   };
@@ -893,7 +855,7 @@ const CONTROL_SELECTOR = "a, button, summary, [role=tab], [role=button], .nav-it
 /**
  * A dual cursor for fine pointers: a tight core that tracks the pointer 1:1
  * and a heavier ring that springs behind it. Expands over controls. Never
- * replaces the OS cursor, never appears on touch or under reduced motion.
+ * replaces the OS cursor and never appears on touch.
  *
  * @returns {() => void} teardown
  */
@@ -973,17 +935,12 @@ export function initCursor(root = document) {
   document.documentElement.addEventListener("pointerenter", show);
   document.addEventListener("pointerdown", down, { passive: true });
   window.addEventListener("pointerup", up, { passive: true });
-  const unsub = onMotionPreferenceChange((reduced) => {
-    if (reduced) hide();
-  });
-
   return () => {
     document.removeEventListener("pointermove", onMove);
     document.documentElement.removeEventListener("pointerleave", hide);
     document.documentElement.removeEventListener("pointerenter", show);
     document.removeEventListener("pointerdown", down);
     window.removeEventListener("pointerup", up);
-    unsub();
     if (frame) cancelAnimationFrame(frame);
     core.remove();
     ring.remove();
@@ -1147,23 +1104,16 @@ export function initGyroTilt(root, { selector = "[data-tilt]", max = 5 } = {}) {
   };
 
   scope.addEventListener("pointerdown", request, { passive: true, once: true });
-  const unsub = onMotionPreferenceChange((reduced) => {
-    if (!reduced) return;
-    window.removeEventListener("deviceorientation", onOrient);
-    listening = false;
-  });
-
   return () => {
     scope.removeEventListener("pointerdown", request);
     window.removeEventListener("deviceorientation", onOrient);
-    unsub();
     if (frame) cancelAnimationFrame(frame);
   };
 }
 
 /**
  * A short ripple where a finger lands on a control. Mouse never sees it;
- * reduced motion never sees it; a scroll that moved more than 14px is not
+ * a scroll that moved more than 14px is not
  * a tap and does not fire.
  *
  * @returns {() => void} teardown
