@@ -214,8 +214,12 @@ if (heroArt && heroStack) {
     heroStack.style.setProperty("--hero-y", y.toFixed(3));
     heroArt.style.setProperty("--hero-x", x.toFixed(3));
     heroArt.style.setProperty("--hero-y", y.toFixed(3));
-    heroArt.style.setProperty("--tilt-x", `${(-y * 4.5).toFixed(2)}deg`);
-    heroArt.style.setProperty("--tilt-y", `${(x * 6.5).toFixed(2)}deg`);
+    // Make the depth cue readable at a glance: the stack leans toward the
+    // pointer while each paper layer gets a slightly different Z offset.
+    heroArt.style.setProperty("--tilt-x", `${(-y * 9).toFixed(2)}deg`);
+    heroArt.style.setProperty("--tilt-y", `${(x * 11).toFixed(2)}deg`);
+    heroStack.style.setProperty("--hero-depth", (Math.abs(x) + Math.abs(y)).toFixed(3));
+    heroArt.style.setProperty("--spot-size", "340px");
     heroArt.style.setProperty("--spot-x", `${spotX.toFixed(1)}%`);
     heroArt.style.setProperty("--spot-y", `${spotY.toFixed(1)}%`);
   };
@@ -241,6 +245,8 @@ if (heroArt && heroStack) {
     y = 0;
     spotX = 50;
     spotY = 45;
+    heroStack?.style.setProperty("--hero-depth", "0");
+    heroArt.style.setProperty("--spot-size", "280px");
     heroArt.classList.remove("is-tilting");
     queue();
   };

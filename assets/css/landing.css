@@ -561,6 +561,25 @@ svg.tick,
     scale 220ms var(--ease);
 }
 
+/* A second, very slow camera move keeps the hero alive even before the first
+   pointer move. The pointer layer still owns the actual 3D angle. */
+.hero-art::after {
+  content: "";
+  position: absolute;
+  inset: 9% 5%;
+  z-index: 0;
+  border: 1px solid color-mix(in srgb, var(--signal) 32%, transparent);
+  border-radius: 50%;
+  opacity: 0.25;
+  pointer-events: none;
+  transform: translate3d(calc(var(--hero-x, 0) * -12px), calc(var(--hero-y, 0) * -8px), -20px) rotateX(66deg);
+  transition: transform 420ms var(--ease), opacity 320ms var(--ease);
+}
+
+.hero-art.is-pointing::after {
+  opacity: 0.55;
+}
+
 /* A soft pool of light follows the cursor or finger across the artwork. It sits
    behind the folders, so the stack reads as paper lit from above. */
 .hero-art::before {
@@ -569,7 +588,7 @@ svg.tick,
   inset: -10%;
   z-index: 0;
   background: radial-gradient(
-    280px circle at var(--spot-x) var(--spot-y),
+    var(--spot-size, 280px) circle at var(--spot-x) var(--spot-y),
     color-mix(in srgb, var(--signal) 22%, transparent) 0,
     color-mix(in srgb, var(--signal) 7%, transparent) 34%,
     transparent 64%
@@ -673,6 +692,7 @@ svg.tick,
   height: 470px;
   padding-top: 34px;
   transform-style: preserve-3d;
+  perspective: 920px;
 }
 
 .folder {
@@ -688,8 +708,9 @@ svg.tick,
   box-shadow: var(--shadow-card);
   /* The base card position stays in `translate`/`rotate` so the idle drift can
      own `transform` and the pointer parallax can compose with both. */
-  translate: calc(var(--tx) + var(--hero-x, 0) * var(--depth) * 16px)
-    calc(var(--ty) + var(--hero-y, 0) * var(--depth) * 13px) var(--z, 0px);
+  translate: calc(var(--tx) + var(--hero-x, 0) * var(--depth) * 22px)
+    calc(var(--ty) + var(--hero-y, 0) * var(--depth) * 18px)
+    calc(var(--z, 0px) + var(--hero-depth, 0) * var(--depth) * 7px);
   rotate: var(--rot);
   transition:
     translate 0.34s var(--ease),
@@ -738,6 +759,58 @@ svg.tick,
 .folder-front {
   --depth: 0.7;
   --z: 0px;
+}
+
+.folder-front::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    180px circle at calc(50% + var(--hero-x, 0) * 80px) calc(45% + var(--hero-y, 0) * 60px),
+    rgba(255, 255, 255, 0.24),
+    transparent 68%
+  );
+  opacity: 0;
+  transition: opacity 260ms var(--ease);
+}
+
+.hero-art.is-pointing .folder-front::after {
+  opacity: 1;
+}
+
+/* The live workout reads like a little physical instrument, not a flat mock:
+   its rows sit on successive depth planes within the front folder. */
+.front-head,
+.front-totals,
+.front-exercise {
+  transform-style: preserve-3d;
+  transition: transform 260ms var(--ease);
+}
+
+.front-head {
+  transform: translateZ(22px);
+}
+
+.front-totals {
+  transform: translateZ(15px);
+}
+
+.front-exercise {
+  transform: translateZ(8px);
+}
+
+.hero-art.is-tilting .front-head {
+  transform: translate3d(0, 0, 34px);
+}
+
+.hero-art.is-tilting .front-totals {
+  transform: translate3d(0, 0, 24px);
+}
+
+.hero-art.is-tilting .front-exercise {
+  transform: translate3d(0, 0, 13px);
 }
 
 /* The three cards idle at different speeds, then fan a little wider when the
@@ -1282,6 +1355,12 @@ svg.tick,
   .hero-art.is-pressed {
     scale: 1;
     transform: none;
+    transition: none;
+  }
+
+  .hero-art::after,
+  .folder-front::after {
+    opacity: 0;
     transition: none;
   }
 
