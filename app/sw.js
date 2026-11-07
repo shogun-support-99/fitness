@@ -22,7 +22,7 @@
 // The deploy workflow rewrites this value with the commit SHA, so every
 // published build gets a fresh cache and waiting updates can be detected. When
 // editing locally, bump the suffix if an old shell keeps winning during tests.
-const CACHE = "ironlog-shell-v20";
+const CACHE = "ironlog-shell-v21";
 
 /** Everything needed to boot the app offline, resolved relative to app/. */
 const PRECACHE = [

@@ -164,7 +164,14 @@ function renderStartPanel(store, weekCount) {
   const goalProgress = Math.min(100, Math.round((weekCount / MOMENTUM_GOAL) * 100));
   return `
     <div class="home-training-grid">
-      <section class="start-panel training-hero animate-fade-up" data-tilt data-tilt-glare data-tilt-max="2" data-reveal="rise">
+      <section class="start-panel training-hero animate-fade-up" data-tilt data-tilt-glare data-tilt-max="4.8" data-tilt-parallax="30" data-depth-stage data-reveal="rise">
+        <div class="hero-depth" aria-hidden="true">
+          <span class="hero-depth-ring hero-depth-ring-a" data-depth="20"></span>
+          <span class="hero-depth-ring hero-depth-ring-b" data-depth="12"></span>
+          <span class="hero-depth-plate" data-depth="30"></span>
+          <span class="hero-depth-spark" data-depth="44"></span>
+          <span class="hero-depth-grid" data-depth="7"></span>
+        </div>
         <div class="start-panel-copy">
           <span class="energy-badge">${icon("bolt")} Training mode</span>
           <h2>Small sets. <span class="text-gradient">Big momentum.</span></h2>
@@ -176,7 +183,7 @@ function renderStartPanel(store, weekCount) {
             ${template ? `<button class="btn btn-sub" data-action="repeat-last">${icon("history")} Repeat last <span class="btn-sub-note">${esc(template.exercises.length)} ${template.exercises.length === 1 ? "exercise" : "exercises"}</span></button>` : ""}
           </div>
         </div>
-        <div class="hero-goal" style="--goal-offset:${100 - goalProgress}">
+        <div class="hero-goal" style="--goal-offset:${100 - goalProgress}" data-depth="16">
           <div class="goal-ring animate-breathe" role="img" aria-label="${shownCount} of ${MOMENTUM_GOAL} weekly momentum sessions completed">
             <svg viewBox="0 0 120 120" aria-hidden="true">
               <circle class="goal-ring-track" cx="60" cy="60" r="50" pathLength="100" />
@@ -184,6 +191,7 @@ function renderStartPanel(store, weekCount) {
             </svg>
             <span class="goal-value"><strong>${shownCount}<small>/${MOMENTUM_GOAL}</small></strong><span>this week</span></span>
           </div>
+          <span class="goal-orbit" aria-hidden="true"><i></i></span>
           <div class="goal-dots" aria-hidden="true">
             ${Array.from({ length: MOMENTUM_GOAL }, (_, i) => i + 1).map((n) => `<span class="${shownCount >= n ? "is-reached" : ""}">${shownCount >= n ? icon("check") : n}</span>`).join("")}
           </div>

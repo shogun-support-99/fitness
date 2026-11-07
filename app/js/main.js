@@ -23,6 +23,9 @@ import {
   initTilt,
   initAmbientLight,
   initScrollMeter,
+  initSpatialField,
+  initSpotlight,
+  initMotionTrail,
   initCursor,
   initMagnetic,
   initGyroTilt,
@@ -1279,42 +1282,6 @@ store.subscribe((event) => {
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 
-/**
- * A pointer-tracked light on routine cards. One delegated listener keeps the
- * cost flat as cards are re-rendered; touch devices use their press feedback.
- */
-function initSpotlight() {
-  const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
-  if (!fine.matches) return;
-
-  let frame = 0;
-  let card = null;
-  let x = 0;
-  let y = 0;
-
-  const paint = () => {
-    frame = 0;
-    if (!card) return;
-    card.style.setProperty("--spot-x", `${x.toFixed(1)}px`);
-    card.style.setProperty("--spot-y", `${y.toFixed(1)}px`);
-  };
-
-  document.addEventListener(
-    "pointermove",
-    (event) => {
-      if (prefersReducedMotion()) return;
-      const next = event.target instanceof Element ? event.target.closest("[data-spotlight]") : null;
-      if (!next) return;
-      const rect = next.getBoundingClientRect();
-      card = next;
-      x = event.clientX - rect.left;
-      y = event.clientY - rect.top;
-      if (!frame) frame = requestAnimationFrame(paint);
-    },
-    { passive: true },
-  );
-}
-
 function boot() {
   // Restore the sidebar width preference before the first render so the rail
   // does not flash open and then collapse. On a narrow desktop or tablet there
@@ -1358,7 +1325,9 @@ function boot() {
     selector:
       ".btn, .routine-card, .chip, .nav-item, .icon-btn, .timer-btn, .tick, .session-row, .history-head, .library-open, .exercise-rest, .tile",
   });
-  initSpotlight();
+  initSpatialField(document);
+  initSpotlight(document);
+  initMotionTrail(document);
   initAmbientLight(document);
   initScrollMeter(document);
   initCursor(document);

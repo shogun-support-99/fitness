@@ -134,6 +134,18 @@
   --shadow-menu: 0 10px 30px -10px rgba(15, 42, 29, 0.26);
 
   --ease: cubic-bezier(0.16, 0.84, 0.32, 1);
+
+  /* Spatial motion. motion.js writes these as the pointer, finger, scroll and
+     gyro move; the zeroes are the resting state and also the no-JS state. */
+  --field-x: 0;
+  --field-y: 0;
+  --field-dx: 0px;
+  --field-dy: 0px;
+  --field-speed: 0;
+  --field-angle: 0deg;
+  --field-px: 50vw;
+  --field-py: 20vh;
+  --scroll-n: 0;
 }
 
 /* "Auto" follows the operating system. The pinned themes below win over this
@@ -3261,8 +3273,34 @@ select {
 
 .text-gradient {
   color: var(--signal);
-  background: none;
-  -webkit-text-fill-color: currentColor;
+  background-image: linear-gradient(
+    100deg,
+    var(--signal) 0%,
+    var(--signal) 43%,
+    #fff8b0 50%,
+    var(--signal) 57%,
+    var(--signal) 100%
+  );
+  background-size: 260% 100%;
+  background-position: 118% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes text-sheen {
+  from {
+    background-position: 118% 0;
+  }
+  to {
+    background-position: -18% 0;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .training-hero:hover .text-gradient {
+    animation: text-sheen 1.3s var(--ease-out-soft);
+  }
 }
 
 .start-panel-copy p,
@@ -3647,6 +3685,10 @@ select {
   opacity: 0;
   transition: opacity 0.2s var(--ease);
   pointer-events: none;
+}
+
+.routine-card[data-spotlight].is-spotting::before {
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -4502,8 +4544,8 @@ select {
 @media (min-width: 720px) {
   .sidebar {
     position: sticky;
-    top: 0;
     inset: auto;
+    top: 0;
     flex: 0 0 var(--sidebar-width);
     width: var(--sidebar-width);
     height: 100dvh;
@@ -5468,16 +5510,23 @@ select {
    animation. 150 out, 260 in. */
 
 .main {
+  perspective: 1400px;
+  transform-origin: 50% 10%;
   transition:
     opacity var(--dur-base) var(--ease-out-soft),
     transform var(--dur-base) var(--ease-expo),
     filter var(--dur-base) var(--ease-out-soft);
 }
 
+.main.is-leaving,
+.main.is-entering {
+  will-change: opacity, transform, filter;
+}
+
 .main.is-leaving {
   opacity: 0;
-  transform: translate3d(0, -5px, 0);
-  filter: blur(1.5px);
+  transform: translate3d(0, -12px, -90px) rotateX(2.4deg) scale(0.988);
+  filter: blur(2px);
   transition-duration: var(--dur-fast);
   transition-timing-function: var(--ease-in-quick);
 }
@@ -5488,13 +5537,16 @@ select {
 
 @keyframes view-enter {
   from {
-    opacity: 0.35;
-    transform: translate3d(0, 9px, 0);
-    filter: blur(2px);
+    opacity: 0.18;
+    transform: translate3d(0, 22px, -120px) rotateX(-3deg) scale(0.976);
+    filter: blur(4px);
+  }
+  62% {
+    opacity: 1;
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
     filter: blur(0);
   }
 }
@@ -5695,7 +5747,11 @@ select {
 }
 
 .btn[data-magnetic] {
-  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 6px);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: perspective(560px) translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 6px)
+    rotateX(var(--mag-rx, 0deg)) rotateY(var(--mag-ry, 0deg));
   transform-style: preserve-3d;
   transition:
     transform 80ms linear,
@@ -5705,9 +5761,31 @@ select {
   will-change: transform;
 }
 
+.btn[data-magnetic]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    120px circle at calc(50% + var(--mag-x, 0px) * 3) calc(50% + var(--mag-y, 0px) * 3),
+    rgba(255, 255, 255, 0.34),
+    transparent 64%
+  );
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+.btn[data-magnetic]:hover::after {
+  opacity: 1;
+}
+
 .btn[data-magnetic].is-pressed,
 .btn[data-magnetic]:active {
-  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 2px) scale(0.97);
+  transform: perspective(560px) translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 2px)
+    rotateX(var(--mag-rx, 0deg)) rotateY(var(--mag-ry, 0deg)) scale(0.97);
 }
 
 /* Nav: an ink underline that draws rather than appearing. */
@@ -5802,22 +5880,58 @@ select {
 }
 
 [data-tilt].is-tilt-ready {
-  transform: perspective(720px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
-    translate3d(0, var(--tilt-lift, 0px), 10px);
+  transform: perspective(760px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+    translate3d(0, var(--tilt-lift, 0px), 10px) scale(var(--tilt-scale, 1));
   transform-style: preserve-3d;
   animation: none !important;
   transition:
     transform 280ms var(--ease-out-soft),
     border-color 0.18s var(--ease),
-    box-shadow 0.18s var(--ease);
+    box-shadow 0.24s var(--ease);
   will-change: transform;
 }
 
 [data-tilt].is-tilt-ready.is-tilting {
+  --tilt-lift: -3px;
+  --tilt-scale: 1.012;
+  box-shadow: 0 22px 40px -34px rgba(15, 42, 29, 0.55);
   transition:
     transform 60ms linear,
     border-color 0.18s var(--ease),
-    box-shadow 0.18s var(--ease);
+    box-shadow 0.24s var(--ease);
+}
+
+/* Thin layers inside a tilted surface counter-move, so the icon, label and
+   arrow sit at visibly different depths without a second 3D context. */
+[data-tilt] .routine-icon,
+[data-tilt] .routine-copy,
+[data-tilt] .routine-go,
+[data-tilt] .tile-value,
+[data-tilt] .active-banner-text,
+[data-tilt] .detail-media-copy {
+  translate:
+    calc(var(--parallax-x, 0px) * -1)
+    calc(var(--parallax-y, 0px) * -1);
+  transition: translate 120ms linear;
+}
+
+[data-tilt] .routine-icon {
+  scale: 1.05;
+  transition:
+    translate 120ms linear,
+    scale 220ms var(--ease-out-soft);
+}
+
+[data-tilt] .routine-go {
+  translate:
+    calc(var(--parallax-x, 0px) * -2.1)
+    calc(var(--parallax-y, 0px) * -2.1);
+}
+
+[data-tilt] .tile-value {
+  translate:
+    calc(var(--parallax-x, 0px) * -0.7)
+    calc(var(--parallax-y, 0px) * -0.7);
 }
 
 [data-tilt-glare].is-tilt-ready::after {
@@ -5827,13 +5941,14 @@ select {
   z-index: 3;
   border-radius: inherit;
   background: radial-gradient(
-    220px circle at var(--glare-x, 50%) var(--glare-y, 50%),
-    rgba(255, 255, 255, 0.16),
+    var(--glare-size, 220px) circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(255, 255, 255, 0.18),
     transparent 66%
   );
   opacity: 0;
   transition: opacity 0.24s var(--ease);
   pointer-events: none;
+  mix-blend-mode: soft-light;
 }
 
 [data-tilt-glare].is-tilt-ready.is-tilting::after {
@@ -6089,22 +6204,132 @@ select {
   box-shadow: 0 18px 34px -34px rgba(15, 42, 29, 0.65);
 }
 
-/* Home: a ghost plate pressed behind the hero, and a goal ring that lifts. */
-.training-hero::before {
-  content: "";
+/* Home: the hero is a stage, not a flat panel. Five layers sit at different
+   depths and counter-move against the pointer; the goal ring lifts on hover.
+   The old single ghost plate is folded into this stage. */
+.training-hero {
+  --glare-size: 460px;
+}
+
+[data-depth-stage] [data-depth] {
+  translate:
+    calc(var(--field-dx, 0px) * var(--depth, 8))
+    calc(var(--field-dy, 0px) * var(--depth, 8) - var(--scroll-n, 0) * var(--depth, 8) * 0.3px);
+  transition: translate 160ms var(--ease-out-soft);
+  will-change: translate;
+}
+
+.hero-depth {
   position: absolute;
+  inset: 0;
   z-index: 0;
-  top: -46%;
-  right: -20%;
-  width: min(62%, 340px);
-  aspect-ratio: 1;
-  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 34px color-mix(in srgb, currentColor 4%, transparent),
-    0 0 0 68px color-mix(in srgb, currentColor 2.5%, transparent);
+  overflow: hidden;
+  border-radius: inherit;
   pointer-events: none;
-  transform: translateZ(-30px);
+}
+
+.hero-depth-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+}
+
+.hero-depth-ring-a {
+  width: min(58vw, 360px);
+  height: min(58vw, 360px);
+  top: -46%;
+  right: -14%;
+  box-shadow:
+    0 0 0 28px color-mix(in srgb, currentColor 4%, transparent),
+    0 0 0 58px color-mix(in srgb, currentColor 2.5%, transparent),
+    inset 0 0 70px color-mix(in srgb, currentColor 5%, transparent);
+  animation: hero-ring-turn 44s linear infinite;
+  transition: border-color 300ms var(--ease-out-soft), box-shadow 300ms var(--ease-out-soft);
+}
+
+.hero-depth-ring-b {
+  width: 200px;
+  height: 200px;
+  left: 44%;
+  bottom: -35%;
+  border-style: dashed;
+  border-color: color-mix(in srgb, currentColor 9%, transparent);
+  animation: hero-ring-turn 30s linear infinite reverse;
+}
+
+.hero-depth-plate {
+  position: absolute;
+  right: -56px;
+  bottom: -104px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 4deg,
+    transparent 0deg 11deg,
+    color-mix(in srgb, currentColor 8%, transparent) 11deg 12.5deg
+  );
+  mask-image: radial-gradient(circle, transparent 0 30%, #000 31% 68%, transparent 69%);
+  opacity: 0.85;
+  animation: hero-plate-turn 56s linear infinite;
+  will-change: rotate;
+}
+
+.hero-depth-spark {
+  position: absolute;
+  top: 18%;
+  right: 16%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--signal) 12%, transparent),
+    0 0 24px 6px color-mix(in srgb, var(--signal) 30%, transparent);
+  animation: hero-spark 3.2s ease-in-out infinite;
+}
+
+.hero-depth-grid {
+  position: absolute;
+  left: -8%;
+  bottom: -24%;
+  width: 46%;
+  height: 58%;
+  background-image:
+    linear-gradient(color-mix(in srgb, currentColor 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, currentColor 7%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse at 40% 50%, #000, transparent 72%);
+  opacity: 0.7;
+  transform: perspective(380px) rotateX(58deg) rotateZ(-7deg);
+  transform-origin: 50% 100%;
+}
+
+@keyframes hero-ring-turn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes hero-plate-turn {
+  from {
+    rotate: -4deg;
+  }
+  to {
+    rotate: 356deg;
+  }
+}
+
+@keyframes hero-spark {
+  0%,
+  100% {
+    opacity: 0.42;
+    scale: 0.7;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.25;
+  }
 }
 
 .hero-goal {
@@ -6117,6 +6342,39 @@ select {
   filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.18));
 }
 
+/* A small signal bead orbits the momentum ring, so the one yellow data mark
+   on Home has a pulse of its own without changing any figure. */
+.goal-orbit {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 138px;
+  height: 138px;
+  margin-left: -69px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: goal-orbit 9s linear infinite;
+  will-change: rotate;
+}
+
+.goal-orbit i {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 12px 3px color-mix(in srgb, var(--signal) 50%, transparent);
+}
+
+@keyframes goal-orbit {
+  to {
+    rotate: 360deg;
+  }
+}
+
 .quick-start-panel .hero-plate {
   transform: translateZ(-24px) rotate(-4deg);
   transition: transform 560ms var(--ease-out-soft);
@@ -6124,11 +6382,30 @@ select {
 
 @media (hover: hover) and (pointer: fine) {
   .training-hero:hover .hero-goal {
-    transform: perspective(760px) rotateX(2deg) rotateY(-7deg);
+    transform: perspective(760px) rotateX(3deg) rotateY(-9deg) translateZ(18px);
+  }
+
+  .training-hero:hover .hero-depth-ring-a {
+    border-color: color-mix(in srgb, currentColor 22%, transparent);
+    box-shadow:
+      0 0 0 32px color-mix(in srgb, currentColor 5%, transparent),
+      0 0 0 66px color-mix(in srgb, currentColor 3%, transparent),
+      inset 0 0 90px color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  .training-hero:hover .hero-depth-spark {
+    scale: 1.5;
+    animation-duration: 1.2s;
   }
 
   .quick-start-panel:hover .hero-plate {
     transform: translateZ(-6px) rotate(2deg) scale(1.04);
+  }
+}
+
+@media (hover: none) {
+  .training-hero:active .hero-goal {
+    transform: perspective(760px) rotateX(2deg) rotateY(-5deg) translateZ(10px);
   }
 }
 
@@ -6161,6 +6438,10 @@ select {
 
 .tile-value {
   transition: transform 0.22s var(--ease-out-soft);
+}
+
+.tile[data-spotlight].is-spotting::before {
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -6213,6 +6494,11 @@ select {
 
 .dist-fill {
   transition: filter 0.18s var(--ease);
+}
+
+.chart[data-spotlight].is-spotting::before,
+.dist[data-spotlight].is-spotting::before {
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -6354,6 +6640,165 @@ select {
   }
 }
 
+/* ── 16. Spatial motion ───────────────────────────────────────────────────
+   Pointer, finger and scroll feed one field of CSS variables. The layers
+   below consume it at different depths; nothing here reads layout per frame. */
+
+/* The room behind the ledger: a perspective grid and two rings that travel at
+   different rates from the pointer. Hidden until real input, so first paint is
+   the same quiet paper it always was. */
+.app-depth {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  contain: strict;
+  transition: opacity 900ms var(--ease-out-soft);
+}
+
+html.has-field .app-depth {
+  opacity: 1;
+}
+
+.app-depth-grid {
+  position: absolute;
+  inset: -34%;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text) 5%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 58% at 74% 2%, #000 0%, transparent 72%);
+  opacity: 0.7;
+  transform: perspective(900px) rotateX(calc(52deg + var(--field-y, 0) * 2deg))
+    rotateY(calc(var(--field-x, 0) * 4deg)) scale(1.4);
+  transform-origin: 50% 0;
+  transition: transform 180ms linear;
+  will-change: transform;
+}
+
+.app-depth-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--text) 5%, transparent);
+  translate:
+    calc(var(--field-dx, 0px) * 16)
+    calc(var(--field-dy, 0px) * 16 - var(--scroll-n, 0) * 18px);
+  transition: translate 200ms var(--ease-out-soft);
+  will-change: translate;
+}
+
+.app-depth-ring-a {
+  width: 620px;
+  height: 620px;
+  top: -340px;
+  right: -180px;
+  box-shadow:
+    0 0 0 90px color-mix(in srgb, var(--text) 2%, transparent),
+    0 0 0 180px color-mix(in srgb, var(--text) 1.4%, transparent);
+}
+
+.app-depth-ring-b {
+  width: 360px;
+  height: 360px;
+  left: 30%;
+  bottom: -230px;
+  translate:
+    calc(var(--field-dx, 0px) * -12)
+    calc(var(--field-dy, 0px) * -12 + var(--scroll-n, 0) * 12px);
+}
+
+/* A finger's press is also a light. */
+html.is-touching .app-ambient {
+  opacity: 1;
+}
+
+/* The brand mark is a small object on the desk, so it leans with the field. */
+.brand-mark,
+.topbar-mark {
+  transform: perspective(240px) rotateX(calc(var(--field-y, 0) * -7deg))
+    rotateY(calc(var(--field-x, 0) * 9deg));
+  transform-style: preserve-3d;
+  transition: transform 180ms var(--ease-out-soft);
+  will-change: transform;
+}
+
+.brand-mark svg,
+.topbar-mark {
+  filter: drop-shadow(0 5px 8px rgba(15, 42, 29, 0.16));
+}
+
+/* The ink trail: a fixed canvas above content, below the cursor pair. */
+.motion-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 64;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* A set completion leaves a ring at the row it landed on, then it is gone. */
+.set-row {
+  position: relative;
+}
+
+.set-ping {
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  border: 1px solid var(--data);
+  border-radius: 6px;
+  pointer-events: none;
+  animation: set-ping 620ms var(--ease-out-soft) forwards;
+}
+
+@keyframes set-ping {
+  from {
+    opacity: 0.9;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.035);
+  }
+}
+
+/* On touch, cards lean into the press and keep the spotlight under the finger. */
+@media (hover: none) {
+  .routine-card.is-spotting,
+  .tile.is-spotting {
+    border-color: color-mix(in srgb, var(--data) 46%, var(--border));
+  }
+
+  .routine-card.is-spotting {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--data) 14%, transparent),
+      0 18px 30px -28px rgba(15, 42, 29, 0.5);
+  }
+}
+
+@media (max-width: 719px) {
+  .app-depth-grid {
+    display: none;
+  }
+
+  .hero-depth-ring-a {
+    width: 280px;
+    height: 280px;
+  }
+
+  .hero-depth-plate {
+    width: 200px;
+    height: 200px;
+  }
+
+  .hero-depth-grid {
+    display: none;
+  }
+}
+
 /* ── Print ───────────────────────────────────────────────────────────────
    A log is a thing people print. Ink on paper, rules kept, chrome dropped. */
 
@@ -6361,7 +6806,12 @@ select {
   .sidebar,
   .timer-bar,
   .app-ambient,
+  .app-depth,
   .app-scroll-meter,
+  .motion-trail,
+  .hero-depth,
+  .goal-orbit,
+  .set-ping,
   #toast-host,
   .btn,
   .icon-btn,

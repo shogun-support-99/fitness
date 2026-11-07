@@ -57,6 +57,61 @@ export function clampUnit(value, max = 0.5) {
   return Math.max(-limit, Math.min(limit, n));
 }
 
+/**
+ * Viewport coordinates in the -1 … 1 range. The spatial field speaks this
+ * language: 0,0 is the centre of the window, ±1 the edges. Pure, so the
+ * mapping can be tested without a browser.
+ */
+export function viewportNorm(clientX, clientY, viewport = {}) {
+  const width = Math.max(Number(viewport.width) || 0, 1);
+  const height = Math.max(Number(viewport.height) || 0, 1);
+  return {
+    x: clampUnit(((Number(clientX) || 0) / width) * 2 - 1, 1),
+    y: clampUnit(((Number(clientY) || 0) / height) * 2 - 1, 1),
+  };
+}
+
+/**
+ * Per-depth travel for a parallax layer. `depth` is the layer's multiplier and
+ * the result is in pixels at that multiplier, so a layer at 24 travels four
+ * times as far as one at 6. `scroll` (0…1) pulls distant layers upward as the
+ * page moves, which is what makes a still card read as a stage rather than a
+ * sticker.
+ */
+export function depthVector(nx, ny, depth = 10, scroll = 0) {
+  const d = Math.max(0, Number(depth) || 0);
+  const n = Math.min(1, Math.max(0, Number(scroll) || 0));
+  const x = clampUnit(nx, 1) * d;
+  const y = clampUnit(ny, 1) * d - n * d * 0.35;
+  return { x: x || 0, y: y || 0 };
+}
+
+/**
+ * Tapered trail width from pointer speed in px/ms. Fast strokes go thin like a
+ * dry nib; resting strokes stay at the base width. Never returns zero, because
+ * a line that disappears mid-gesture looks like a dropped frame.
+ */
+export function trailWidth(speed, base = 3.6) {
+  const b = Math.max(0.5, Number(base) || 3.6);
+  const s = Math.max(0, Number(speed) || 0);
+  return Math.max(b * 0.32, b * (1 - Math.min(s, 1.6) * 0.42));
+}
+
+/**
+ * Pointer position inside a card as percentages, used by the spotlight.
+ * Unlike pointerNorm this clamps to the card, so a finger that drags past the
+ * edge keeps the light on the rim instead of throwing it off the surface.
+ */
+export function spotlightPercent(clientX, clientY, rect) {
+  const width = Math.max(Number(rect?.width) || 0, 1);
+  const height = Math.max(Number(rect?.height) || 0, 1);
+  const left = Number(rect?.left) || 0;
+  const top = Number(rect?.top) || 0;
+  const x = Math.min(1, Math.max(0, ((Number(clientX) || 0) - left) / width));
+  const y = Math.min(1, Math.max(0, ((Number(clientY) || 0) - top) / height));
+  return { x: x * 100, y: y * 100 };
+}
+
 /* ------------------------------------------------------------------------- *
  * Reveals
  * ------------------------------------------------------------------------- */
@@ -347,6 +402,26 @@ export function drawTick(host) {
   host.classList.remove("is-done", "is-ticking");
   void host.offsetWidth;
   host.classList.add("is-done", "is-ticking");
+
+  // Set completion is the one action a lifter repeats all session, so touch
+  // gets a short haptic confirmation. Nothing happens on devices without it.
+  try {
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      navigator.vibrate(12);
+    }
+  } catch {
+    /* vibration is a nicety, never a requirement */
+  }
+
+  // A ring leaves the row like a weight landing, then is removed. This is the
+  // only place a set completion adds a node, and only for 620ms.
+  if (host.closest?.(".set-row") && !host.querySelector(":scope > .set-ping")) {
+    const ping = document.createElement("span");
+    ping.className = "set-ping";
+    ping.setAttribute("aria-hidden", "true");
+    host.appendChild(ping);
+    window.setTimeout(() => ping.remove(), 700);
+  }
 }
 
 /* ------------------------------------------------------------------------- *
@@ -489,7 +564,7 @@ export function initPressFeedback(root, { selector = "[data-press]" } = {}) {
  * @param {{max?: number, selector?: string}} [options]
  * @returns {() => void} teardown
  */
-export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
+export function initTilt(el, { max = 4.5, selector = "[data-tilt]", parallax = 22 } = {}) {
   const scope =
     typeof el === "string"
       ? document.querySelector(el)
@@ -505,6 +580,7 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
   let target = null;
   let activeTouch = null;
   let tiltMax = max;
+  let parallaxMax = parallax;
   let px = 0;
   let py = 0;
 
@@ -526,6 +602,10 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
     target.style.setProperty("--tilt-y", `${(rx * tiltMax).toFixed(2)}deg`);
     target.style.setProperty("--glare-x", `${((rx + 0.5) * 100).toFixed(1)}%`);
     target.style.setProperty("--glare-y", `${((ry + 0.5) * 100).toFixed(1)}%`);
+    // Foreground layers (icon, label, arrow) travel against the rotation.
+    // That counter-move is what the eye reads as depth inside a flat card.
+    target.style.setProperty("--parallax-x", `${(-ry * parallaxMax).toFixed(2)}px`);
+    target.style.setProperty("--parallax-y", `${(rx * parallaxMax).toFixed(2)}px`);
     const leftover = Math.abs(px - rx) + Math.abs(py - ry) + Math.abs(vx) + Math.abs(vy);
     if (leftover > 0.001) frame = requestAnimationFrame(paint);
   };
@@ -538,6 +618,8 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
     if (target) {
       target.style.setProperty("--tilt-x", "0deg");
       target.style.setProperty("--tilt-y", "0deg");
+      target.style.setProperty("--parallax-x", "0px");
+      target.style.setProperty("--parallax-y", "0px");
       target.classList.remove("is-tilting");
     }
     target = null;
@@ -567,6 +649,7 @@ export function initTilt(el, { max = 4.5, selector = "[data-tilt]" } = {}) {
       target = next;
       const value = Number(next.dataset.tiltMax);
       tiltMax = Number.isFinite(value) && value > 0 ? value : max;
+      parallaxMax = Number(next.dataset.tiltParallax) || parallax;
       next.classList.add("is-tilt-ready", "is-tilting");
     }
     const rect = next.getBoundingClientRect();
@@ -846,6 +929,476 @@ export function initScrollMeter(root = document) {
 }
 
 /* ------------------------------------------------------------------------- *
+ * Spatial field, spotlight and trail
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Publish pointer and scroll position as CSS variables on the document root.
+ *
+ * One listener pair feeds every depth layer, the ambient field, the brand mark
+ * and the hero stage, so the page has a single idea of where the pointer is.
+ * Values are spring-smoothed; the loop stops when they settle, so an idle page
+ * costs nothing. Touch updates only while a finger is down; lifting the finger
+ * lets the field relax back to centre.
+ *
+ * @returns {() => void} teardown
+ */
+export function initSpatialField(root = document) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const doc = document.documentElement;
+  if (!doc) return () => {};
+
+  let targetX = 0;
+  let targetY = 0;
+  let x = 0;
+  let y = 0;
+  let vx = 0;
+  let vy = 0;
+  let speed = 0;
+  let frame = 0;
+  let lastX = null;
+  let lastY = null;
+  let lastT = 0;
+  let touchId = null;
+  let speedTimer = 0;
+  let scrollFrame = 0;
+
+  const write = () => {
+    const d = depthVector(x, y, 1);
+    doc.style.setProperty("--field-x", x.toFixed(4));
+    doc.style.setProperty("--field-y", y.toFixed(4));
+    doc.style.setProperty("--field-dx", `${d.x.toFixed(3)}px`);
+    doc.style.setProperty("--field-dy", `${d.y.toFixed(3)}px`);
+    doc.style.setProperty("--field-speed", speed.toFixed(3));
+    doc.style.setProperty(
+      "--field-angle",
+      `${((Math.atan2(y, x) * 180) / Math.PI).toFixed(1)}deg`,
+    );
+    doc.style.setProperty("--field-px", `${(lastX ?? window.innerWidth * 0.5).toFixed(0)}px`);
+    doc.style.setProperty("--field-py", `${(lastY ?? window.innerHeight * 0.2).toFixed(0)}px`);
+  };
+
+  const paint = () => {
+    frame = 0;
+    const sx = springStep(x, targetX, vx, { stiffness: 0.16, damping: 0.76 });
+    const sy = springStep(y, targetY, vy, { stiffness: 0.16, damping: 0.76 });
+    x = sx.value;
+    vx = sx.velocity;
+    y = sy.value;
+    vy = sy.velocity;
+    write();
+    const leftover = Math.abs(targetX - x) + Math.abs(targetY - y) + Math.abs(vx) + Math.abs(vy);
+    if (leftover > 0.0008) frame = requestAnimationFrame(paint);
+  };
+
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const point = (event) => {
+    const n = viewportNorm(event.clientX, event.clientY, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    targetX = n.x;
+    targetY = n.y;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    doc.classList.add("has-field");
+  };
+
+  const onMove = (event) => {
+    if (event.pointerType === "touch") {
+      if (event.pointerId !== touchId) return;
+    } else if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+      return;
+    }
+    const now = performance.now();
+    const dt = Math.max(8, now - (lastT || now - 16));
+    const dx = event.clientX - (lastX ?? event.clientX);
+    const dy = event.clientY - (lastY ?? event.clientY);
+    speed = Math.min(1, Math.hypot(dx, dy) / dt / 1.8);
+    lastT = now;
+    point(event);
+    if (speedTimer) clearTimeout(speedTimer);
+    speedTimer = window.setTimeout(() => {
+      speed = 0;
+      queue();
+    }, 150);
+    queue();
+  };
+
+  const onDown = (event) => {
+    if (event.pointerType !== "touch") return;
+    touchId = event.pointerId;
+    doc.classList.add("is-touching");
+    speed = 0;
+    if (speedTimer) clearTimeout(speedTimer);
+    speedTimer = 0;
+    point(event);
+    queue();
+  };
+
+  const onUp = (event) => {
+    if (event.pointerType !== "touch" || event.pointerId !== touchId) return;
+    touchId = null;
+    doc.classList.remove("is-touching");
+    targetX = 0;
+    targetY = 0;
+    speed = 0;
+    if (speedTimer) clearTimeout(speedTimer);
+    speedTimer = 0;
+    queue();
+  };
+
+  const onLeave = (event) => {
+    if (event.pointerType === "touch") return;
+    targetX = 0;
+    targetY = 0;
+    speed = 0;
+    if (speedTimer) clearTimeout(speedTimer);
+    speedTimer = 0;
+    queue();
+  };
+
+  const paintScroll = () => {
+    scrollFrame = 0;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    doc.style.setProperty("--scroll-n", progress.toFixed(4));
+  };
+
+  const onScroll = () => {
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(paintScroll);
+  };
+
+  doc.addEventListener("pointermove", onMove, { passive: true });
+  doc.addEventListener("pointerdown", onDown, { passive: true });
+  window.addEventListener("pointerup", onUp, { passive: true });
+  window.addEventListener("pointercancel", onUp, { passive: true });
+  doc.addEventListener("pointerleave", onLeave);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  paintScroll();
+
+  return () => {
+    doc.removeEventListener("pointermove", onMove);
+    doc.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    doc.removeEventListener("pointerleave", onLeave);
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", onScroll);
+    if (frame) cancelAnimationFrame(frame);
+    if (scrollFrame) cancelAnimationFrame(scrollFrame);
+    if (speedTimer) clearTimeout(speedTimer);
+    doc.classList.remove("has-field", "is-touching");
+  };
+}
+
+/**
+ * A radial light that follows a pointer across `[data-spotlight]` surfaces.
+ *
+ * Desktop gets the light on hover; a finger gets it on press and it lingers
+ * for a beat after release, so touch finally sees the same response the mouse
+ * has had. The light is written to two custom properties and the CSS decides
+ * where it sits; no element is created per move.
+ *
+ * @returns {() => void} teardown
+ */
+export function initSpotlight(root = document, { selector = "[data-spotlight]", linger = 460 } = {}) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const scope = root?.documentElement ? root : document;
+  let frame = 0;
+  let current = null;
+  let x = 0;
+  let y = 0;
+  let touchId = null;
+  let hideTimer = 0;
+
+  const paint = () => {
+    frame = 0;
+    if (!current) return;
+    current.style.setProperty("--spot-x", `${x.toFixed(1)}px`);
+    current.style.setProperty("--spot-y", `${y.toFixed(1)}px`);
+  };
+
+  const unlight = (el) => {
+    if (!el) return;
+    el.classList.remove("is-spotting");
+    el.style.removeProperty("--spot-x");
+    el.style.removeProperty("--spot-y");
+    el.style.removeProperty("--spot-nx");
+    el.style.removeProperty("--spot-ny");
+  };
+
+  const light = (el, clientX, clientY) => {
+    if (current && current !== el) unlight(current);
+    const rect = el.getBoundingClientRect();
+    const p = spotlightPercent(clientX, clientY, rect);
+    current = el;
+    x = (p.x / 100) * Math.max(1, rect.width);
+    y = (p.y / 100) * Math.max(1, rect.height);
+    el.style.setProperty("--spot-nx", (p.x / 100).toFixed(3));
+    el.style.setProperty("--spot-ny", (p.y / 100).toFixed(3));
+    el.classList.add("is-spotting");
+    if (!frame) frame = requestAnimationFrame(paint);
+  };
+
+  const clear = () => {
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = 0;
+    }
+    unlight(current);
+    current = null;
+  };
+
+  const onMove = (event) => {
+    if (event.pointerType === "touch") {
+      if (event.pointerId !== touchId) return;
+    } else if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") {
+      return;
+    }
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = 0;
+    }
+    const found = event.target instanceof Element ? event.target.closest(selector) : null;
+    if (!found) {
+      if (event.pointerType !== "touch" && current) clear();
+      return;
+    }
+    light(found, event.clientX, event.clientY);
+  };
+
+  const onDown = (event) => {
+    if (event.pointerType !== "touch") return;
+    const found = event.target instanceof Element ? event.target.closest(selector) : null;
+    if (!found) return;
+    touchId = event.pointerId;
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = 0;
+    }
+    light(found, event.clientX, event.clientY);
+  };
+
+  const onUp = (event) => {
+    if (event.pointerType !== "touch" || event.pointerId !== touchId) return;
+    touchId = null;
+    if (!current) return;
+    const card = current;
+    hideTimer = window.setTimeout(() => {
+      if (current === card) clear();
+      hideTimer = 0;
+    }, linger);
+  };
+
+  scope.addEventListener("pointermove", onMove, { passive: true });
+  scope.addEventListener("pointerdown", onDown, { passive: true });
+  window.addEventListener("pointerup", onUp, { passive: true });
+  window.addEventListener("pointercancel", onUp, { passive: true });
+  document.documentElement.addEventListener("pointerleave", clear);
+  window.addEventListener("blur", clear);
+
+  return () => {
+    scope.removeEventListener("pointermove", onMove);
+    scope.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    document.documentElement.removeEventListener("pointerleave", clear);
+    window.removeEventListener("blur", clear);
+    if (frame) cancelAnimationFrame(frame);
+    clear();
+  };
+}
+
+/**
+ * A tablet-and-mouse ink trail drawn on a fixed canvas.
+ *
+ * Adapted from the 21st.dev drawing-cursor pattern: coalesced pointer samples,
+ * tapered width from speed, and strokes that fade by age.
+ * Touch draws only while a finger is down. The canvas is DPR-capped at 2 and
+ * the loop stops once every stroke has decayed.
+ *
+ * @returns {() => void} teardown
+ */
+export function initMotionTrail(root = document, { decay = 480, lineWidth = 3.8 } = {}) {
+  if (typeof window === "undefined" || prefersReducedMotion()) return () => {};
+  const scope = root?.body ? root : document;
+  const host = scope.body || document.body;
+  if (!host) return () => {};
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "motion-trail";
+  canvas.setAttribute("aria-hidden", "true");
+  host.append(canvas);
+
+  const ctx = canvas.getContext("2d", { alpha: true });
+  if (!ctx) {
+    canvas.remove();
+    return () => {};
+  }
+
+  const MAX_STROKES = 18;
+  const MAX_POINTS = 140;
+  const BREAK_MS = 130;
+  const strokes = [];
+  let active = null;
+  let lastPoint = 0;
+  let frame = 0;
+  let touchId = null;
+  let width = 0;
+  let height = 0;
+
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = Math.max(1, window.innerWidth);
+    height = Math.max(1, window.innerHeight);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resize();
+
+  const push = (clientX, clientY, time, pressure) => {
+    if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+    if (!active || time - lastPoint > BREAK_MS) {
+      active = { points: [] };
+      strokes.push(active);
+      if (strokes.length > MAX_STROKES) strokes.shift();
+    }
+    const points = active.points;
+    const previous = points[points.length - 1];
+    let speed = 0.4;
+    if (previous) {
+      const dt = Math.max(1, time - previous.time);
+      speed = Math.hypot(clientX - previous.x, clientY - previous.y) / dt;
+    }
+    const pressureScale = 0.82 + Math.min(0.7, Math.max(0, pressure || 0.5)) * 0.36;
+    points.push({
+      x: clientX,
+      y: clientY,
+      time,
+      width: trailWidth(speed, lineWidth) * pressureScale,
+    });
+    if (points.length > MAX_POINTS) points.shift();
+    lastPoint = time;
+  };
+
+  const draw = () => {
+    frame = 0;
+    const now = performance.now();
+    ctx.clearRect(0, 0, width, height);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    for (const stroke of strokes) {
+      const points = stroke.points;
+      while (points.length && now - points[0].time > decay) points.shift();
+      if (points.length < 2) continue;
+      for (let i = 1; i < points.length; i += 1) {
+        const a = points[i - 1];
+        const b = points[i];
+        const age = Math.max(0, 1 - (now - b.time) / decay);
+        if (age <= 0) continue;
+        // A wide ink ghost under a thin signal nib: the trail stays legible on
+        // both paper and the dark theme without hardcoding a theme branch.
+        ctx.globalAlpha = age * 0.11;
+        ctx.strokeStyle = "#12140f";
+        ctx.lineWidth = Math.max(0.8, b.width * 2.7);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.globalAlpha = age * 0.72;
+        ctx.strokeStyle = "#f6e016";
+        ctx.lineWidth = Math.max(0.6, b.width);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    for (let i = strokes.length - 1; i >= 0; i -= 1) {
+      if (strokes[i].points.length === 0) strokes.splice(i, 1);
+    }
+    if (strokes.length > 0) frame = requestAnimationFrame(draw);
+  };
+
+  const onMove = (event) => {
+    if (event.pointerType === "touch" && event.pointerId !== touchId) return;
+    if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen" && event.pointerType !== "touch") {
+      return;
+    }
+    const coalesced =
+      typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : null;
+    const samples = coalesced && coalesced.length > 0 ? coalesced.slice(-8) : [event];
+    const now = performance.now();
+    const pressure = event.pointerType === "pen" ? event.pressure : 0.5;
+    for (const sample of samples) {
+      // Coalesced samples carry their own timestamps; using the batched `now`
+      // for all of them would flatten every speed into one frame and lose the
+      // taper that makes the trail read as ink rather than a ribbon.
+      const stamp = Number(sample.timeStamp);
+      const time = Number.isFinite(stamp) && stamp > 0 ? Math.min(stamp, now) : now;
+      push(sample.clientX, sample.clientY, time, pressure);
+    }
+    if (!frame) frame = requestAnimationFrame(draw);
+  };
+
+  const onDown = (event) => {
+    if (event.pointerType !== "touch") return;
+    if (touchId !== null) return;
+    touchId = event.pointerId;
+    push(event.clientX, event.clientY, performance.now(), event.pressure);
+    if (!frame) frame = requestAnimationFrame(draw);
+  };
+
+  const onUp = (event) => {
+    if (event.pointerType !== "touch" || event.pointerId !== touchId) return;
+    touchId = null;
+    active = null;
+  };
+
+  const clear = () => {
+    strokes.length = 0;
+    active = null;
+    touchId = null;
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    ctx.clearRect(0, 0, width, height);
+  };
+
+  const onVisibility = () => {
+    if (document.hidden) clear();
+  };
+
+  document.addEventListener("pointermove", onMove, { passive: true });
+  document.addEventListener("pointerdown", onDown, { passive: true });
+  window.addEventListener("pointerup", onUp, { passive: true });
+  window.addEventListener("pointercancel", onUp, { passive: true });
+  document.documentElement.addEventListener("pointerleave", clear);
+  document.addEventListener("visibilitychange", onVisibility);
+  window.addEventListener("resize", resize);
+
+  return () => {
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerdown", onDown);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    document.documentElement.removeEventListener("pointerleave", clear);
+    document.removeEventListener("visibilitychange", onVisibility);
+    window.removeEventListener("resize", resize);
+    if (frame) cancelAnimationFrame(frame);
+    canvas.remove();
+  };
+}
+
+/* ------------------------------------------------------------------------- *
  * Cursor, magnetic pull, gyro lean, tap ripples
  * ------------------------------------------------------------------------- */
 
@@ -882,18 +1435,23 @@ export function initCursor(root = document) {
   let ringY = pointerY;
   let ringVx = 0;
   let ringVy = 0;
+  let pressed = false;
   let frame = 0;
 
   const paint = () => {
     frame = 0;
-    core.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0)`;
+    const speed = Math.min(1, Math.hypot(ringVx, ringVy) / 26);
+    const angle = (Math.atan2(ringVy, ringVx) * 180) / Math.PI;
+    core.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0) scale(${pressed ? 0.72 : 1})`;
     const sx = springStep(ringX, pointerX, ringVx, { stiffness: 0.18, damping: 0.68 });
     const sy = springStep(ringY, pointerY, ringVy, { stiffness: 0.18, damping: 0.68 });
     ringX = sx.value;
     ringVx = sx.velocity;
     ringY = sy.value;
     ringVy = sy.velocity;
-    ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+    // The ring stretches along its velocity vector. A perfect circle moving
+    // 1:1 reads as a sticker; a soft ellipse reads as something being pulled.
+    ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) rotate(${angle.toFixed(1)}deg) scale(${(1 + speed * 0.55).toFixed(3)}, ${(1 - speed * 0.16).toFixed(3)})`;
     const leftover = Math.abs(pointerX - ringX) + Math.abs(pointerY - ringY) + Math.abs(ringVx) + Math.abs(ringVy);
     if (leftover > 0.4) frame = requestAnimationFrame(paint);
   };
@@ -921,12 +1479,16 @@ export function initCursor(root = document) {
   };
 
   const down = () => {
+    pressed = true;
     core.classList.add("is-down");
     ring.classList.add("is-down");
+    if (!frame) frame = requestAnimationFrame(paint);
   };
   const up = () => {
+    pressed = false;
     core.classList.remove("is-down");
     ring.classList.remove("is-down");
+    if (!frame) frame = requestAnimationFrame(paint);
   };
 
   document.addEventListener("pointermove", onMove, { passive: true });
@@ -980,6 +1542,10 @@ export function initMagnetic(root, { selector = "[data-magnetic]", strength = 8 
     vy = sy.velocity;
     target.style.setProperty("--mag-x", `${rx.toFixed(2)}px`);
     target.style.setProperty("--mag-y", `${ry.toFixed(2)}px`);
+    const nx = (rx / Math.max(1, pull * 2));
+    const ny = (ry / Math.max(1, pull * 1.4));
+    target.style.setProperty("--mag-rx", `${(-ny * 3.4).toFixed(2)}deg`);
+    target.style.setProperty("--mag-ry", `${(nx * 4.2).toFixed(2)}deg`);
     const leftover = Math.abs(mx - rx) + Math.abs(my - ry) + Math.abs(vx) + Math.abs(vy);
     if (leftover > 0.05) frame = requestAnimationFrame(paint);
   };
@@ -1003,6 +1569,8 @@ export function initMagnetic(root, { selector = "[data-magnetic]", strength = 8 
       if (target) {
         target.style.setProperty("--mag-x", "0px");
         target.style.setProperty("--mag-y", "0px");
+        target.style.setProperty("--mag-rx", "0deg");
+        target.style.setProperty("--mag-ry", "0deg");
       }
       target = next;
       rx = 0;
@@ -1035,6 +1603,8 @@ export function initMagnetic(root, { selector = "[data-magnetic]", strength = 8 
     if (target) {
       target.style.setProperty("--mag-x", "0px");
       target.style.setProperty("--mag-y", "0px");
+      target.style.setProperty("--mag-rx", "0deg");
+      target.style.setProperty("--mag-ry", "0deg");
     }
   };
 }
@@ -1145,6 +1715,13 @@ export function initTapRipple(root = document) {
     if (moved > 14 || performance.now() - start.time > 700) return;
     const host = scope.body || (scope === document ? document.body : scope);
     if (!host) return;
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        navigator.vibrate(7);
+      }
+    } catch {
+      /* haptics are optional */
+    }
     const glow = document.createElement("span");
     glow.className = "tap-glow";
     glow.setAttribute("aria-hidden", "true");

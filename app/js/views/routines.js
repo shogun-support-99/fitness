@@ -21,7 +21,7 @@ export const CUSTOM_SPLIT = { label: "Custom workout", slug: "custom", detail: "
 
 export function renderRoutineCards() {
   return `<div class="routine-grid" data-reveal="rise">${ROUTINES.map((routine, index) => `
-    <button class="routine-card routine-${routine.slug} hover-lift animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" data-spotlight data-tilt data-tilt-glare data-tilt-max="3.6" aria-label="${routine.muscles.length ? `Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises` : `Start a custom workout and choose exercises`}">
+    <button class="routine-card routine-${routine.slug} hover-lift animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" data-spotlight data-tilt data-tilt-glare data-tilt-max="5.2" data-tilt-parallax="26" aria-label="${routine.muscles.length ? `Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises` : `Start a custom workout and choose exercises`}">
       <span class="routine-icon">${icon(routine.icon)}</span>
       <span class="routine-copy">
         <strong>${esc(routine.label)}</strong>

@@ -25,11 +25,15 @@ import {
 
 import {
   clampUnit,
+  depthVector,
   odometerChars,
   odometerMarkup,
   pointerNorm,
   revealVariant,
+  spotlightPercent,
   springStep,
+  trailWidth,
+  viewportNorm,
 } from "../app/js/motion.js";
 
 /* ------------------------------------------------------------------ *
@@ -609,6 +613,95 @@ describe("clampUnit", () => {
     assert.equal(clampUnit(NaN), 0);
     assert.equal(clampUnit(Infinity), 0);
     assert.equal(clampUnit(undefined), 0);
+  });
+});
+
+describe("viewportNorm", () => {
+  test("puts the centre of the window at the origin", () => {
+    const n = viewportNorm(500, 300, { width: 1000, height: 600 });
+    assert.equal(n.x, 0);
+    assert.equal(n.y, 0);
+  });
+
+  test("maps the corners to ±1", () => {
+    assert.deepEqual(viewportNorm(0, 0, { width: 1000, height: 600 }), { x: -1, y: -1 });
+    assert.deepEqual(viewportNorm(1000, 600, { width: 1000, height: 600 }), { x: 1, y: 1 });
+  });
+
+  test("clamps a pointer that leaves the window", () => {
+    const n = viewportNorm(4000, -900, { width: 1000, height: 600 });
+    assert.equal(n.x, 1);
+    assert.equal(n.y, -1);
+  });
+
+  test("never divides by a zero-size viewport", () => {
+    const n = viewportNorm(0, 0, { width: 0, height: 0 });
+    assert.ok(Number.isFinite(n.x) && Number.isFinite(n.y));
+    assert.deepEqual(n, { x: -1, y: -1 });
+  });
+});
+
+describe("depthVector", () => {
+  test("is at rest in the centre with no scroll", () => {
+    assert.deepEqual(depthVector(0, 0, 12, 0), { x: 0, y: 0 });
+  });
+
+  test("travels further at a greater depth", () => {
+    const near = depthVector(0.5, 0.5, 6, 0);
+    const far = depthVector(0.5, 0.5, 24, 0);
+    assert.equal(far.x, near.x * 4);
+    assert.equal(far.y, near.y * 4);
+  });
+
+  test("pulls the field upward as the page scrolls", () => {
+    const rest = depthVector(0, 0, 20, 0);
+    const scrolled = depthVector(0, 0, 20, 1);
+    assert.equal(rest.y, 0);
+    assert.ok(scrolled.y < rest.y);
+  });
+
+  test("survives nonsense input", () => {
+    assert.deepEqual(depthVector(NaN, NaN, NaN, NaN), { x: 0, y: 0 });
+    assert.deepEqual(depthVector(9, -9, 0, 0), { x: 0, y: 0 });
+  });
+});
+
+describe("trailWidth", () => {
+  test("rests at the base width when the pointer is slow", () => {
+    assert.equal(trailWidth(0, 4), 4);
+  });
+
+  test("tapers as the pointer speeds up", () => {
+    assert.ok(trailWidth(0.8, 4) < trailWidth(0.2, 4));
+  });
+
+  test("never reaches zero, even at an absurd speed", () => {
+    assert.ok(trailWidth(100, 4) >= 4 * 0.32);
+  });
+
+  test("never produces NaN from missing input", () => {
+    assert.ok(Number.isFinite(trailWidth(undefined, undefined)));
+  });
+});
+
+describe("spotlightPercent", () => {
+  const box = { left: 100, top: 50, width: 200, height: 100 };
+
+  test("centres the light in the middle of the card", () => {
+    assert.deepEqual(spotlightPercent(200, 100, box), { x: 50, y: 50 });
+  });
+
+  test("maps the top-left corner to 0, 0", () => {
+    assert.deepEqual(spotlightPercent(100, 50, box), { x: 0, y: 0 });
+  });
+
+  test("clamps a finger that drags past the card edge", () => {
+    assert.deepEqual(spotlightPercent(900, -400, box), { x: 100, y: 0 });
+  });
+
+  test("does not divide by a zero-size rect", () => {
+    const p = spotlightPercent(0, 0, { left: 0, top: 0, width: 0, height: 0 });
+    assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y));
   });
 });
 
