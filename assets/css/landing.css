@@ -2604,6 +2604,306 @@ html.js.motion-ok [data-reveal].is-in {
 
 
 
+/* ── Hero spotter: a CSS-only 3D character beside the "Start logging" CTA ─ */
+
+.hero-copy {
+  position: relative;
+}
+
+.hero-character {
+  --char-tilt-x: 0deg;
+  --char-tilt-y: 0deg;
+  --char-pupil-x: 0px;
+  --char-pupil-y: 0px;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 150px;
+  height: 200px;
+  translate: 0 -50%;
+  z-index: 3;
+  perspective: 900px;
+  transform-style: preserve-3d;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.char-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: char-float 5s ease-in-out infinite;
+}
+
+.char {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  width: 118px;
+  height: 176px;
+  translate: -50% 0;
+  transform: rotateX(var(--char-tilt-x)) rotateY(var(--char-tilt-y));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.char-core {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: char-breathe 4s ease-in-out infinite;
+}
+
+.char-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  width: 92px;
+  height: 16px;
+  translate: -50% 0;
+  transform: translateZ(-56px);
+  background: color-mix(in srgb, var(--ink) 40%, transparent);
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.char-leg {
+  position: absolute;
+  bottom: 10px;
+  width: 20px;
+  height: 56px;
+  border-radius: 10px 10px 0 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  transform-origin: bottom center;
+  transform: translateZ(12px);
+}
+
+.char-leg-l {
+  left: 14px;
+}
+
+.char-leg-r {
+  right: 14px;
+}
+
+.char-torso {
+  position: absolute;
+  left: 50%;
+  top: 46px;
+  width: 74px;
+  height: 82px;
+  translate: -50% 0;
+  border-radius: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  transform: translateZ(20px);
+}
+
+.char-collar {
+  position: absolute;
+  left: 50%;
+  top: 30px;
+  width: 30px;
+  height: 6px;
+  translate: -50% 0;
+  border-radius: 3px;
+  background: var(--signal);
+  transform: translateZ(24px);
+}
+
+.char-arm {
+  position: absolute;
+  top: 40px;
+  width: 13px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  transform-origin: top center;
+  transform: translateZ(26px);
+}
+
+.char-arm-l {
+  left: -5px;
+  transform: rotateY(-10deg) translateZ(26px);
+}
+
+.char-arm-r {
+  right: -5px;
+  transform: rotateY(10deg) translateZ(26px);
+}
+
+.char.is-waving .char-arm-r {
+  transform: rotate(-28deg) rotateY(10deg) translateZ(26px);
+  transition: transform 0.1s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+.char-hand {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 17px;
+  height: 17px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  transform: translateZ(30px);
+}
+
+.char-neck {
+  position: absolute;
+  left: 50%;
+  top: 36px;
+  width: 16px;
+  height: 14px;
+  translate: -50% 0;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--paper) 85%, var(--ink));
+  transform: translateZ(32px);
+}
+
+.char-head {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 52px;
+  height: 52px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.4px solid var(--ink);
+  transform: translateZ(38px);
+}
+
+.char-eye {
+  position: absolute;
+  top: 18px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--ink);
+  transform: translateZ(42px);
+}
+
+.char-eye-l {
+  left: 13px;
+}
+
+.char-eye-r {
+  right: 13px;
+}
+
+.char-pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--paper);
+  transform: translate(var(--char-pupil-x), var(--char-pupil-y)) translateZ(2px);
+}
+
+.char-brow {
+  position: absolute;
+  top: 8px;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: translateZ(44px);
+}
+
+.char-brow-l {
+  left: 12px;
+  transform: rotate(-6deg) translateZ(44px);
+}
+
+.char-brow-r {
+  right: 12px;
+  transform: rotate(6deg) translateZ(44px);
+}
+
+.char-smile {
+  position: absolute;
+  left: 50%;
+  top: 30px;
+  width: 20px;
+  height: 10px;
+  translate: -50% 0;
+  border-bottom: 2.5px solid var(--ink);
+  border-radius: 0 0 10px 10px;
+  transform: translateZ(44px);
+}
+
+.char-halo {
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  width: 62px;
+  height: 62px;
+  translate: -50% 0;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--signal) 70%, transparent);
+  transform: translateZ(-22px);
+  opacity: 0.9;
+  animation: char-halo 3s ease-in-out infinite;
+}
+
+@keyframes char-float {
+  from,
+  to {
+    translate: 0 -50%;
+  }
+  50% {
+    translate: 0 calc(-50% - 7px);
+  }
+}
+
+@keyframes char-breathe {
+  from,
+  to {
+    scale: 1;
+  }
+  50% {
+    scale: 1.035;
+  }
+}
+
+@keyframes char-halo {
+  from,
+  to {
+    opacity: 0.55;
+    transform: translateZ(-22px) scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateZ(-22px) scale(1.06);
+  }
+}
+
+@media (max-width: 1080px) {
+  .hero-character {
+    position: static;
+    top: auto;
+    right: auto;
+    translate: -50% 0;
+    width: 140px;
+    height: auto;
+    margin: 16px auto 0;
+    display: block;
+    perspective: none;
+  }
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────── */
 
 @media (max-width: 1080px) {
