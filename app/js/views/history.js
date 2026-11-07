@@ -85,7 +85,7 @@ function renderHistoryCard(workout, index, units, open) {
         <span class="history-main">
           <span class="history-name">${esc(workout.name)}</span>
           <span class="history-meta">
-            ${summary.sets} ${summary.sets === 1 ? "set" : "sets"} · ${compactNumber(summary.volume)} ${esc(units)} · ${summary.minutes} min
+            ${esc(summary.sets)} ${summary.sets === 1 ? "set" : "sets"} · ${compactNumber(summary.volume)} ${esc(units)} · ${esc(summary.minutes)} min
             · ${esc(relativeTime(workout.endedAt ?? workout.startedAt))}
           </span>
           ${prCount > 0 ? `<span class="pr-flag">${icon("trophy")} ${prCount} personal record${prCount === 1 ? "" : "s"}</span>` : ""}
@@ -118,7 +118,7 @@ function renderHistoryDetail(workout, index, units, summary) {
                        (s, i) => `
                      <li>
                        <span class="detail-set-n">${i + 1}</span>
-                       <span class="detail-set-v">${s.weight} ${esc(units)} × ${s.reps}</span>
+                       <span class="detail-set-v">${esc(s.weight)} ${esc(units)} × ${esc(s.reps)}</span>
                        <span class="detail-set-vol">${compactNumber((Number(s.weight) || 0) * (Number(s.reps) || 0))} ${esc(units)}</span>
                      </li>`,
                      )
@@ -131,7 +131,7 @@ function renderHistoryDetail(workout, index, units, summary) {
       ${summary.records?.length
         ? `<div class="detail-records">
              <h4>${icon("trophy")} Personal records</h4>
-             <ul>${summary.records.map((r) => `<li>${esc(r.name)} — ${esc(r.kinds.join(", "))}</li>`).join("")}</ul>
+             <ul>${summary.records.map((r) => `<li>${esc(r.name)} — ${esc(Array.isArray(r.kinds) ? r.kinds.join(", ") : "")}</li>`).join("")}</ul>
            </div>`
         : ""}
 

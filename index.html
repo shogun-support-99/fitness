@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; frame-src 'none'; form-action 'self'"
+    />
+    <meta
       name="description"
       content="IronLog is a free, private strength-training log. Log sets with last week's numbers in view, run the rest timer, follow personal records and keep everything in your browser."
     />
@@ -37,10 +41,7 @@
     <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="assets/css/tailwind.css" />
     <link rel="stylesheet" href="assets/css/landing.css" />
-    <script>
-      document.documentElement.classList.remove("no-js");
-      document.documentElement.classList.add("js", "motion-ok");
-    </script>
+    <script src="assets/js/theme.js"></script>
     <script type="module" src="assets/js/landing.js"></script>
   </head>
   <body>

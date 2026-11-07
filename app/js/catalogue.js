@@ -83,11 +83,14 @@ const stepCache = new Map();
 
 export function loadSteps(lang = "en", base = "") {
   const prefix = base ? `${base.replace(/\/+$/, "")}/` : "";
-  const key = `${prefix}${lang}`;
+  // Language codes are two letters. Validating here keeps a corrupt setting or
+  // a hostile import from turning the pack request into an arbitrary path.
+  const code = /^[a-z]{2}$/.test(String(lang)) ? String(lang) : "en";
+  const key = `${prefix}${code}`;
   if (!stepCache.has(key)) {
     stepCache.set(
       key,
-      fetchJson(`${prefix}${stepsPath(lang)}`).then((pack) =>
+      fetchJson(`${prefix}${stepsPath(code)}`).then((pack) =>
         pack && typeof pack === "object" ? pack : null,
       ),
     );

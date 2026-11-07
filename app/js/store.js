@@ -53,6 +53,170 @@ function emptyDocument() {
   };
 }
 
+// ── Import sanitisation ─────────────────────────────────────────────────────
+//
+// A backup is a file a user can be sent, not a trusted in-memory object. Every
+// imported value is coerced to the type the views and maths expect, so a
+// hostile JSON file cannot smuggle markup into a numeric cell, point the
+// language loader at another path, or hand the timer a non-numeric default.
+
+const IMPORT_LIMITS = {
+  workouts: 10_000,
+  exercises: 100,
+  sets: 200,
+  records: 500,
+  text: 4_000,
+};
+const SETTING_UNITS = new Set(["kg", "lb"]);
+const SETTING_THEMES = new Set(["light", "dark", "auto"]);
+const SETTING_LANGUAGES = new Set(["en", "es", "de", "fr", "it", "pl", "ru", "tr", "zh", "hi", "ko"]);
+
+function importString(value, max = 200) {
+  if (value === null || value === undefined) return "";
+  return String(value).slice(0, max);
+}
+
+function importNumber(value, { min = 0, max = 1_000_000, integer = false } = {}) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  const clamped = Math.min(max, Math.max(min, n));
+  return integer ? Math.round(clamped) : clamped;
+}
+
+function importDate(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function importId(value, prefix, index, seen) {
+  const base = importString(value, 120).trim() || `${prefix}_${index}`;
+  let id = base;
+  let suffix = 1;
+  while (seen.has(id)) {
+    id = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  seen.add(id);
+  return id;
+}
+
+function importSet(raw, index, seen) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  return {
+    id: importId(raw.id, "s_import", index, seen),
+    weight: importNumber(raw.weight, { max: 100_000 }),
+    reps: importNumber(raw.reps, { max: 100_000, integer: true }),
+    done: raw.done === true || raw.done === 1,
+    restStartedAt: importDate(raw.restStartedAt),
+    completedAt: importDate(raw.completedAt),
+    createdAt: importDate(raw.createdAt) ?? new Date().toISOString(),
+  };
+}
+
+function importEntry(raw, index, seenEntries) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const seenSets = new Set();
+  const sets = (Array.isArray(raw.sets) ? raw.sets.slice(0, IMPORT_LIMITS.sets) : [])
+    .map((set, i) => importSet(set, i, seenSets))
+    .filter(Boolean);
+  return {
+    id: importId(raw.id, "e_import", index, seenEntries),
+    exerciseId: importString(raw.exerciseId, 160),
+    sets,
+  };
+}
+
+function importSummary(raw, exerciseCount) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const records = (Array.isArray(raw.records) ? raw.records.slice(0, IMPORT_LIMITS.records) : [])
+    .map((record) => {
+      if (!record || typeof record !== "object" || Array.isArray(record)) return null;
+      return {
+        exerciseId: importString(record.exerciseId, 160),
+        name: importString(record.name, 160),
+        kinds: (Array.isArray(record.kinds) ? record.kinds.slice(0, 10) : [])
+          .map((kind) => importString(kind, 40))
+          .filter(Boolean),
+      };
+    })
+    .filter(Boolean);
+  return {
+    volume: importNumber(raw.volume, { max: 1_000_000_000 }),
+    sets: importNumber(raw.sets, { max: 100_000, integer: true }),
+    minutes: importNumber(raw.minutes, { max: 100_000, integer: true }),
+    exercises:
+      raw.exercises === undefined
+        ? Math.min(exerciseCount, IMPORT_LIMITS.exercises)
+        : importNumber(raw.exercises, { max: 100_000, integer: true }),
+    records,
+  };
+}
+
+function importWorkout(raw, index, seenWorkouts) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const seenEntries = new Set();
+  const exercises = (Array.isArray(raw.exercises) ? raw.exercises.slice(0, IMPORT_LIMITS.exercises) : [])
+    .map((entry, i) => importEntry(entry, i, seenEntries))
+    .filter(Boolean);
+  const startedAt =
+    importDate(raw.startedAt) ?? importDate(raw.endedAt) ?? new Date().toISOString();
+  const status = raw.status === "active" ? "active" : "completed";
+  const workout = {
+    id: importId(raw.id, "w_import", index, seenWorkouts),
+    name: importString(raw.name, 80).trim() || "Imported workout",
+    status,
+    startedAt,
+    endedAt:
+      status === "active" ? importDate(raw.endedAt) : (importDate(raw.endedAt) ?? startedAt),
+    notes: importString(raw.notes, IMPORT_LIMITS.text),
+    exercises,
+  };
+  const summary = importSummary(raw.summary, exercises.length);
+  if (summary) workout.summary = summary;
+  return workout;
+}
+
+function importCustomExercise(raw, index, seen) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const name = importString(raw.name, 120).trim();
+  if (!name) return null;
+  return {
+    id: importId(raw.id ?? makeExerciseId(name), "custom_import", index, seen),
+    name,
+    muscle: importString(raw.muscle, 40).trim() || "other",
+    equipment: importString(raw.equipment, 60).trim() || "other",
+    note: importString(raw.note, 600),
+    custom: true,
+    createdAt: importDate(raw.createdAt) ?? new Date().toISOString(),
+  };
+}
+
+function importSettings(patch, fallback) {
+  const merged = {
+    ...fallback,
+    ...(patch && typeof patch === "object" && !Array.isArray(patch) ? patch : {}),
+  };
+  return {
+    units: SETTING_UNITS.has(merged.units) ? merged.units : fallback.units,
+    restSeconds:
+      importNumber(merged.restSeconds, { min: 0, max: 3600, integer: true }) ||
+      fallback.restSeconds,
+    autoStartRestTimer:
+      typeof merged.autoStartRestTimer === "boolean"
+        ? merged.autoStartRestTimer
+        : fallback.autoStartRestTimer,
+    theme: SETTING_THEMES.has(merged.theme) ? merged.theme : fallback.theme,
+    instructionLanguage: SETTING_LANGUAGES.has(merged.instructionLanguage)
+      ? merged.instructionLanguage
+      : fallback.instructionLanguage,
+    lastBackupAt:
+      merged.lastBackupAt === null
+        ? null
+        : (importDate(merged.lastBackupAt) ?? fallback.lastBackupAt ?? null),
+  };
+}
+
 export class Store {
   /**
    * @param {Storage} [storage] defaults to window.localStorage when available
@@ -115,6 +279,8 @@ export class Store {
     this.catalogue = result.exercises;
     this.catalogueMeta = result.meta;
     this.catalogueState = "ready";
+    this._indexCache = null;
+    this._indexCacheKey = null;
     this.#emit({
       type: "catalogue:ready",
       persisted: true,
@@ -142,7 +308,9 @@ export class Store {
         version: SCHEMA_VERSION,
         workouts: Array.isArray(parsed.workouts) ? parsed.workouts : [],
         customExercises: Array.isArray(parsed.customExercises) ? parsed.customExercises : [],
-        settings: { ...base.settings, ...(parsed.settings ?? {}) },
+        // Even a same-origin document can be old or hand-edited. Normalise the
+        // preference values before any view or loader reads them.
+        settings: importSettings(parsed.settings ?? {}, base.settings),
       };
     } catch {
       // Corrupt or unreadable payload: start clean rather than crash the app.
@@ -215,8 +383,17 @@ export class Store {
     if (trimmed.length === 0) return { ok: false, error: "Name is required." };
     let id = makeExerciseId(trimmed);
     const existing = this.exerciseIndex();
-    if (existing[id] && !existing[id].custom) {
-      id = `${id}-${Date.now().toString(36)}`;
+    // A duplicate slug must get a fresh id even when the collision is with
+    // another custom entry; otherwise two rows share an id and updating one
+    // silently edits the other.
+    if (existing[id]) {
+      const suffix = Date.now().toString(36);
+      id = `${id}-${suffix}`;
+      let n = 2;
+      while (existing[id]) {
+        id = `${makeExerciseId(trimmed)}-${suffix}-${n}`;
+        n += 1;
+      }
     }
     const exercise = {
       id,
@@ -228,6 +405,8 @@ export class Store {
       createdAt: new Date().toISOString(),
     };
     this.doc.customExercises.push(exercise);
+    this._indexCache = null;
+    this._indexCacheKey = null;
     this.#commit("exercise:add");
     return { ok: true, exercise };
   }
@@ -236,7 +415,11 @@ export class Store {
     const before = this.doc.customExercises.length;
     this.doc.customExercises = this.doc.customExercises.filter((e) => e.id !== id);
     const removed = this.doc.customExercises.length !== before;
-    if (removed) this.#commit("exercise:remove");
+    if (removed) {
+      this._indexCache = null;
+      this._indexCacheKey = null;
+      this.#commit("exercise:remove");
+    }
     return removed;
   }
 
@@ -247,7 +430,7 @@ export class Store {
   }
 
   updateSettings(patch) {
-    this.doc.settings = { ...this.doc.settings, ...patch };
+    this.doc.settings = importSettings(patch, this.doc.settings);
     this.#commit("settings:update");
     return this.doc.settings;
   }
@@ -488,19 +671,35 @@ export class Store {
   importData(json) {
     try {
       const parsed = typeof json === "string" ? JSON.parse(json) : json;
-      if (!parsed || typeof parsed !== "object") return { ok: false, error: "Not a valid IronLog export." };
-      if (!Array.isArray(parsed.workouts)) return { ok: false, error: "Export has no workouts array." };
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        return { ok: false, error: "Not a valid IronLog export." };
+      }
+      if (!Array.isArray(parsed.workouts)) {
+        return { ok: false, error: "Export has no workouts array." };
+      }
       const base = emptyDocument();
+      const seenWorkouts = new Set();
+      const seenCustom = new Set();
+      const workouts = parsed.workouts
+        .slice(0, IMPORT_LIMITS.workouts)
+        .map((workout, index) => importWorkout(workout, index, seenWorkouts))
+        .filter(Boolean);
+      const customExercises = (Array.isArray(parsed.customExercises) ? parsed.customExercises : [])
+        .slice(0, IMPORT_LIMITS.workouts)
+        .map((exercise, index) => importCustomExercise(exercise, index, seenCustom))
+        .filter(Boolean);
+      // Layer the import over the current settings, then the shipped
+      // defaults, so a partial export never silently resets preferences.
+      const currentSettings = importSettings(this.doc.settings, base.settings);
       this.doc = {
-        ...base,
-        ...parsed,
         version: SCHEMA_VERSION,
-        workouts: parsed.workouts,
-        customExercises: Array.isArray(parsed.customExercises) ? parsed.customExercises : [],
-        // Layer the import over the current settings, then the shipped
-        // defaults, so a partial export never silently resets preferences.
-        settings: { ...base.settings, ...this.doc.settings, ...(parsed.settings ?? {}) },
+        workouts,
+        customExercises,
+        settings: importSettings(parsed.settings, currentSettings),
+        createdAt: importDate(parsed.createdAt) ?? base.createdAt,
       };
+      this._indexCache = null;
+      this._indexCacheKey = null;
       this.#commit("data:import");
       return { ok: true, workouts: this.doc.workouts.length };
     } catch (error) {

@@ -210,16 +210,17 @@ export function streaks(workouts, today = new Date()) {
   }
   if (days.size === 0) return { current: 0, best: 0, activeDays: 0 };
 
-  const ONE_DAY = 24 * 3600 * 1000;
   const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
   // A streak is still "current" if the user trained today or yesterday.
-  if (!days.has(localDateKey(cursor))) cursor.setTime(cursor.getTime() - ONE_DAY);
+  if (!days.has(localDateKey(cursor))) cursor.setDate(cursor.getDate() - 1);
 
   let current = 0;
   while (days.has(localDateKey(cursor))) {
     current += 1;
-    cursor.setTime(cursor.getTime() - ONE_DAY);
+    // Step by calendar day, not 24-hour blocks: a DST change makes one local
+    // day 23 or 25 hours, which used to skip a day and break the streak.
+    cursor.setDate(cursor.getDate() - 1);
   }
 
   const sorted = [...days].sort();
@@ -228,7 +229,7 @@ export function streaks(workouts, today = new Date()) {
   for (let i = 1; i < sorted.length; i += 1) {
     const prev = new Date(`${sorted[i - 1]}T00:00:00`);
     const cur = new Date(`${sorted[i]}T00:00:00`);
-    if (cur.getTime() - prev.getTime() === ONE_DAY) {
+    if (shiftLocalDate(prev, 1).getTime() === cur.getTime()) {
       run += 1;
       best = Math.max(best, run);
     } else {

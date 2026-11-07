@@ -127,7 +127,7 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
           <h3>${esc(name)}</h3>
           <p class="exercise-sub">
             ${exercise ? `${esc(exercise.muscle)} · ${esc(exercise.equipment)}` : "Unknown exercise"}
-            ${previous ? `<span class="last-perf">Last: ${previous.weight} ${esc(units)} × ${previous.reps}</span>` : ""}
+            ${previous ? `<span class="last-perf">Last: ${esc(previous.weight)} ${esc(units)} × ${esc(previous.reps)}</span>` : ""}
           </p>
         </div>
         <button class="icon-btn" data-action="remove-exercise" data-entry="${esc(entry.id)}" aria-label="Remove ${esc(name)}">
@@ -136,7 +136,7 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
       </header>
 
       <button class="exercise-rest" data-action="rest-now" aria-label="Start rest timer for ${esc(name)}">
-        ${icon("timer")} Rest timer: ${store.settings.restSeconds}s
+        ${icon("timer")} Rest timer: ${esc(store.settings.restSeconds)}s
       </button>
 
       <div class="set-table" role="table" aria-label="${esc(name)} sets">
@@ -167,16 +167,16 @@ function renderSetRow(entry, set, index, previous, units) {
   return `
     <div class="set-row ${set.done ? "is-done" : ""}" role="row" data-set="${sid}">
       <span class="set-number" role="cell">${index + 1}</span>
-      <span class="set-previous" role="cell">${previous ? `${previous.weight}×${previous.reps}` : "—"}</span>
+      <span class="set-previous" role="cell">${previous ? `${esc(previous.weight)}×${esc(previous.reps)}` : "—"}</span>
       <span role="cell">
         <input class="set-input" type="number" inputmode="decimal" min="0" step="0.5"
-               value="${set.weight}" placeholder="0"
+               value="${esc(set.weight)}" placeholder="0"
                data-action="set-weight" data-entry="${eid}" data-set="${sid}"
                aria-label="Set ${index + 1} weight" />
       </span>
       <span role="cell">
         <input class="set-input" type="number" inputmode="numeric" min="0" step="1"
-               value="${set.reps}" placeholder="0"
+               value="${esc(set.reps)}" placeholder="0"
                data-action="set-reps" data-entry="${eid}" data-set="${sid}"
                aria-label="Set ${index + 1} reps" />
       </span>

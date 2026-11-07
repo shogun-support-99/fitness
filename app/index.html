@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; frame-src 'none'; form-action 'self'"
+    />
     <title>IronLog — Strength training log</title>
     <meta
       name="description"
@@ -36,17 +40,7 @@
     <link rel="preload" href="../fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="../assets/css/tailwind.css" />
     <link rel="stylesheet" href="./css/app.css" />
-    <script>
-      // Apply the saved appearance before first paint. Light is the crafted
-      // default; a saved dark preference wins.
-      try {
-        const saved = JSON.parse(localStorage.getItem("ironlog.v1") || "null");
-        const theme = saved?.settings?.theme || "light";
-        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
-      } catch {
-        document.documentElement.dataset.theme = "light";
-      }
-    </script>
+    <script src="./js/theme-init.js"></script>
     <script type="module" src="./js/main.js" defer></script>
   </head>
   <body>

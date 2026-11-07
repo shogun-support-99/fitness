@@ -391,6 +391,14 @@ describe("custom exercises", () => {
     assert.ok(result.exercise.id.startsWith("custom-"));
   });
 
+  test("gives a duplicate name its own id instead of replacing the first", () => {
+    const first = store.addCustomExercise({ name: "Tempo Row" });
+    const second = store.addCustomExercise({ name: "Tempo Row" });
+    assert.notEqual(first.exercise.id, second.exercise.id);
+    assert.equal(store.getExercise(first.exercise.id).name, "Tempo Row");
+    assert.equal(store.exercises().length, 2);
+  });
+
   test("a custom entry with a given id is resolvable by that id", () => {
     store.doc.customExercises.push({ id: "bench-press", name: "My Bench", muscle: "chest", equipment: "barbell", custom: true });
     assert.equal(store.getExercise("bench-press").name, "My Bench");
@@ -510,6 +518,129 @@ describe("data portability", () => {
     store.updateSettings({ units: "lb" });
     store.importData({ workouts: [] });
     assert.equal(store.settings.units, "lb");
+  });
+
+  test("coerces hostile imported values to the types the views expect", () => {
+    const hostile = '<img src=x onerror="alert(1)">';
+    const result = store.importData({
+      workouts: [
+        {
+          id: hostile,
+          name: "<script>alert(1)</script>",
+          status: "completed",
+          startedAt: "2026-10-15T09:00:00.000Z",
+          endedAt: "2026-10-15T10:00:00.000Z",
+          notes: hostile,
+          summary: {
+            volume: hostile,
+            sets: "<script>alert(1)</script>",
+            minutes: {},
+            records: [{ name: hostile, kinds: "not-an-array" }],
+          },
+          exercises: [
+            {
+              id: "e1",
+              exerciseId: "ds-1",
+              sets: [
+                {
+                  id: "s1",
+                  weight: hostile,
+                  reps: "-5",
+                  done: "yes",
+                  restStartedAt: hostile,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      customExercises: [
+        { id: "c1", name: "<script>alert(1)</script>", muscle: {}, equipment: [], note: {} },
+      ],
+      settings: {
+        units: "<b>kg</b>",
+        restSeconds: "<script>alert(1)</script>",
+        autoStartRestTimer: "yes",
+        theme: "evil",
+        instructionLanguage: "../../index",
+        lastBackupAt: "not a date",
+      },
+    });
+
+    assert.equal(result.ok, true);
+    const workout = store.completedWorkouts()[0];
+    const set = workout.exercises[0].sets[0];
+    assert.equal(set.weight, 0);
+    assert.equal(set.reps, 0);
+    assert.equal(set.done, false);
+    assert.equal(set.restStartedAt, null);
+    assert.equal(workout.summary.volume, 0);
+    assert.equal(workout.summary.sets, 0);
+    assert.equal(workout.summary.minutes, 0);
+    assert.deepEqual(workout.summary.records[0].kinds, []);
+    assert.equal(store.settings.units, "kg");
+    assert.equal(store.settings.restSeconds, 120);
+    assert.equal(store.settings.autoStartRestTimer, true);
+    assert.equal(store.settings.theme, "light");
+    assert.equal(store.settings.instructionLanguage, "en");
+    assert.equal(store.settings.lastBackupAt, null);
+  });
+
+  test("makes imported ids unique within each collection", () => {
+    const result = store.importData({
+      workouts: [
+        {
+          id: "same",
+          name: "One",
+          status: "completed",
+          startedAt: "2026-10-15T09:00:00.000Z",
+          exercises: [
+            {
+              id: "entry",
+              exerciseId: "ds-1",
+              sets: [
+                { id: "set", weight: 10, reps: 5 },
+                { id: "set", weight: 20, reps: 5 },
+              ],
+            },
+            { id: "entry", exerciseId: "ds-2", sets: [{ id: "set", weight: 30, reps: 5 }] },
+          ],
+        },
+        { id: "same", name: "Two", status: "completed", startedAt: "2026-10-16T09:00:00.000Z" },
+      ],
+      customExercises: [
+        { id: "custom-same", name: "One" },
+        { id: "custom-same", name: "Two" },
+      ],
+    });
+
+    assert.equal(result.ok, true);
+    const [first, second] = store.doc.workouts;
+    assert.notEqual(first.id, second.id);
+    assert.notEqual(first.exercises[0].id, first.exercises[1].id);
+    assert.notEqual(first.exercises[0].sets[0].id, first.exercises[0].sets[1].id);
+    assert.notEqual(store.doc.customExercises[0].id, store.doc.customExercises[1].id);
+  });
+
+  test("normalises unsafe settings read from storage", () => {
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        settings: {
+          units: "<b>kg</b>",
+          restSeconds: "<script>",
+          autoStartRestTimer: "yes",
+          theme: "evil",
+          instructionLanguage: "../../index",
+        },
+      }),
+    );
+    const reopened = new Store(storage);
+    assert.equal(reopened.settings.units, "kg");
+    assert.equal(reopened.settings.restSeconds, 120);
+    assert.equal(reopened.settings.autoStartRestTimer, true);
+    assert.equal(reopened.settings.theme, "light");
+    assert.equal(reopened.settings.instructionLanguage, "en");
   });
 
   test("reset clears storage and the in-memory document", () => {

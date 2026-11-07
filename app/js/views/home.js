@@ -259,9 +259,9 @@ function renderSessionRow(workout, index, units) {
           <span class="session-byline"><strong>Your workout</strong><span>${esc(when)}</span></span>
           <span class="session-name">${esc(workout.name)}</span>
           <span class="session-kpis">
-            <span><small>Time</small><b>${summary.minutes} min</b></span>
+            <span><small>Time</small><b>${esc(summary.minutes)} min</b></span>
             <span><small>Volume</small><b>${compactNumber(summary.volume)} ${esc(units)}</b></span>
-            <span><small>Records</small><b>${prCount || "—"}</b></span>
+            <span><small>Records</small><b>${esc(prCount || "—")}</b></span>
           </span>
           <span class="session-exercise-list">
             ${exercises.map((entry) => {

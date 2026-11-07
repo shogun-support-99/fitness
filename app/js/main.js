@@ -381,6 +381,10 @@ function showUpdateBanner() {
 function openSheet(id, { focus = true } = {}) {
   const sheet = document.getElementById(id);
   if (!sheet) return;
+  // Cancel a pending close: reopening within the 180ms exit transition used
+  // to let the old timer hide the freshly opened sheet.
+  clearTimeout(sheet._closeTimer);
+  sheet._closeTimer = 0;
   sheet.hidden = false;
   requestAnimationFrame(() => sheet.classList.add("is-open"));
   document.body.classList.add("sheet-open");
@@ -390,10 +394,12 @@ function openSheet(id, { focus = true } = {}) {
 function closeSheet(id) {
   const sheet = document.getElementById(id);
   if (!sheet) return;
+  clearTimeout(sheet._closeTimer);
   sheet.classList.remove("is-open");
   document.body.classList.remove("sheet-open");
-  setTimeout(() => {
-    sheet.hidden = true;
+  sheet._closeTimer = setTimeout(() => {
+    // Only hide if the sheet was not reopened while the transition ran.
+    if (!sheet.classList.contains("is-open")) sheet.hidden = true;
   }, 180);
 }
 
@@ -650,12 +656,13 @@ const actions = {
   "add-current-to-workout": (el) => {
     const active = store.activeWorkout();
     if (!active) return;
+    const exercise = store.getExercise(el.dataset.id);
     const result = store.addExerciseToWorkout(active.id, el.dataset.id);
     if (!result.ok) return toast(result.error, { tone: "danger" });
     const previous = store.previousPerformance(el.dataset.id);
     store.addSet(active.id, result.entry.id, previous ? previous : { weight: 0, reps: 0 });
     closeExerciseDetail();
-    toast(`Added ${result.entry.name}`);
+    toast(`Added ${exercise?.name ?? "exercise"}`);
     location.hash = "#/workout";
     render();
   },
@@ -789,6 +796,12 @@ const actions = {
   "import-file": (el) => {
     const file = el.files?.[0];
     if (!file) return;
+    // A training log is small; a multi-megabyte file is likely a mistake or a
+    // denial-of-service attempt against the main thread. Reject it up front.
+    if (file.size > 10 * 1024 * 1024) {
+      el.value = "";
+      return toast("That backup is too large (10 MB maximum)", { tone: "danger", timeout: 4200 });
+    }
     // Importing replaces the current log. Warn before overwriting existing data.
     const hasData = store.doc.workouts.length > 0 || store.doc.customExercises.length > 0;
     if (hasData && !window.confirm("Import replaces your current workouts and custom exercises in this browser. Continue?")) {
@@ -922,9 +935,9 @@ function showSummary(workout, summary) {
       <p class="summary-name">${esc(workout.name)}</p>
       <div class="summary-grid">
         <div><strong>${compactNumber(summary.volume)}</strong><span>${esc(store.settings.units)} volume</span></div>
-        <div><strong>${summary.sets}</strong><span>sets</span></div>
-        <div><strong>${summary.minutes}</strong><span>minutes</span></div>
-        <div><strong>${summary.exercises}</strong><span>exercises</span></div>
+        <div><strong>${esc(summary.sets)}</strong><span>sets</span></div>
+        <div><strong>${esc(summary.minutes)}</strong><span>minutes</span></div>
+        <div><strong>${esc(summary.exercises)}</strong><span>exercises</span></div>
       </div>
       ${
         records.length > 0

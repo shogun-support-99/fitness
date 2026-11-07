@@ -794,7 +794,6 @@ export function initAmbientLight(root = document) {
   window.addEventListener("pointercancel", onTouchEnd, { passive: true });
   document.addEventListener("pointerleave", hide);
   window.addEventListener("blur", hide);
-  motionQuery?.addEventListener?.("change", onMotionChange);
 
   return () => {
     scope.removeEventListener("pointermove", move);
