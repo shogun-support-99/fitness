@@ -3,7 +3,7 @@
  *
  * Eight small behaviours, no runtime dependency: the mobile menu, the workout
  * preview tabs (roving focus, arrow keys, a shared travelling pill), the
- * spring-smoothed 3D hero, pointer spotlights on routine cards, magnetic
+ * spring-smoothed hero preview, pointer spotlights on routine cards, magnetic
  * hero/final CTAs, a reveal-on-scroll pass that never leaves content hidden
  * when the observer is unavailable, the sample training-year heatmap, and the
  * nav scroll spy. Cursor, tilt, magnetic pull, gyro lean and tap ripples
@@ -280,107 +280,8 @@ if (heroArt && heroStack) {
 
 }
 
-/* ── Hero spotter: CSS 3D character beside the "Start logging" CTA ─────── */
-
-function initCharacter() {
-  const stage = doc.querySelector("[data-char-stage]");
-  const char = doc.querySelector("[data-char]");
-  if (!stage || !char) return;
-
-  const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
-  const coarse = window.matchMedia("(pointer: coarse)");
-  if (fine && coarse && !fine.matches && !coarse.matches) return;
-
-  const maxTilt = 10;
-  let frame = 0;
-  let rx = 0;
-  let ry = 0;
-  let vx = 0;
-  let vy = 0;
-  let aimX = 0;
-  let aimY = 0;
-  let nextWave = 0;
-
-  const paint = () => {
-    frame = 0;
-    const sx = springStep(rx, aimX, vx, { stiffness: 0.15, damping: 0.76 });
-    const sy = springStep(ry, aimY, vy, { stiffness: 0.15, damping: 0.76 });
-    rx = sx.value;
-    vx = sx.velocity;
-    ry = sy.value;
-    vy = sy.velocity;
-    char.style.setProperty("--char-tilt-x", `${(-ry * maxTilt).toFixed(2)}deg`);
-    char.style.setProperty("--char-tilt-y", `${(rx * maxTilt).toFixed(2)}deg`);
-    const leftover = Math.abs(aimX - rx) + Math.abs(aimY - ry) + Math.abs(vx) + Math.abs(vy);
-    if (leftover > 0.002) frame = requestAnimationFrame(paint);
-  };
-
-  const queue = () => {
-    if (!frame) frame = requestAnimationFrame(paint);
-  };
-
-  const track = (event) => {
-    const rect = stage.getBoundingClientRect();
-    const n = pointerNorm(event.clientX, event.clientY, rect);
-    aimX = clampUnit(n.x * 1.5, 1);
-    aimY = clampUnit(n.y * 1.5, 1);
-    char.style.setProperty("--char-pupil-x", `${(n.x * 7).toFixed(1)}px`);
-    char.style.setProperty("--char-pupil-y", `${(n.y * 7).toFixed(1)}px`);
-    char.classList.add("is-looking");
-    queue();
-  };
-
-  const reset = () => {
-    aimX = 0;
-    aimY = 0;
-    char.style.setProperty("--char-tilt-x", "0deg");
-    char.style.setProperty("--char-tilt-y", "0deg");
-    char.style.setProperty("--char-pupil-x", "0px");
-    char.style.setProperty("--char-pupil-y", "0px");
-    char.classList.remove("is-looking", "is-waving");
-    queue();
-  };
-
-  const wave = () => {
-    char.classList.add("is-waving");
-    window.setTimeout(() => char.classList.remove("is-waving"), 550);
-  };
-
-  stage.addEventListener("pointerenter", (event) => {
-    if (event.pointerType === "mouse") char.classList.add("is-pointing");
-    track(event);
-  });
-
-  stage.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
-    track(event);
-  });
-
-  stage.addEventListener("pointerleave", (event) => {
-    if (event.pointerType === "mouse") char.classList.remove("is-pointing");
-    reset();
-  });
-
-  stage.addEventListener("pointerdown", wave);
-
-  // Idle play: the spotter waves on its own every so often.
-  const scheduleWave = () => {
-    nextWave = window.setTimeout(() => {
-      if (!char.classList.contains("is-pointing")) wave();
-      scheduleWave();
-    }, 4800 + Math.random() * 3000);
-  };
-  scheduleWave();
-
-  return () => {
-    if (frame) cancelAnimationFrame(frame);
-    if (nextWave) window.clearTimeout(nextWave);
-    reset();
-    char.classList.remove("is-pointing", "is-looking", "is-waving");
-  };
-}
-
-initCharacter();
+/* The hero 3D scene is mounted by assets/js/scene3d.js, which owns the
+   React Three Fiber canvas and the procedural kettlebell spotter. */
 
 /* Set 4 is a real button: the demo runs itself until the first tap, then the
    stats count up, sparks fly and the rest bar starts at demo speed. */

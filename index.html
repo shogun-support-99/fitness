@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; frame-src 'none'; form-action 'self'"
+      content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; frame-src 'self'; form-action 'self'"
     />
     <meta
       name="description"
@@ -43,6 +43,7 @@
     <link rel="stylesheet" href="assets/css/landing.css" />
     <script src="assets/js/theme.js"></script>
     <script type="module" src="assets/js/landing.js"></script>
+    <script type="module" src="assets/js/scene3d.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -132,38 +133,10 @@
               <a class="btn btn-secondary btn-lg" href="#features" data-magnetic>See how it works</a>
             </div>
 
-            <div class="hero-character" aria-label="Spotter" data-character>
+            <div class="hero-character" aria-hidden="true" data-character>
               <div class="char-stage" data-char-stage>
-                <div class="char" data-char>
-                  <div class="char-core">
-                    <div class="char-shadow" aria-hidden="true"></div>
-                    <div class="char-leg char-leg-l" aria-hidden="true"></div>
-                    <div class="char-leg char-leg-r" aria-hidden="true"></div>
-                    <div class="char-torso" aria-hidden="true">
-                      <div class="char-collar" aria-hidden="true"></div>
-                      <div class="char-arm char-arm-l" aria-hidden="true">
-                        <div class="char-hand" aria-hidden="true"></div>
-                      </div>
-                      <div class="char-arm char-arm-r" aria-hidden="true">
-                        <div class="char-hand" aria-hidden="true"></div>
-                      </div>
-                      <div class="char-chest" aria-hidden="true"></div>
-                    </div>
-                    <div class="char-neck" aria-hidden="true"></div>
-                    <div class="char-head" aria-hidden="true">
-                      <div class="char-eye char-eye-l" aria-hidden="true">
-                        <div class="char-pupil char-pupil-l" aria-hidden="true"></div>
-                      </div>
-                      <div class="char-eye char-eye-r" aria-hidden="true">
-                        <div class="char-pupil char-pupil-r" aria-hidden="true"></div>
-                      </div>
-                      <div class="char-brow char-brow-l" aria-hidden="true"></div>
-                      <div class="char-brow char-brow-r" aria-hidden="true"></div>
-                      <div class="char-smile" aria-hidden="true"></div>
-                    </div>
-                    <div class="char-halo" aria-hidden="true"></div>
-                  </div>
-                </div>
+                <span class="char-fallback" aria-hidden="true">IL</span>
+                <div class="char-canvas" data-scene3d></div>
               </div>
             </div>
             <ul class="hero-proof">

@@ -10,6 +10,7 @@ IronLog is a dependency-free, offline-first strength-training log: a static site
 - `npm run check` — verifies every local `href`/`src` in HTML resolves.
 - CI also runs `node --check` on every `.js` under `app/`, `assets/`, and `scripts/`. There is no lint, format, or typecheck script.
 - After changing Tailwind classes, `src/tailwind.css`, or `tailwind.config.js`: `npm install && npm run build:css`, then commit the regenerated `assets/css/tailwind.css`. That compiled file is shared by the landing page and app, served directly, and **not** freshness-checked by CI.
+- After changing anything under `src/scene/` or `src/components/` (the hero 3D scene), run `npm run build:scene` then commit the regenerated `assets/js/scene3d.js`. After changing `scripts/build-spotter-glb.mjs`, run `npm run build:spotter` then commit the regenerated `assets/models/spotter.glb`. Both are committed so GitHub Pages serves them directly with no runtime build step.
 
 ## Architecture
 

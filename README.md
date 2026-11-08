@@ -173,6 +173,33 @@ Preflight is disabled, so Tailwind contributes utilities, keyframes and the docu
 block components (`feature-row`, `notion-callout`, toggle rows) without resetting the
 hand-written design system.
 
+## Building the hero 3D scene
+
+The landing hero's 3D spotter ("Kettle", a glossy yellow kettlebell buddy with
+mitten hands and chunky sneakers) is rendered with React Three Fiber from an
+original procedural GLB. Like the CSS, it is an authoring-time step whose output
+is committed, so GitHub Pages serves a plain static file with no runtime build:
+
+```sh
+npm run build:spotter   # regenerates assets/models/spotter.glb
+npm run build:scene     # rewrites assets/js/scene3d.js from src/scene + src/components
+npm run build           # runs both, then build:css
+```
+
+- `scripts/build-spotter-glb.mjs` draws the mascot from Three.js primitives
+  (lathe, capsule, sphere, rounded box) and rigs it into `Body`, `Head` and
+  `ArmWave` groups for mouse-tracking head/body rotation and an idle wave.
+- `scripts/build-scene.mjs` bundles `src/scene/mount.jsx` + `src/components/Scene3D.jsx`
+  with esbuild into `assets/js/scene3d.js`, which the landing page mounts into
+  `[data-scene3d]` only when WebGL is available. The static "IL" fallback stays
+  otherwise.
+- The scene light comes from the vendored CC0 city HDR at
+  `assets/models/potsdamer_platz_1k.hdr`, loaded offline via
+  `<Environment files="...">`.
+
+The mascot and HDR are not third-party character artwork; see [`NOTICE`](./NOTICE)
+for the CC0 HDR dedication and the original-model statement.
+
 ## Exercise catalogue
 
 The library has a single source:
