@@ -8,7 +8,11 @@ import {
   useState,
 } from "react";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
+import {
+  ContactShadows,
+  Environment,
+  OrbitControls,
+} from "@react-three/drei";
 import { MathUtils } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
@@ -17,7 +21,10 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
  * the same file works at `/` locally and `/fitness/` on GitHub Pages.
  */
 const MODEL_URL = new URL("../models/spotter.glb", import.meta.url).href;
-const CITY_HDR_URL = new URL("../models/potsdamer_platz_1k.hdr", import.meta.url).href;
+const CITY_HDR_URL = new URL(
+  "../models/potsdamer_platz_1k.hdr",
+  import.meta.url,
+).href;
 
 useLoader.preload(GLTFLoader, MODEL_URL);
 
@@ -48,6 +55,8 @@ function Kettle({ onReady }) {
     const body = scene.getObjectByName("Body");
     const head = scene.getObjectByName("Head");
     const arm = scene.getObjectByName("ArmWave");
+    const eyeL = scene.getObjectByName("EyeL");
+    const eyeR = scene.getObjectByName("EyeR");
 
     if (head) head.rotation.order = "YXZ";
 
@@ -58,14 +67,19 @@ function Kettle({ onReady }) {
       node.frustumCulled = false;
     });
 
-    return { body, head, arm };
+    return { body, head, arm, eyeL, eyeR };
   }, [scene]);
 
-  const pointer = useRef({ x: 0, y: 0 });
-  const smooth = useRef({ x: 0, y: 0 });
+  // True global cursor tracking: the character reacts no matter where the
+  // pointer sits on the page. Normalised to -1..1 over the whole window.
+  const cursor = useRef({ x: 0, y: 0 });
+  const smooth = useRef({ x: 0, y: 0, z: 0 });
+  const eyeAim = useRef({ x: 0, y: 0 });
   const waveAt = useRef(0.7);
   const time = useRef(0);
   const reduced = useRef(false);
+  // Blink state: { active, t, next } — next blink scheduled 3–7s out.
+  const blink = useRef({ active: false, t: 0, next: 3 + Math.random() * 4 });
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -79,20 +93,23 @@ function Kettle({ onReady }) {
 
   useEffect(() => {
     const track = (event) => {
-      if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
-      pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.current.y = (event.clientY / window.innerHeight) * 2 - 1;
+      cursor.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+      cursor.current.y = (event.clientY / window.innerHeight) * 2 - 1;
     };
     const reset = () => {
-      pointer.current.x = 0;
-      pointer.current.y = 0;
+      cursor.current.x = 0;
+      cursor.current.y = 0;
     };
 
-    window.addEventListener("pointermove", track, { passive: true });
-    document.addEventListener("mouseleave", reset);
+    // Window-level capture listener: OrbitControls calls stopPropagation on
+    // the canvas, which would block any bubbling listener. Capture phase on
+    // window fires before the target and cannot be stopped by downstream
+    // listeners, so the character tracks the cursor everywhere on the page.
+    window.addEventListener("pointermove", track, { capture: true });
+    window.addEventListener("mouseleave", reset);
     return () => {
-      window.removeEventListener("pointermove", track);
-      document.removeEventListener("mouseleave", reset);
+      window.removeEventListener("pointermove", track, { capture: true });
+      window.removeEventListener("mouseleave", reset);
     };
   }, []);
 
@@ -121,43 +138,108 @@ function Kettle({ onReady }) {
     time.current = t;
 
     const still = reduced.current;
-    const aimX = still ? 0 : pointer.current.x;
-    const aimY = still ? 0 : pointer.current.y;
+    const aimX = still ? 0 : cursor.current.x;
+    const aimY = still ? 0 : cursor.current.y;
 
-    smooth.current.x = MathUtils.damp(smooth.current.x, aimX, 5.5, dt);
-    smooth.current.y = MathUtils.damp(smooth.current.y, aimY, 5.5, dt);
+    smooth.current.x = MathUtils.damp(smooth.current.x, aimX, 6, dt);
+    smooth.current.y = MathUtils.damp(smooth.current.y, aimY, 6, dt);
+    smooth.current.z = MathUtils.damp(
+      smooth.current.z,
+      still ? 0 : Math.sin(t * 0.9) * 0.06,
+      4,
+      dt,
+    );
 
     const lookX = smooth.current.x;
     const lookY = smooth.current.y;
+    const roll = smooth.current.z;
 
+    // Strong, toy-like reactions: big head turns, curious tilts, a lean.
     head.rotation.y = MathUtils.damp(
       head.rotation.y,
-      lookX * 0.38 + (still ? 0 : Math.sin(t * 0.55) * 0.018),
+      lookX * 0.55 + (still ? 0 : Math.sin(t * 0.5) * 0.05),
       5,
       dt,
     );
     head.rotation.x = MathUtils.damp(
       head.rotation.x,
-      -lookY * 0.14 + (still ? 0 : Math.sin(t * 0.8) * 0.01),
+      -lookY * 0.4 + (still ? 0 : Math.cos(t * 0.7) * 0.03),
       5,
       dt,
     );
-    head.rotation.z = MathUtils.damp(head.rotation.z, -lookX * 0.045, 5, dt);
+    head.rotation.z = MathUtils.damp(
+      head.rotation.z,
+      -lookX * 0.25 + roll,
+      5,
+      dt,
+    );
 
-    body.rotation.z = MathUtils.damp(body.rotation.z, -lookX * 0.018, 4, dt);
-    body.position.y = still ? 0 : Math.sin(t * 1.45) * 0.008;
+    body.rotation.z = MathUtils.damp(
+      body.rotation.z,
+      -lookX * 0.12 + roll * 0.4,
+      4,
+      dt,
+    );
+    body.position.y = still
+      ? 0
+      : Math.sin(t * 1.6) * 0.01 + Math.cos(t * 0.7) * 0.004;
+
+    // Eyes independently track the cursor: big, curious toy eyes that look
+    // around even while the head turns. Clamped so they never look sideways.
+    eyeAim.current.x = MathUtils.damp(
+      eyeAim.current.x,
+      still ? 0 : cursor.current.x,
+      8,
+      dt,
+    );
+    eyeAim.current.y = MathUtils.damp(
+      eyeAim.current.y,
+      still ? 0 : cursor.current.y,
+      8,
+      dt,
+    );
+    const eyeX = MathUtils.clamp(eyeAim.current.y * 0.35, -0.14, 0.14);
+    const eyeY = MathUtils.clamp(-eyeAim.current.x * 0.35, -0.14, 0.14);
+    const { eyeL, eyeR } = rig;
+    [eyeL, eyeR].forEach((eye) => {
+      if (!eye) return;
+      eye.rotation.x = MathUtils.damp(eye.rotation.x, eyeX, 10, dt);
+      eye.rotation.y = MathUtils.damp(eye.rotation.y, eyeY, 10, dt);
+    });
+
+    // Occasional blink: squash the eyes flat for a few frames, then reopen.
+    if (!blink.current.active && t > blink.current.next) {
+      blink.current.active = true;
+      blink.current.t = t;
+      blink.current.next = t + 3 + Math.random() * 4;
+    }
+    let blinkScale = 1;
+    if (blink.current.active) {
+      const bt = t - blink.current.t;
+      if (bt > 0.04 && bt < 0.12) blinkScale = 0.05;
+      else if (bt > 0.2) {
+        blink.current.active = false;
+        blinkScale = 1;
+      }
+    }
+    [eyeL, eyeR].forEach((eye) => {
+      if (!eye) return;
+      eye.scale.y = blinkScale;
+    });
 
     if (t - waveAt.current > 7) waveAt.current = t;
     const waveTime = t - waveAt.current;
     const wave =
       still || waveTime >= 1.5
         ? 0
-        : Math.sin(waveTime * Math.PI * 4.2) * 0.19 * (1 - waveTime / 1.5);
+        : Math.sin(waveTime * Math.PI * 4.2) *
+            0.22 *
+            (1 - waveTime / 1.5);
 
     if (arm) {
       arm.rotation.z = MathUtils.damp(
         arm.rotation.z,
-        wave + (still ? 0 : Math.sin(t * 1.15) * 0.012),
+        wave + (still ? 0 : Math.sin(t * 1.2) * 0.02),
         10,
         dt,
       );
@@ -182,9 +264,21 @@ function Scene({ onReady }) {
   return (
     <>
       <ambientLight intensity={0.28} />
-      <directionalLight position={[2.6, 4.2, 3.2]} intensity={2.1} color="#fff4da" />
-      <directionalLight position={[-3.4, 2.2, -2.6]} intensity={0.85} color="#c8e2ff" />
-      <directionalLight position={[0.4, 2.2, 4.2]} intensity={0.5} color="#fff7e6" />
+      <directionalLight
+        position={[2.6, 4.2, 3.2]}
+        intensity={2.1}
+        color="#fff4da"
+      />
+      <directionalLight
+        position={[-3.4, 2.2, -2.6]}
+        intensity={0.85}
+        color="#c8e2ff"
+      />
+      <directionalLight
+        position={[0.4, 2.2, 4.2]}
+        intensity={0.5}
+        color="#fff7e6"
+      />
 
       <Suspense fallback={null}>
         <Kettle onReady={onReady} />
