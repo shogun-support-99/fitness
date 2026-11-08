@@ -26,8 +26,6 @@ const CITY_HDR_URL = new URL(
   import.meta.url,
 ).href;
 
-useLoader.preload(GLTFLoader, MODEL_URL);
-
 /** Keep a failed HDR from taking the whole hero down with it. */
 class SilentBoundary extends Component {
   constructor(props) {
@@ -55,8 +53,12 @@ function Kettle({ onReady }) {
     const body = scene.getObjectByName("Body");
     const head = scene.getObjectByName("Head");
     const arm = scene.getObjectByName("ArmWave");
+    const armFlex = scene.getObjectByName("ArmFlex");
     const eyeL = scene.getObjectByName("EyeL");
     const eyeR = scene.getObjectByName("EyeR");
+    const mouth = scene.getObjectByName("Mouth");
+    const tongue = scene.getObjectByName("Tongue");
+    const tooth = scene.getObjectByName("Tooth");
 
     if (head) head.rotation.order = "YXZ";
 
@@ -67,7 +69,7 @@ function Kettle({ onReady }) {
       node.frustumCulled = false;
     });
 
-    return { body, head, arm, eyeL, eyeR };
+    return { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth };
   }, [scene]);
 
   // True global cursor tracking: the character reacts no matter where the
@@ -86,6 +88,9 @@ function Kettle({ onReady }) {
   // Interaction: squash/stretch + enthusiastic wave on click, puff on hover.
   const squash = useRef(1);
   const puff = useRef(1);
+  // Mouth: idle "talking" open/close, smile when cursor near, open on click.
+  const mouthTalk = useRef({ active: false, t: 0, next: 2 + Math.random() * 3 });
+  const mouthOpen = useRef(1); // 1 = closed smile, higher = more open
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -124,6 +129,7 @@ function Kettle({ onReady }) {
     const onDown = () => {
       waveAt.current = time.current;
       squash.current = 0.6;
+      mouthOpen.current = 1.5;
     };
     const onUp = () => {
       squash.current = 1;
@@ -151,7 +157,7 @@ function Kettle({ onReady }) {
   useEffect(ready, [ready]);
 
   useFrame((state, delta) => {
-    const { body, head, arm, eyeL, eyeR } = rig;
+    const { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth } = rig;
     if (!head || !body) return;
 
     const dt = Math.min(delta, 0.05);
@@ -288,6 +294,33 @@ function Kettle({ onReady }) {
       eye.scale.y *= blinkScale;
     });
 
+    // --- Mouth: idle talking, smile when cursor near, open on click ---
+    if (!mouthTalk.current.active && t > mouthTalk.current.next) {
+      mouthTalk.current.active = true;
+      mouthTalk.current.t = t;
+      mouthTalk.current.next = t + 2 + Math.random() * 3;
+    }
+    let talkScale = 1;
+    if (mouthTalk.current.active) {
+      const mt = t - mouthTalk.current.t;
+      if (mt < 0.35) {
+        const ease = Math.sin((mt / 0.35) * Math.PI);
+        talkScale = 1 + ease * 0.5; // open up while "talking"
+      } else if (mt > 0.7) {
+        mouthTalk.current.active = false;
+        talkScale = 1;
+      }
+    }
+    // Smile bigger when cursor is near (|cursor| > 0.4), open mouth on click.
+    const cursorDist = Math.sqrt(cursor.current.x ** 2 + cursor.current.y ** 2);
+    const smileOpen = cursorDist > 0.4 ? 1.25 : 1.0;
+    const targetOpen = Math.max(smileOpen, mouthOpen.current);
+    mouthOpen.current = MathUtils.damp(mouthOpen.current, targetOpen, 6, dt);
+    const mouthScale = talkScale * mouthOpen.current;
+    if (mouth) mouth.scale.y = mouthScale;
+    if (tongue) tongue.scale.y = mouthScale > 1.1 ? 1 : 0; // show tongue when open
+    if (tooth) tooth.scale.y = mouthScale > 1.1 ? 1 : 0;
+
     // --- Arm: enthusiastic wave on click, gentle idle sway ---
     if (t - waveAt.current > 7) waveAt.current = t;
     const waveTime = t - waveAt.current;
@@ -295,13 +328,24 @@ function Kettle({ onReady }) {
       still || waveTime >= 1.5
         ? 0
         : Math.sin(waveTime * Math.PI * 4.2) *
-            0.3 *
+            0.35 *
             (1 - waveTime / 1.5);
     if (arm) {
       arm.rotation.z = MathUtils.damp(
         arm.rotation.z,
         wave + (still ? 0 : Math.sin(t * 1.4) * 0.03),
         10,
+        dt,
+      );
+    }
+
+    // --- Flex arm: flex up on click/hover ---
+    const flexTarget = hover.current ? 0.9 : (squash.current < 1 ? 1.4 : 0);
+    if (armFlex) {
+      armFlex.rotation.z = MathUtils.damp(
+        armFlex.rotation.z,
+        flexTarget,
+        8,
         dt,
       );
     }
@@ -364,7 +408,7 @@ function Scene({ onReady }) {
       {finePointer ? (
         <OrbitControls
           makeDefault
-          target={[0, 0.98, 0]}
+          target={[0, 0.96, 0]}
           enablePan={false}
           enableZoom={false}
           enableDamping
@@ -384,7 +428,7 @@ export default function Scene3D({ onReady }) {
     <Canvas
       dpr={[1, 2]}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-      camera={{ position: [0, 1.12, 5.1], fov: 32, near: 0.1, far: 30 }}
+      camera={{ position: [0, 1.1, 4.7], fov: 32, near: 0.1, far: 30 }}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
     >

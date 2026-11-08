@@ -284,7 +284,7 @@ function buildMascot() {
   add(head, torus(handleR, handleTube, 14, 56), materials.forest, {
     name: "Handle",
     position: [0, handleY, 0],
-    scale: [1, 1, 0.72],
+    scale: [1, 1, 0.68],
   });
 
   const gripArc = Math.PI * 0.46;
@@ -293,14 +293,14 @@ function buildMascot() {
     name: "HandleGrip",
     position: [0, handleY, 0],
     rotation: [0, 0, gripRotation],
-    scale: [1, 1, 0.72],
+    scale: [1, 1, 0.68],
   });
 
   for (const angle of [gripRotation, gripRotation + gripArc]) {
     add(head, sphere(0.068, 14), materials.cream, {
       name: "HandleGripEnd",
       position: [Math.cos(angle) * handleR, handleY + Math.sin(angle) * handleR, 0],
-      scale: [1, 1, 0.72],
+      scale: [1, 1, 0.68],
     });
   }
 
@@ -443,14 +443,20 @@ function buildMascot() {
     "Wave",
   );
 
-  // Flexing arm: shoulder → elbow → fist, with the forearm held upright.
+  // Flexing arm: shoulder → elbow → fist, wrapped in its own group so the
+  // runtime can rotate it as a unit (flex on click/hover).
+  const armFlex = new THREE.Group();
+  armFlex.name = "ArmFlex";
+  armFlex.position.set(0, 0, 0);
+  head.add(armFlex);
+
   const shoulder = [-0.6, 0.52, 0.03];
   const elbow = [-0.785, 0.565, 0.075];
   const wrist = [-0.765, 0.755, 0.06];
   const fist = [-0.755, 0.82, 0.06];
 
   addMitten(
-    head,
+    armFlex,
     fist,
     wrist,
     new THREE.Vector3(...wrist).sub(new THREE.Vector3(...elbow)).normalize().toArray(),
@@ -458,29 +464,29 @@ function buildMascot() {
     "Flex",
   );
 
-  add(head, sphere(0.09, 20), materials.bell, {
+  add(armFlex, sphere(0.09, 20), materials.bell, {
     name: "ShoulderFlex",
     position: shoulder,
     scale: [1, 1, 0.9],
   });
-  addBetween(head, shoulder, elbow, 0.073, materials.bell, {
+  addBetween(armFlex, shoulder, elbow, 0.073, materials.bell, {
     name: "ArmFlexUpper",
   });
-  add(head, sphere(0.076, 14), materials.bell, {
+  add(armFlex, sphere(0.076, 14), materials.bell, {
     name: "ElbowFlex",
     position: elbow,
   });
-  addBetween(head, elbow, wrist, 0.067, materials.bell, {
+  addBetween(armFlex, elbow, wrist, 0.067, materials.bell, {
     name: "ArmFlexFore",
   });
 
   const flexDir = new THREE.Vector3(...wrist).sub(new THREE.Vector3(...elbow)).normalize();
   const flexBand = new THREE.Vector3(...elbow).lerp(new THREE.Vector3(...wrist), 0.78);
-  addTorusAxis(head, 0.08, 0.024, flexDir.toArray(), materials.forest, {
+  addTorusAxis(armFlex, 0.08, 0.024, flexDir.toArray(), materials.forest, {
     name: "WristbandFlex",
     position: flexBand.toArray(),
   });
-  addTorusAxis(head, 0.081, 0.009, flexDir.toArray(), materials.cream, {
+  addTorusAxis(armFlex, 0.081, 0.009, flexDir.toArray(), materials.cream, {
     name: "WristbandFlexStripe",
     position: flexBand.clone().add(flexDir.clone().multiplyScalar(0.019)).toArray(),
   });
