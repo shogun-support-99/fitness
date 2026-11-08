@@ -258,8 +258,8 @@ function Kettle({ onReady }) {
     const eyeTargetY = lookY * 0.5 + glanceY * 0.5;
     eyeAim.current.x = MathUtils.damp(eyeAim.current.x, eyeTargetX, 8, dt);
     eyeAim.current.y = MathUtils.damp(eyeAim.current.y, eyeTargetY, 8, dt);
-    const eyeX = MathUtils.clamp(eyeAim.current.y * 0.35, -0.12, 0.12);
-    const eyeY = MathUtils.clamp(-eyeAim.current.x * 0.35, -0.12, 0.12);
+    const eyeX = MathUtils.clamp(eyeAim.current.y * 0.25, -0.08, 0.08);
+    const eyeY = MathUtils.clamp(-eyeAim.current.x * 0.25, -0.08, 0.08);
     [eyeL, eyeR].forEach((eye) => {
       if (!eye) return;
       eye.rotation.x = MathUtils.damp(eye.rotation.x, eyeX, 10, dt);

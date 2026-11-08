@@ -338,7 +338,7 @@ function buildMascot() {
     add(head, sphere(1, 28), materials.eye, {
       name: `Eye${suffix}`,
       position: [ex, 0.65, 0.55],
-      scale: [0.105, 0.12, 0.06],
+      scale: [0.055, 0.065, 0.04],
     });
 
     add(head, sphere(0.042, 16), materials.glint, {
