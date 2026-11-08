@@ -322,10 +322,14 @@ function buildMascot() {
   });
 
   for (const side of [-1, 1]) {
-    add(head, new RoundedBoxGeometry(0.065, 0.22, 0.018, 2, 0.022), materials.forest, {
-      name: side < 0 ? "HeadbandTailL" : "HeadbandTailR",
-      position: [0.07 + side * 0.055, 0.845, -0.43],
-      rotation: [-0.3, side * 0.35, side * 0.25],
+    const tailGroup = new THREE.Group();
+    tailGroup.name = side < 0 ? "HeadbandTailL" : "HeadbandTailR";
+    tailGroup.position.set(0.07 + side * 0.055, 0.845, -0.43);
+    tailGroup.rotation.set(-0.3, side * 0.35, side * 0.25);
+    head.add(tailGroup);
+
+    add(tailGroup, new RoundedBoxGeometry(0.065, 0.22, 0.018, 2, 0.022), materials.forest, {
+      name: side < 0 ? "HeadbandTailLStem" : "HeadbandTailRStem",
     });
   }
 

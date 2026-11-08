@@ -59,6 +59,8 @@ function Kettle({ onReady }) {
     const mouth = scene.getObjectByName("Mouth");
     const tongue = scene.getObjectByName("Tongue");
     const tooth = scene.getObjectByName("Tooth");
+    const tailL = scene.getObjectByName("HeadbandTailL");
+    const tailR = scene.getObjectByName("HeadbandTailR");
 
     if (head) head.rotation.order = "YXZ";
 
@@ -69,7 +71,7 @@ function Kettle({ onReady }) {
       node.frustumCulled = false;
     });
 
-    return { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth };
+    return { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth, tailL, tailR };
   }, [scene]);
 
   // True global cursor tracking: the character reacts no matter where the
@@ -157,7 +159,7 @@ function Kettle({ onReady }) {
   useEffect(ready, [ready]);
 
   useFrame((state, delta) => {
-    const { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth } = rig;
+    const { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth, tailL, tailR } = rig;
     if (!head || !body) return;
 
     const dt = Math.min(delta, 0.05);
@@ -255,9 +257,25 @@ function Kettle({ onReady }) {
       ? 0
       : Math.sin(t * 1.8) * bobAmplitude + Math.cos(t * 0.9) * 0.005;
 
-    // --- Apply squash/stretch + puff to whole character ---
-    head.scale.set(sx * puff.current, sy * puff.current, sz * puff.current);
-    body.scale.set(sx * puff.current, sy * puff.current, sz * puff.current);
+    // --- Breathing: gentle whole-character scale pulse ---
+    const breath = 1 + Math.sin(t * 2.2) * 0.006;
+
+    // --- Apply squash/stretch + puff + breath to whole character ---
+    const bodySx = sx * puff.current * breath;
+    const bodySy = sy * puff.current * breath;
+    const bodySz = sz * puff.current * breath;
+    head.scale.set(bodySx, bodySy, bodySz);
+    body.scale.set(bodySx, bodySy, bodySz);
+
+    // --- Headband tails: secondary motion following head turn ---
+    const tailTurn = head.rotation.y * 0.6;
+    const tailBounce = Math.sin(t * 3) * 0.08;
+    if (tailL) {
+      tailL.rotation.z = MathUtils.damp(tailL.rotation.z, tailTurn + tailBounce, 6, dt);
+    }
+    if (tailR) {
+      tailR.rotation.z = MathUtils.damp(tailR.rotation.z, -tailTurn - tailBounce, 6, dt);
+    }
 
     // --- Eyes: track cursor + glance, blink, and squash with click ---
     const eyeTargetX = lookX * 0.5 + glanceX * 0.5;
@@ -294,7 +312,7 @@ function Kettle({ onReady }) {
       eye.scale.y *= blinkScale;
     });
 
-    // --- Mouth: idle talking, smile when cursor near, open on click ---
+    // --- Mouth: smile bigger when cursor near, open on click, idle talking ---
     if (!mouthTalk.current.active && t > mouthTalk.current.next) {
       mouthTalk.current.active = true;
       mouthTalk.current.t = t;
@@ -311,10 +329,10 @@ function Kettle({ onReady }) {
         talkScale = 1;
       }
     }
-    // Smile bigger when cursor is near (|cursor| > 0.4), open mouth on click.
+    // Smile cuter (more closed/curved) when cursor is near, normal when far.
     const cursorDist = Math.sqrt(cursor.current.x ** 2 + cursor.current.y ** 2);
-    const smileOpen = cursorDist > 0.4 ? 1.25 : 1.0;
-    const targetOpen = Math.max(smileOpen, mouthOpen.current);
+    const smileCute = cursorDist < 0.4 ? 0.85 : 1.0; // 0.85 = bigger smile
+    const targetOpen = Math.max(smileCute, mouthOpen.current);
     mouthOpen.current = MathUtils.damp(mouthOpen.current, targetOpen, 6, dt);
     const mouthScale = talkScale * mouthOpen.current;
     if (mouth) mouth.scale.y = mouthScale;
@@ -408,7 +426,7 @@ function Scene({ onReady }) {
       {finePointer ? (
         <OrbitControls
           makeDefault
-          target={[0, 0.96, 0]}
+          target={[0, 0.94, 0]}
           enablePan={false}
           enableZoom={false}
           enableDamping
@@ -428,7 +446,7 @@ export default function Scene3D({ onReady }) {
     <Canvas
       dpr={[1, 2]}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-      camera={{ position: [0, 1.1, 4.7], fov: 32, near: 0.1, far: 30 }}
+      camera={{ position: [0, 1.1, 3.9], fov: 24, near: 0.1, far: 30 }}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
     >
