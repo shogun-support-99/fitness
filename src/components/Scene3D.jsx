@@ -73,6 +73,7 @@ function Kettle({ onReady }) {
   // True global cursor tracking: the character reacts no matter where the
   // pointer sits on the page. Normalised to -1..1 over the whole window.
   const cursor = useRef({ x: 0, y: 0 });
+  const hover = useRef(false);
   const smooth = useRef({ x: 0, y: 0, z: 0 });
   const eyeAim = useRef({ x: 0, y: 0 });
   const waveAt = useRef(0.7);
@@ -80,6 +81,11 @@ function Kettle({ onReady }) {
   const reduced = useRef(false);
   // Blink state: { active, t, next } — next blink scheduled 3–7s out.
   const blink = useRef({ active: false, t: 0, next: 3 + Math.random() * 4 });
+  // Idle glance: character looks around on its own between cursor reactions.
+  const glance = useRef({ active: false, t: 0, next: 2 + Math.random() * 3, targetX: 0, targetY: 0 });
+  // Interaction: squash/stretch + enthusiastic wave on click, puff on hover.
+  const squash = useRef(1);
+  const puff = useRef(1);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -115,11 +121,26 @@ function Kettle({ onReady }) {
 
   useEffect(() => {
     const element = gl.domElement;
-    const wave = () => {
+    const onDown = () => {
       waveAt.current = time.current;
+      squash.current = 0.6;
     };
-    element.addEventListener("pointerdown", wave);
-    return () => element.removeEventListener("pointerdown", wave);
+    const onUp = () => {
+      squash.current = 1;
+    };
+    const onEnter = () => { hover.current = true; };
+    const onLeave = () => { hover.current = false; };
+
+    element.addEventListener("pointerdown", onDown);
+    element.addEventListener("pointerup", onUp);
+    element.addEventListener("pointerleave", onLeave);
+    element.addEventListener("pointerenter", onEnter);
+    return () => {
+      element.removeEventListener("pointerdown", onDown);
+      element.removeEventListener("pointerup", onUp);
+      element.removeEventListener("pointerleave", onLeave);
+      element.removeEventListener("pointerenter", onEnter);
+    };
   }, [gl]);
 
   const ready = useCallback(() => {
@@ -130,7 +151,7 @@ function Kettle({ onReady }) {
   useEffect(ready, [ready]);
 
   useFrame((state, delta) => {
-    const { body, head, arm } = rig;
+    const { body, head, arm, eyeL, eyeR } = rig;
     if (!head || !body) return;
 
     const dt = Math.min(delta, 0.05);
@@ -138,6 +159,23 @@ function Kettle({ onReady }) {
     time.current = t;
 
     const still = reduced.current;
+
+    // --- Squash/stretch from click (decays back to 1) ---
+    if (squash.current < 1) {
+      squash.current = MathUtils.damp(squash.current, 1, 8, dt);
+    }
+    const sx = 1 + (1 - squash.current) * 0.25; // wider when squashed
+    const sy = squash.current;                    // shorter when squashed
+    const sz = 1 + (1 - squash.current) * 0.1;
+
+    // --- Hover puff ---
+    if (hover.current) {
+      puff.current = MathUtils.damp(puff.current, 1.06, 6, dt);
+    } else {
+      puff.current = MathUtils.damp(puff.current, 1, 6, dt);
+    }
+
+    // --- Cursor aim (global pointer, works everywhere on page) ---
     const aimX = still ? 0 : cursor.current.x;
     const aimY = still ? 0 : cursor.current.y;
 
@@ -150,20 +188,45 @@ function Kettle({ onReady }) {
       dt,
     );
 
-    const lookX = smooth.current.x;
-    const lookY = smooth.current.y;
+    // --- Idle glancing: look around on its own every few seconds ---
+    if (!glance.current.active && t > glance.current.next) {
+      glance.current.active = true;
+      glance.current.t = t;
+      glance.current.next = t + 2 + Math.random() * 3;
+      glance.current.targetX = (Math.random() - 0.5) * 1.4;
+      glance.current.targetY = (Math.random() - 0.5) * 0.8;
+    }
+    let glanceX = 0;
+    let glanceY = 0;
+    if (glance.current.active) {
+      const gt = t - glance.current.t;
+      if (gt < 1.2) {
+        const ease = 1 - Math.pow(1 - gt / 1.2, 3);
+        glanceX = glance.current.targetX * ease;
+        glanceY = glance.current.targetY * ease;
+      } else if (gt < 2.2) {
+        const ease = Math.pow(1 - (gt - 1.2) / 1, 3);
+        glanceX = glance.current.targetX * ease;
+        glanceY = glance.current.targetY * ease;
+      } else {
+        glance.current.active = false;
+      }
+    }
+
+    const lookX = smooth.current.x + glanceX;
+    const lookY = smooth.current.y + glanceY;
     const roll = smooth.current.z;
 
-    // Strong, toy-like reactions: big head turns, curious tilts, a lean.
+    // --- Head: strong toy-like reactions to cursor + idle glance ---
     head.rotation.y = MathUtils.damp(
       head.rotation.y,
-      lookX * 0.55 + (still ? 0 : Math.sin(t * 0.5) * 0.05),
+      lookX * 0.6 + (still ? 0 : Math.sin(t * 0.5) * 0.05),
       5,
       dt,
     );
     head.rotation.x = MathUtils.damp(
       head.rotation.x,
-      -lookY * 0.4 + (still ? 0 : Math.cos(t * 0.7) * 0.03),
+      -lookY * 0.45 + (still ? 0 : Math.cos(t * 0.7) * 0.03),
       5,
       dt,
     );
@@ -174,40 +237,38 @@ function Kettle({ onReady }) {
       dt,
     );
 
+    // --- Body: lean + bouncier bob ---
     body.rotation.z = MathUtils.damp(
       body.rotation.z,
       -lookX * 0.12 + roll * 0.4,
       4,
       dt,
     );
+    const bobAmplitude = hover.current ? 0.018 : 0.01;
     body.position.y = still
       ? 0
-      : Math.sin(t * 1.6) * 0.01 + Math.cos(t * 0.7) * 0.004;
+      : Math.sin(t * 1.8) * bobAmplitude + Math.cos(t * 0.9) * 0.005;
 
-    // Eyes independently track the cursor: big, curious toy eyes that look
-    // around even while the head turns. Clamped so they never look sideways.
-    eyeAim.current.x = MathUtils.damp(
-      eyeAim.current.x,
-      still ? 0 : cursor.current.x,
-      8,
-      dt,
-    );
-    eyeAim.current.y = MathUtils.damp(
-      eyeAim.current.y,
-      still ? 0 : cursor.current.y,
-      8,
-      dt,
-    );
-    const eyeX = MathUtils.clamp(eyeAim.current.y * 0.35, -0.14, 0.14);
-    const eyeY = MathUtils.clamp(-eyeAim.current.x * 0.35, -0.14, 0.14);
-    const { eyeL, eyeR } = rig;
+    // --- Apply squash/stretch + puff to whole character ---
+    head.scale.set(sx * puff.current, sy * puff.current, sz * puff.current);
+    body.scale.set(sx * puff.current, sy * puff.current, sz * puff.current);
+
+    // --- Eyes: track cursor + glance, blink, and squash with click ---
+    const eyeTargetX = lookX * 0.5 + glanceX * 0.5;
+    const eyeTargetY = lookY * 0.5 + glanceY * 0.5;
+    eyeAim.current.x = MathUtils.damp(eyeAim.current.x, eyeTargetX, 8, dt);
+    eyeAim.current.y = MathUtils.damp(eyeAim.current.y, eyeTargetY, 8, dt);
+    const eyeX = MathUtils.clamp(eyeAim.current.y * 0.35, -0.12, 0.12);
+    const eyeY = MathUtils.clamp(-eyeAim.current.x * 0.35, -0.12, 0.12);
     [eyeL, eyeR].forEach((eye) => {
       if (!eye) return;
       eye.rotation.x = MathUtils.damp(eye.rotation.x, eyeX, 10, dt);
       eye.rotation.y = MathUtils.damp(eye.rotation.y, eyeY, 10, dt);
+      // Eyes squash vertically when the character is squashed.
+      eye.scale.y = 1 * (1 - (1 - squash.current) * 0.5);
     });
 
-    // Occasional blink: squash the eyes flat for a few frames, then reopen.
+    // --- Occasional blink: squash the eyes flat briefly ---
     if (!blink.current.active && t > blink.current.next) {
       blink.current.active = true;
       blink.current.t = t;
@@ -224,22 +285,22 @@ function Kettle({ onReady }) {
     }
     [eyeL, eyeR].forEach((eye) => {
       if (!eye) return;
-      eye.scale.y = blinkScale;
+      eye.scale.y *= blinkScale;
     });
 
+    // --- Arm: enthusiastic wave on click, gentle idle sway ---
     if (t - waveAt.current > 7) waveAt.current = t;
     const waveTime = t - waveAt.current;
     const wave =
       still || waveTime >= 1.5
         ? 0
         : Math.sin(waveTime * Math.PI * 4.2) *
-            0.22 *
+            0.3 *
             (1 - waveTime / 1.5);
-
     if (arm) {
       arm.rotation.z = MathUtils.damp(
         arm.rotation.z,
-        wave + (still ? 0 : Math.sin(t * 1.2) * 0.02),
+        wave + (still ? 0 : Math.sin(t * 1.4) * 0.03),
         10,
         dt,
       );
