@@ -22,7 +22,14 @@ export function renderSettings(store) {
     ? (Date.now() - new Date(s.lastBackupAt).getTime()) / 86_400_000
     : Infinity;
   const backupStale = workoutCount > 0 && backupAgeDays > 30;
-  const versionLabel = BUILT_AT ? `${VERSION} · ${BUILT_AT.slice(0, 10)}` : VERSION;
+  const native = globalThis.IronLogNative;
+  const nativeVersion = native?.getVersionName?.();
+  const isNative = Boolean(nativeVersion);
+  const versionLabel = isNative
+    ? `Android ${nativeVersion}`
+    : BUILT_AT
+      ? `${VERSION} · ${BUILT_AT.slice(0, 10)}`
+      : VERSION;
 
   return `
     <section class="view view-settings">
@@ -98,7 +105,7 @@ export function renderSettings(store) {
               <div><dt>Workouts stored</dt><dd>${workoutCount}</dd></div>
               <div><dt>Custom exercises</dt><dd>${customCount}</dd></div>
               <div><dt>Storage used</dt><dd>${formatBytes(bytes)}</dd></div>
-              <div><dt>Where it lives</dt><dd>this browser only</dd></div>
+              <div><dt>Where it lives</dt><dd>${isNative ? "this phone only" : "this browser only"}</dd></div>
               <div><dt>Last backup</dt><dd>${s.lastBackupAt ? esc(relativeTime(s.lastBackupAt)) : "never"}</dd></div>
               <div><dt>Storage protection</dt><dd data-role="storage-protection">Checking…</dd></div>
             </dl>
@@ -111,9 +118,11 @@ export function renderSettings(store) {
                 : ""
             }
             <p class="panel-hint">
-              IronLog has no account system and no server. Everything you log stays in this
-              browser's local storage, so it is private by default — and it disappears if you
-              clear site data. Export a backup if your training log matters to you.
+              ${
+                isNative
+                  ? "IronLog has no account system and no server. Everything you log stays in the app's private storage on this phone, so it is private by default — and it disappears if you clear the app's data or uninstall it. Export a backup if your training log matters to you."
+                  : "IronLog has no account system and no server. Everything you log stays in this browser's local storage, so it is private by default — and it disappears if you clear site data. Export a backup if your training log matters to you."
+              }
             </p>
             <div class="settings-actions">
               <button class="btn btn-outline" data-action="export-data">${icon("download")} Export JSON</button>
@@ -122,6 +131,7 @@ export function renderSettings(store) {
                 <input type="file" accept="application/json,.json" data-action="import-file" hidden />
               </label>
               <button class="btn btn-sub" data-action="protect-storage">${icon("save")} Protect storage</button>
+              ${isNative ? `<button class="btn btn-sub" data-action="check-updates">${icon("download")} Check for updates</button>` : ""}
               <button class="btn btn-danger-ghost" data-action="reset-data">${icon("trash")} Erase all data</button>
             </div>
           </section>
@@ -129,13 +139,15 @@ export function renderSettings(store) {
           <section class="panel" data-reveal="rise">
             <div class="panel-head"><h2>About</h2></div>
             <dl class="fact-list">
-              <div><dt>App version</dt><dd title="${esc(BUILT_AT || "local development build")}">${esc(versionLabel)}</dd></div>
+              <div><dt>App version</dt><dd title="${esc(isNative ? "Packaged Android build" : BUILT_AT || "local development build")}">${esc(versionLabel)}</dd></div>
+              ${isNative ? `<div><dt>Updates</dt><dd>checked on launch</dd></div>` : ""}
             </dl>
             <p class="panel-hint">
               IronLog is an offline-first strength training log: a 1,316-exercise library,
               set-by-set logging, rest timing, volume and personal records. Built as a static
               app with no build step and no tracking.
             </p>
+            ${isNative ? `<p class="panel-hint">The Android build checks the project's GitHub release feed for a newer signed APK. No workout data is sent with that check.</p>` : ""}
             <p class="panel-hint">
               Training carries risk. IronLog records what you do; it is not medical, coaching or
               safety advice. Work within your limits and get professional guidance when you need it.

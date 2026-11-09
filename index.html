@@ -74,6 +74,12 @@
         </symbol>
         <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></symbol>
         <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24">
+          <path d="M12 3v12m-5-5 5 5 5-5M4 20h16" />
+        </symbol>
+        <symbol id="i-phone" viewBox="0 0 24 24">
+          <rect x="6.5" y="2.5" width="11" height="19" rx="2.5" /><path d="M10.5 18.5h3" />
+        </symbol>
       </defs>
     </svg>
 
@@ -92,6 +98,7 @@
           <a href="#workout">Workout</a>
           <a href="#progress">Progress</a>
           <a href="#routines">Routines</a>
+          <a href="#android">Android</a>
           <a href="#privacy">Privacy</a>
           <a href="#faq">FAQ</a>
         </nav>
@@ -110,6 +117,7 @@
           <a href="#workout">Workout</a>
           <a href="#progress">Progress</a>
           <a href="#routines">Routines</a>
+          <a href="#android">Android</a>
           <a href="#privacy">Privacy</a>
           <a href="#faq">FAQ</a>
           <a class="btn btn-primary" href="./app/">Open IronLog</a>
@@ -133,6 +141,10 @@
                 <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
               </a>
               <a class="btn btn-secondary btn-lg" href="#features" data-magnetic data-cta="learn">See how it works</a>
+              <a class="btn btn-secondary btn-lg hero-android" href="#android" data-magnetic data-cta="android">
+                <svg class="btn-icon" aria-hidden="true"><use href="#i-phone" /></svg>
+                Get the Android app
+              </a>
             </div>
 
             <div class="hero-character" aria-hidden="true" data-character>
@@ -486,6 +498,98 @@
             </a>
           </div>
 
+        </div>
+      </section>
+
+      <section class="section android-section" id="android">
+        <div class="shell android-grid">
+          <div class="android-copy" data-reveal>
+            <p class="eyebrow">IronLog for Android</p>
+            <h2>The same log. Now in your pocket.</h2>
+            <p class="android-lede">
+              Install IronLog on your phone and take the whole training log with you. No account,
+              no server, and no connection needed once it is installed. Your workouts stay on the
+              device, and a new build announces itself inside the app.
+            </p>
+            <ul class="android-points">
+              <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Every workout, routine and setting saved on your phone</li>
+              <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> Opens and logs sets with no connection at all</li>
+              <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> An update prompt when a newer signed build is published</li>
+              <li><svg class="tick" aria-hidden="true"><use href="#i-check" /></svg> JSON backup export through the Android file picker</li>
+            </ul>
+            <div class="android-actions">
+              <a
+                class="btn btn-primary btn-lg"
+                href="https://github.com/shogun-support-99/fitness/releases/latest/download/ironlog.apk"
+                data-magnetic
+                data-cta="android-download"
+              >
+                <svg class="btn-icon" aria-hidden="true"><use href="#i-download" /></svg>
+                Download the APK
+              </a>
+              <a
+                class="btn btn-secondary btn-lg"
+                href="https://github.com/shogun-support-99/fitness/releases"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                All releases
+              </a>
+            </div>
+            <p class="android-note">
+              Android 8.0 or newer · about 140 MB · Direct install, so Android asks you to allow
+              installs from your browser the first time.
+            </p>
+          </div>
+
+          <div class="android-stage" data-reveal>
+            <span class="android-sticker">Field build · v1.0</span>
+            <div class="android-phone" aria-hidden="true">
+              <div class="android-screen">
+                <div class="android-status">
+                  <span>9:41</span>
+                  <span class="android-status-icons"><i></i><i></i><i></i></span>
+                </div>
+                <div class="android-appbar">
+                  <span class="android-mark">
+                    <svg viewBox="0 0 64 64">
+                      <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+                      <path fill="#f6e016" d="M41.58 5.69 58.31 22.42 54.07 26.66 37.34 9.93Z" />
+                    </svg>
+                  </span>
+                  <b>IronLog</b>
+                  <span class="android-streak">12 days</span>
+                </div>
+
+                <p class="android-kicker">Monday · push day</p>
+                <h3>Ready to train?</h3>
+                <p class="android-sub">Push A · last session 2 days ago</p>
+
+                <div class="android-start">Start workout <span>→</span></div>
+
+                <div class="android-card">
+                  <div class="android-card-head"><span>Weekly volume</span><b>+8%</b></div>
+                  <strong>6,140 <small>kg</small></strong>
+                  <div class="android-bars">
+                    <i style="--h: 34%"></i><i style="--h: 58%"></i><i style="--h: 47%"></i>
+                    <i style="--h: 76%"></i><i style="--h: 66%"></i><i style="--h: 92%"></i>
+                    <i style="--h: 71%"></i>
+                  </div>
+                </div>
+
+                <div class="android-row"><span>Bench press</span><em>PR</em><b>82.5 kg</b></div>
+                <div class="android-row"><span>Back squat</span><b>120 kg</b></div>
+
+                <div class="android-nav">
+                  <span class="is-on">Home</span>
+                  <span>Workout</span>
+                  <span class="android-nav-plus">+</span>
+                  <span>Library</span>
+                  <span>Stats</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

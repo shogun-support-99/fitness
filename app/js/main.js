@@ -54,6 +54,13 @@ let detailState = { exercise: null, stepsState: "idle", stepsResult: null };
 /** Once the user dismisses the update banner, leave them alone this session. */
 let updateDismissed = false;
 
+/**
+ * True inside the packaged Android shell. The shell serves the site from a
+ * stable local HTTPS origin, so localStorage survives APK updates; the native
+ * side owns update prompts and the file-picker export path.
+ */
+const isNativeShell = Boolean(globalThis.IronLogNative);
+
 const restTimer = new RestTimer({
   onFinish: () => notify("Rest complete", "Time for your next set."),
 });
@@ -378,6 +385,17 @@ function showUpdateBanner() {
   const banner = document.querySelector("#update-banner");
   if (banner) banner.hidden = false;
 }
+
+/**
+ * Native Android writes the chosen document through the system picker. The
+ * callback lands here only after that write succeeds, so the backup age shown
+ * in Settings is not advanced when the user cancels.
+ */
+globalThis.__ironlogNativeBackupSaved = () => {
+  store.updateSettings({ lastBackupAt: new Date().toISOString() });
+  if (router.current.route === "settings") render();
+  toast("Backup saved");
+};
 
 // ── Sheets ─────────────────────────────────────────────────────────────────
 
@@ -759,11 +777,18 @@ const actions = {
   },
 
   "export-data": () => {
-    const blob = new Blob([store.exportData()], { type: "application/json" });
+    const filename = `ironlog-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const payload = store.exportData();
+    if (isNativeShell && globalThis.IronLogNative?.exportBackup) {
+      globalThis.IronLogNative.exportBackup(payload, filename);
+      toast("Choose where to save the backup");
+      return;
+    }
+    const blob = new Blob([payload], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ironlog-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -771,6 +796,13 @@ const actions = {
     store.updateSettings({ lastBackupAt: new Date().toISOString() });
     if (router.current.route === "settings") render();
     toast("Backup downloaded");
+  },
+
+  "check-updates": () => {
+    if (!isNativeShell || !globalThis.IronLogNative?.checkForUpdates) {
+      return toast("The web app updates automatically. Reload to get the latest build.");
+    }
+    globalThis.IronLogNative.checkForUpdates();
   },
 
   "apply-update": async () => {
@@ -824,7 +856,8 @@ const actions = {
   },
 
   "reset-data": () => {
-    if (!window.confirm("Erase every workout, set and custom exercise from this browser? This cannot be undone.")) return;
+    const where = isNativeShell ? "this phone" : "this browser";
+    if (!window.confirm(`Erase every workout, set and custom exercise from ${where}? This cannot be undone.`)) return;
     store.reset();
     restTimer.stop();
     router.go("home");
@@ -1302,9 +1335,34 @@ function boot() {
   } catch {
     /* storage unavailable: keep the rail open */
   }
-  // Register the service worker for offline support. Best-effort: if the
-  // browser or environment can't support it, the app still runs normally.
-  registerServiceWorker();
+  if (isNativeShell) {
+    // The APK ships every asset, so a service worker would only add a second
+    // cache that can go stale between APK updates. Remove any worker left by a
+    // previous build, then move the save label from browser to phone.
+    document.documentElement.classList.add("is-native-shell");
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+        .catch(() => {
+          /* no worker support: the bundled shell is already offline */
+        });
+    }
+    if ("caches" in globalThis) {
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+        .catch(() => {
+          /* Cache Storage is optional */
+        });
+    }
+    const saveLabel = document.querySelector("[data-local-label]");
+    if (saveLabel) saveLabel.textContent = "Saved on phone";
+  } else {
+    // Register the service worker for offline support. Best-effort: if the
+    // browser or environment can't support it, the app still runs normally.
+    registerServiceWorker();
+  }
 
   // localStorage can be unavailable (private windows, locked-down browsers).
   // Store falls back to memory so the app still works, but the user must know

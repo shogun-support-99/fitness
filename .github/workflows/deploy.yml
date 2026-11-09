@@ -102,6 +102,58 @@ jobs:
 
           exit $fail
 
+  android-build-release:
+    name: Build & release Android APK
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -PironlogVersionCode=${{ github.run_number }} \
+            -PironlogVersionName=1.0.${{ github.run_number }}
+
+      - name: Stage release assets
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk dist/ironlog.apk
+          cat > dist/version.json <<EOF
+          {
+            "versionCode": ${{ github.run_number }},
+            "versionName": "1.0.${{ github.run_number }}",
+            "notes": "IronLog v1.0.${{ github.run_number }} — latest build from commit ${{ github.sha }}"
+          }
+          EOF
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/ironlog.apk,dist/version.json"
+          tag: "v1.0.${{ github.run_number }}"
+          name: "IronLog v1.0.${{ github.run_number }}"
+          allowUpdates: true
+          replaceArtifacts: true
+
   deploy:
     name: Deploy to GitHub Pages
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -177,6 +229,11 @@ jobs:
 
       - name: Set up Pages
         uses: actions/configure-pages@v5
+
+      # The Android keystore and build tooling must never be published to
+      # GitHub Pages. Stage only the public site files.
+      - name: Stage public site files (exclude Android build tooling)
+        run: rm -rf android
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
