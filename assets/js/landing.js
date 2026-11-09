@@ -281,7 +281,7 @@ if (heroArt && heroStack) {
 }
 
 /* The hero 3D scene is mounted by assets/js/scene3d.js, which owns the
-   React Three Fiber canvas and the procedural kettlebell spotter. */
+   React Three Fiber canvas and the reactive marble golem. */
 
 /* Set 4 is a real button: the demo runs itself until the first tap, then the
    stats count up, sparks fly and the rest bar starts at demo speed. */

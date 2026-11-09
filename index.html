@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; frame-src 'self'; form-action 'self'"
+      content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self'; connect-src 'self' blob:; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; frame-src 'self'; form-action 'self'"
     />
     <meta
       name="description"
@@ -39,6 +39,8 @@
     <link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png" />
     <link rel="preload" href="fonts/Figtree-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/models/potsdamer_platz_1k.hdr" as="fetch" crossorigin="anonymous" fetchpriority="low" />
+    <link rel="preload" href="assets/models/golem.glb" as="fetch" crossorigin="anonymous" fetchpriority="low" />
     <link rel="stylesheet" href="assets/css/tailwind.css" />
     <link rel="stylesheet" href="assets/css/landing.css" />
     <script src="assets/js/theme.js"></script>
@@ -126,16 +128,19 @@
               server — tap a set, beat it, rest, repeat.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-primary btn-lg" href="./app/" data-magnetic>
+              <a class="btn btn-primary btn-lg" href="./app/" data-magnetic data-cta="start">
                 Start logging
                 <svg class="btn-icon" aria-hidden="true"><use href="#i-arrow" /></svg>
               </a>
-              <a class="btn btn-secondary btn-lg" href="#features" data-magnetic>See how it works</a>
+              <a class="btn btn-secondary btn-lg" href="#features" data-magnetic data-cta="learn">See how it works</a>
             </div>
 
             <div class="hero-character" aria-hidden="true" data-character>
               <div class="char-stage" data-char-stage>
-                <span class="char-fallback" aria-hidden="true">IL</span>
+                <span class="char-fallback" aria-hidden="true">
+                  <span class="char-fallback-mark">IL</span>
+                  <span class="char-fallback-track"><i></i></span>
+                </span>
                 <div class="char-canvas" data-scene3d></div>
               </div>
             </div>

@@ -98,11 +98,11 @@ and they are unmodified.
 
 ## Landing hero character and HDR
 
-The landing-page 3D spotter ("Kettle", a glossy yellow kettlebell buddy with
-mitten hands and chunky sneakers) is an original procedural model authored in
-`scripts/build-spotter-glb.mjs` from Three.js primitives. It is not derived from
-any third-party character artwork and carries no upstream attribution; it ships
-as `assets/models/spotter.glb` under this project's MIT licence.
+The landing-page hero renders `assets/models/golem.glb`, a marble golem
+character supplied by the project owner for this site. It is not derived from
+any third-party character library or artwork; rights in the model remain with
+the project owner. The model is loaded online from the same origin and is not
+part of the offline app shell.
 
 The studio lighting for the hero scene uses the vendored city HDR preset:
 
@@ -111,8 +111,9 @@ The studio lighting for the hero scene uses the vendored city HDR preset:
     Licence: CC0 1.0 Universal (public domain dedication)
     Attribution: none required; retained here for provenance
 
-It is loaded locally via `<Environment files="...">` so the hero works offline
-with no third-party network request.
+It is fetched from the same origin with the rest of the hero assets; if it is
+unavailable the scene bakes a procedural RoomEnvironment instead. No request
+leaves the site's origin.
 
 ## Agent skills used during development
 

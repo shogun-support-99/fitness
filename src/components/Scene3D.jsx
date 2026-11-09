@@ -1,32 +1,38 @@
+import { Component, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { ContactShadows, OrbitControls } from "@react-three/drei";
 import {
-  Component,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import {
-  ContactShadows,
-  Environment,
-  OrbitControls,
-} from "@react-three/drei";
-import { MathUtils } from "three";
+  ACESFilmicToneMapping,
+  AnimationMixer,
+  Box3,
+  LinearSRGBColorSpace,
+  MathUtils,
+  PCFShadowMap,
+  PMREMGenerator,
+  SRGBColorSpace,
+  Sphere,
+  Timer,
+  Vector3,
+} from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 
 /**
- * The mascot and the studio HDR are resolved from the built bundle's URL so
- * the same file works at `/` locally and `/fitness/` on GitHub Pages.
+ * Hero assets are resolved from the built bundle's URL so the same file works
+ * at `/` locally and `/fitness/` on GitHub Pages.
  */
-const MODEL_URL = new URL("../models/spotter.glb", import.meta.url).href;
-const CITY_HDR_URL = new URL(
-  "../models/potsdamer_platz_1k.hdr",
-  import.meta.url,
-).href;
+const MODEL_URL = new URL("../models/golem.glb", import.meta.url).href;
+const HDR_URL = new URL("../models/potsdamer_platz_1k.hdr", import.meta.url).href;
 
-/** Keep a failed HDR from taking the whole hero down with it. */
+/** Normalised world height of the character. */
+const TARGET_HEIGHT = 1.8;
+/** Orbit limit used when reserving horizontal room for the silhouette. */
+const MAX_AZIMUTH = 0.42;
+/** Breathing space around the model before the card edge. */
+const CAMERA_MARGIN = 1.06;
+
+/** Keep a failed HDR / model from taking the whole hero down with it. */
 class SilentBoundary extends Component {
   constructor(props) {
     super(props);
@@ -46,53 +52,401 @@ class SilentBoundary extends Component {
   }
 }
 
-function Kettle({ onReady }) {
-  const { scene } = useLoader(GLTFLoader, MODEL_URL);
-  const { gl } = useThree();
-  const rig = useMemo(() => {
-    const body = scene.getObjectByName("Body");
-    const head = scene.getObjectByName("Head");
-    const arm = scene.getObjectByName("ArmWave");
-    const armFlex = scene.getObjectByName("ArmFlex");
-    const eyeL = scene.getObjectByName("EyeL");
-    const eyeR = scene.getObjectByName("EyeR");
-    const mouth = scene.getObjectByName("Mouth");
-    const tongue = scene.getObjectByName("Tongue");
-    const tooth = scene.getObjectByName("Tooth");
-    const tailL = scene.getObjectByName("HeadbandTailL");
-    const tailR = scene.getObjectByName("HeadbandTailR");
+/**
+ * WebGL resources owned by the loaded GLB. Everything is disposed together so
+ * a remount never leaks geometry, materials or 2048px textures.
+ */
+function disposeObject(root) {
+  if (!root) return;
+  const geometries = new Set();
+  const materials = new Set();
+  const textures = new Set();
 
-    if (head) head.rotation.order = "YXZ";
+  root.traverse((node) => {
+    if (node.geometry) geometries.add(node.geometry);
+    if (!node.material) return;
+    const list = Array.isArray(node.material) ? node.material : [node.material];
+    for (const material of list) {
+      if (!material) continue;
+      materials.add(material);
+      for (const value of Object.values(material)) {
+        if (value && value.isTexture) textures.add(value);
+      }
+    }
+  });
 
-    scene.traverse((node) => {
-      if (!node.isMesh) return;
-      node.castShadow = true;
-      node.receiveShadow = true;
-      node.frustumCulled = false;
+  textures.forEach((texture) => texture.dispose());
+  materials.forEach((material) => material.dispose());
+  geometries.forEach((geometry) => geometry.dispose());
+}
+
+/**
+ * Manual GLTFLoader (instead of useLoader) so textures decoded from the GLB's
+ * embedded WebP buffer views belong to this component and can be disposed.
+ * `useLoader.preload` is deliberately absent: it suspends forever in the
+ * committed bundle and the hero never becomes ready.
+ */
+function useGltf(url) {
+  const [gltf, setGltf] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    const loader = new GLTFLoader();
+
+    loader.load(
+      url,
+      (result) => {
+        if (live) setGltf(result);
+        else disposeObject(result.scene);
+      },
+      undefined,
+      (error) => {
+        console.warn("[IronLog] Hero character failed to load.", error);
+      },
+    );
+
+    return () => {
+      live = false;
+    };
+  }, [url]);
+
+  return gltf;
+}
+
+/** Normalise the authored mesh: uniform scale to TARGET_HEIGHT, feet at y=0. */
+function prepareGolem(gltf) {
+  if (!gltf) return null;
+
+  const scene = gltf.scene;
+  scene.updateMatrixWorld(true);
+
+  const rawBox = new Box3().setFromObject(scene);
+  const rawSize = rawBox.getSize(new Vector3());
+  const scale = TARGET_HEIGHT / Math.max(rawSize.y, 1e-6);
+
+  scene.scale.multiplyScalar(scale);
+  scene.updateMatrixWorld(true);
+
+  const scaledBox = new Box3().setFromObject(scene);
+  scene.position.x -= (scaledBox.min.x + scaledBox.max.x) / 2;
+  scene.position.y -= scaledBox.min.y;
+  scene.position.z -= (scaledBox.min.z + scaledBox.max.z) / 2;
+  scene.updateMatrixWorld(true);
+
+  const box = new Box3().setFromObject(scene);
+  const size = box.getSize(new Vector3());
+  const center = box.getCenter(new Vector3());
+
+  return { scene, box, size, center, height: size.y };
+}
+
+/**
+ * Remap PBR texture colour spaces, raise anisotropy to the renderer maximum,
+ * and opt every mesh into both shadow passes. Base colour and emissive stay in
+ * sRGB; normal / roughness / metalness / AO data maps stay linear. Authored
+ * normalScale, roughness, metalness and emissive values are left untouched.
+ */
+function applyMaterialPolicy(root, gl, uniforms) {
+  const maxAnisotropy = gl.capabilities.getMaxAnisotropy();
+  const srgbMaps = ["map", "emissiveMap"];
+  const linearMaps = [
+    "normalMap",
+    "roughnessMap",
+    "metalnessMap",
+    "aoMap",
+    "alphaMap",
+    "bumpMap",
+    "displacementMap",
+    "lightMap",
+    "specularMap",
+  ];
+  const seen = new Set();
+
+  const configure = (texture, colorSpace) => {
+    if (!texture || !texture.isTexture || seen.has(texture)) return;
+    seen.add(texture);
+    texture.colorSpace = colorSpace;
+    texture.anisotropy = maxAnisotropy;
+    texture.needsUpdate = true;
+  };
+
+  root.traverse((node) => {
+    if (!node.isMesh) return;
+    node.castShadow = true;
+    node.receiveShadow = true;
+    // One skinned/baked mesh: culling it by its deformed bounds only creates
+    // edge pops while the character turns.
+    node.frustumCulled = false;
+
+    const list = Array.isArray(node.material) ? node.material : [node.material];
+    for (const material of list) {
+      if (!material) continue;
+      srgbMaps.forEach((key) => configure(material[key], SRGBColorSpace));
+      linearMaps.forEach((key) => configure(material[key], LinearSRGBColorSpace));
+
+      // The authored golem has no armature, so the flex is a vertex-space
+      // bulge around the chest/shoulder band. It widens the lats, pops the
+      // shoulders and adds a faint tension tremble without touching the
+      // authored transforms or the mesh topology.
+      if (uniforms && material.isMeshStandardMaterial) {
+        material.onBeforeCompile = (shader) => {
+          shader.uniforms.uFlex = uniforms.flex;
+          shader.uniforms.uTime = uniforms.time;
+          shader.vertexShader = shader.vertexShader
+            .replace(
+              "#include <common>",
+              "#include <common>\nuniform float uFlex;\nuniform float uTime;",
+            )
+            .replace(
+              "#include <begin_vertex>",
+              `#include <begin_vertex>
+              float flexChest = smoothstep(-0.06, 0.10, position.y) * (1.0 - smoothstep(0.30, 0.50, position.y));
+              float flexCore = 1.0 - smoothstep(-0.16, 0.02, position.y);
+              float flexBulge = uFlex * (0.11 * flexChest + 0.025 * flexCore);
+              transformed.x *= 1.0 + flexBulge;
+              transformed.z *= 1.0 + flexBulge * 0.7;
+              transformed.y += uFlex * 0.012 * flexChest;
+              transformed.x += sin(uTime * 46.0 + position.y * 24.0) * 0.0018 * uFlex * flexChest;`,
+            );
+        };
+        material.customProgramCacheKey = () => "ironlog-golem-flex-v1";
+      }
+
+      material.needsUpdate = true;
+    }
+  });
+}
+
+/**
+ * Studio environment with a guaranteed offline fallback: the vendored city HDR
+ * is PMREM-generated, and if it cannot be fetched the neutral RoomEnvironment
+ * is baked instead so metallic/roughness response never goes dark or flat.
+ */
+function StudioEnvironment({ intensity = 0.95 }) {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+
+  useEffect(() => {
+    const pmrem = new PMREMGenerator(gl);
+    pmrem.compileEquirectangularShader();
+    let target = null;
+    let cancelled = false;
+
+    const apply = (renderTarget) => {
+      if (cancelled) {
+        renderTarget.dispose();
+        return;
+      }
+      target = renderTarget;
+      scene.environment = renderTarget.texture;
+      scene.environmentIntensity = intensity;
+    };
+
+    const fallback = () => {
+      if (cancelled) return;
+      try {
+        const room = new RoomEnvironment();
+        apply(pmrem.fromScene(room, 0.04));
+        room.dispose();
+      } catch (error) {
+        console.warn("[IronLog] Procedural studio environment failed.", error);
+      }
+    };
+
+    const loader = new HDRLoader();
+    loader.load(
+      HDR_URL,
+      (hdr) => {
+        if (cancelled) {
+          hdr.dispose();
+          return;
+        }
+        try {
+          apply(pmrem.fromEquirectangular(hdr));
+        } catch (error) {
+          console.warn("[IronLog] HDR environment could not be baked.", error);
+          fallback();
+        }
+        hdr.dispose();
+      },
+      undefined,
+      fallback,
+    );
+
+    return () => {
+      cancelled = true;
+      if (scene.environment === target?.texture) scene.environment = null;
+      if (target) target.dispose();
+      pmrem.dispose();
+    };
+  }, [gl, scene, intensity]);
+
+  return null;
+}
+
+/**
+ * Cameras the box from its true extents (height plus the widest silhouette
+ * across the allowed orbit), so the character fills the card at every aspect
+ * ratio without clipping. Near/far follow the bounding sphere.
+ */
+function CameraFit({ box, controlsRef }) {
+  const camera = useThree((state) => state.camera);
+  const { width, height } = useThree((state) => state.size);
+
+  useEffect(() => {
+    if (!box || width < 2 || height < 2) return;
+
+    const size = box.getSize(new Vector3());
+    const center = box.getCenter(new Vector3());
+    const radius = box.getBoundingSphere(new Sphere()).radius;
+    const aspect = width / height;
+    const vFov = MathUtils.degToRad(camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+
+    // Widest horizontal silhouette over the orbit range.
+    const apparentWidth =
+      size.x * Math.cos(MAX_AZIMUTH) + size.z * Math.sin(MAX_AZIMUTH);
+
+    const distance =
+      Math.max(
+        size.y / 2 / Math.tan(vFov / 2),
+        apparentWidth / 2 / Math.tan(hFov / 2),
+      ) * CAMERA_MARGIN;
+
+    camera.position.set(center.x, center.y, center.z + distance);
+    // R3F can commit the size before it has refreshed the projection matrix;
+    // pin the aspect explicitly or the first fit bakes a square frustum.
+    camera.aspect = aspect;
+    camera.near = Math.max(0.01, distance - radius * 2.5);
+    camera.far = distance + radius * 3 + 1;
+    camera.updateProjectionMatrix();
+    camera.lookAt(center);
+
+    const controls = controlsRef.current;
+    if (controls) {
+      controls.target.copy(center);
+      controls.update();
+    }
+  }, [box, camera, controlsRef, width, height]);
+
+  return null;
+}
+
+/** Hero renderer can be discarded explicitly if the stage is ever unmounted. */
+function RendererDisposer() {
+  const gl = useThree((state) => state.gl);
+
+  useEffect(
+    () => () => {
+      gl.dispose();
+      gl.forceContextLoss?.();
+    },
+    [gl],
+  );
+
+  return null;
+}
+
+function Golem({ onReady, finePointer }) {
+  const gltf = useGltf(MODEL_URL);
+  const gl = useThree((state) => state.gl);
+  const [hovering, setHovering] = useState(false);
+  const controlsRef = useRef(null);
+  const flexUniform = useMemo(() => ({ value: 0 }), []);
+  const timeUniform = useMemo(() => ({ value: 0 }), []);
+
+  const prepared = useMemo(() => prepareGolem(gltf), [gltf]);
+
+  useEffect(() => {
+    if (!prepared) return;
+    applyMaterialPolicy(prepared.scene, gl, {
+      flex: flexUniform,
+      time: timeUniform,
     });
+  }, [prepared, gl, flexUniform, timeUniform]);
 
-    return { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth, tailL, tailR };
-  }, [scene]);
+  // Clip support for rigged exports; the authored golem is a static mesh, so
+  // this stays empty and the procedural layer below drives the motion.
+  const clips = useMemo(() => {
+    if (!gltf?.animations.length) return { idle: null, hover: null };
+    const match = (pattern) => gltf.animations.find((clip) => pattern.test(clip.name));
+    return {
+      idle: match(/idle|breath|loop|rest/i) || gltf.animations[0],
+      hover: match(/hover|wave|hello|flex|greet|excite/i) || null,
+    };
+  }, [gltf]);
 
-  // True global cursor tracking: the character reacts no matter where the
-  // pointer sits on the page. Normalised to -1..1 over the whole window.
+  const mixer = useMemo(
+    () => (gltf?.animations.length ? new AnimationMixer(gltf.scene) : null),
+    [gltf],
+  );
+
+  const clipActions = useMemo(() => {
+    if (!mixer) return { idle: null, hover: null };
+    return {
+      idle: clips.idle ? mixer.clipAction(clips.idle) : null,
+      hover: clips.hover ? mixer.clipAction(clips.hover) : null,
+    };
+  }, [mixer, clips]);
+
+  const activeClip = useRef(null);
+
+  useEffect(() => {
+    if (!mixer) return;
+    const next = hovering && clipActions.hover ? clipActions.hover : clipActions.idle;
+    if (!next || activeClip.current === next) return;
+
+    next.reset().setEffectiveTimeScale(1).setEffectiveWeight(1);
+    if (activeClip.current) {
+      activeClip.current.crossFadeTo(next.play(), 0.3, false);
+    } else {
+      next.play();
+    }
+    activeClip.current = next;
+  }, [hovering, mixer, clipActions]);
+
+  useEffect(() => {
+    if (!gltf) return;
+    return () => {
+      mixer?.stopAllAction();
+      mixer?.uncacheRoot(gltf.scene);
+      disposeObject(gltf.scene);
+    };
+  }, [gltf, mixer]);
+
+  // --- Reactive rig: wrappers keep the authored transforms intact. ---
+  const rootRef = useRef(null);
+  const turnRef = useRef(null);
+  const tiltRef = useRef(null);
   const cursor = useRef({ x: 0, y: 0 });
-  const hover = useRef(false);
-  const smooth = useRef({ x: 0, y: 0, z: 0 });
-  const eyeAim = useRef({ x: 0, y: 0 });
-  const waveAt = useRef(0.7);
-  const time = useRef(0);
+  const aim = useRef({ x: 0, y: 0 });
+  const hoveringRef = useRef(false);
+  const squash = useRef(0);
+  const hop = useRef(0);
   const reduced = useRef(false);
-  // Blink state: { active, t, next } — next blink scheduled 3–7s out.
-  const blink = useRef({ active: false, t: 0, next: 3 + Math.random() * 4 });
-  // Idle glance: character looks around on its own between cursor reactions.
-  const glance = useRef({ active: false, t: 0, next: 2 + Math.random() * 3, targetX: 0, targetY: 0 });
-  // Interaction: squash/stretch + enthusiastic wave on click, puff on hover.
-  const squash = useRef(1);
-  const puff = useRef(1);
-  // Mouth: idle "talking" open/close, smile when cursor near, open on click.
-  const mouthTalk = useRef({ active: false, t: 0, next: 2 + Math.random() * 3 });
-  const mouthOpen = useRef(1); // 1 = closed smile, higher = more open
+  const timer = useMemo(() => new Timer(), []);
+
+  // CTA guide: the character turns toward whichever button is being
+  // presented and the in-card arrow points at its screen position.
+  const guide = useRef({
+    nx: -0.6,
+    ny: 0,
+    angle: Math.PI / 2,
+    horizontal: true,
+    hovered: null,
+    activeButton: null,
+    cycleButton: null,
+    start: 0,
+    until: 0,
+    next: 4,
+    index: 0,
+    buttons: [],
+    pointAt: null,
+  });
+  const flexValue = useRef(0);
+  const flexImpulse = useRef(0);
+  const arrowRef = useRef(null);
+  const arrowMats = useRef([]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -114,10 +468,8 @@ function Kettle({ onReady }) {
       cursor.current.y = 0;
     };
 
-    // Window-level capture listener: OrbitControls calls stopPropagation on
-    // the canvas, which would block any bubbling listener. Capture phase on
-    // window fires before the target and cannot be stopped by downstream
-    // listeners, so the character tracks the cursor everywhere on the page.
+    // Capture phase on window: OrbitControls stops propagation on the canvas,
+    // so this keeps the character tracking the pointer anywhere on the page.
     window.addEventListener("pointermove", track, { capture: true });
     window.addEventListener("mouseleave", reset);
     return () => {
@@ -126,250 +478,350 @@ function Kettle({ onReady }) {
     };
   }, []);
 
+  // Bridge the DOM CTAs to the character: hovering or focusing either button
+  // turns the golem toward it, lights the button ring and triggers the flex.
+  useEffect(() => {
+    const stage = document.querySelector("[data-char-stage]");
+    const buttons = Array.from(document.querySelectorAll("[data-cta]"));
+    if (!stage || buttons.length === 0) return;
+
+    const g = guide.current;
+    g.buttons = buttons;
+
+    const pointAt = (button, hold) => {
+      const stageBox = stage.getBoundingClientRect();
+      const buttonBox = button.getBoundingClientRect();
+      if (!stageBox.width || !buttonBox.width) return;
+
+      const dx =
+        buttonBox.left + buttonBox.width / 2 - (stageBox.left + stageBox.width / 2);
+      const dy =
+        buttonBox.top + buttonBox.height / 2 - (stageBox.top + stageBox.height / 2);
+
+      g.nx = MathUtils.clamp(dx / (window.innerWidth * 0.42), -1, 1);
+      g.ny = MathUtils.clamp(dy / (window.innerHeight * 0.42), -1, 1);
+      // Cone points along +Y; rotate it toward the button in screen space.
+      g.angle = Math.atan2(-dx, -dy);
+      g.horizontal = Math.abs(dx) >= Math.abs(dy);
+      g.until = hold ? Infinity : performance.now() / 1000 + 2.4;
+    };
+    g.pointAt = pointAt;
+
+    const enter = (event) => {
+      const button = event.currentTarget;
+      g.hovered = button;
+      g.cycleButton = null;
+      pointAt(button, true);
+      flexImpulse.current = Math.max(flexImpulse.current, 1);
+    };
+
+    const leave = (event) => {
+      if (g.hovered === event.currentTarget) g.hovered = null;
+      g.cycleButton = null;
+      g.until = performance.now() / 1000 + 0.5;
+    };
+
+    const press = () => {
+      flexImpulse.current = Math.max(flexImpulse.current, 1.3);
+      hop.current = Math.max(hop.current, 0.05);
+    };
+
+    const bindings = [
+      ["pointerenter", enter],
+      ["pointerleave", leave],
+      ["focus", enter],
+      ["blur", leave],
+      ["pointerdown", press],
+    ];
+
+    for (const [type, handler] of bindings) {
+      buttons.forEach((button) => button.addEventListener(type, handler));
+    }
+
+    g.next = performance.now() / 1000 + 3.5;
+
+    return () => {
+      for (const [type, handler] of bindings) {
+        buttons.forEach((button) => button.removeEventListener(type, handler));
+      }
+      buttons.forEach((button) => button.classList.remove("is-guided"));
+      g.buttons = [];
+      g.hovered = null;
+      g.activeButton = null;
+      g.cycleButton = null;
+      g.pointAt = null;
+    };
+  }, []);
+
   useEffect(() => {
     const element = gl.domElement;
-    const onDown = () => {
-      waveAt.current = time.current;
-      squash.current = 0.6;
-      mouthOpen.current = 1.5;
+    const enter = () => {
+      hoveringRef.current = true;
+      setHovering(true);
     };
-    const onUp = () => {
+    const leave = () => {
+      hoveringRef.current = false;
+      setHovering(false);
+    };
+    const press = () => {
+      if (reduced.current) return;
       squash.current = 1;
+      hop.current = 0.12;
+      flexImpulse.current = Math.max(flexImpulse.current, 1.15);
     };
-    const onEnter = () => { hover.current = true; };
-    const onLeave = () => { hover.current = false; };
 
-    element.addEventListener("pointerdown", onDown);
-    element.addEventListener("pointerup", onUp);
-    element.addEventListener("pointerleave", onLeave);
-    element.addEventListener("pointerenter", onEnter);
+    element.addEventListener("pointerenter", enter);
+    element.addEventListener("pointerleave", leave);
+    element.addEventListener("pointerdown", press);
     return () => {
-      element.removeEventListener("pointerdown", onDown);
-      element.removeEventListener("pointerup", onUp);
-      element.removeEventListener("pointerleave", onLeave);
-      element.removeEventListener("pointerenter", onEnter);
+      element.removeEventListener("pointerenter", enter);
+      element.removeEventListener("pointerleave", leave);
+      element.removeEventListener("pointerdown", press);
     };
   }, [gl]);
 
-  const ready = useCallback(() => {
-    const frame = requestAnimationFrame(() => onReady?.());
-    return () => cancelAnimationFrame(frame);
-  }, [onReady]);
-
-  useEffect(ready, [ready]);
+  // Two frames guarantee the WebGL scene has painted before fading out the
+  // static "IL" fallback.
+  useEffect(() => {
+    if (!prepared) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => onReady?.());
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [prepared, onReady]);
 
   useFrame((state, delta) => {
-    const { body, head, arm, armFlex, eyeL, eyeR, mouth, tongue, tooth, tailL, tailR } = rig;
-    if (!head || !body) return;
+    if (!prepared) return;
 
     const dt = Math.min(delta, 0.05);
-    const t = state.clock.elapsedTime;
-    time.current = t;
+    timer.update();
+    const clockDelta = Math.min(timer.getDelta(), 0.05);
+    if (mixer) mixer.update(clockDelta);
 
     const still = reduced.current;
+    const hover = hoveringRef.current ? 1 : 0;
+    const t = state.clock.elapsedTime;
+    const now = performance.now() / 1000;
+    const g = guide.current;
 
-    // --- Squash/stretch from click (decays back to 1) ---
-    if (squash.current < 1) {
-      squash.current = MathUtils.damp(squash.current, 1, 8, dt);
-    }
-    const sx = 1 + (1 - squash.current) * 0.25; // wider when squashed
-    const sy = squash.current;                    // shorter when squashed
-    const sz = 1 + (1 - squash.current) * 0.1;
-
-    // --- Hover puff ---
-    if (hover.current) {
-      puff.current = MathUtils.damp(puff.current, 1.06, 6, dt);
-    } else {
-      puff.current = MathUtils.damp(puff.current, 1, 6, dt);
-    }
-
-    // --- Cursor aim (global pointer, works everywhere on page) ---
-    const aimX = still ? 0 : cursor.current.x;
-    const aimY = still ? 0 : cursor.current.y;
-
-    smooth.current.x = MathUtils.damp(smooth.current.x, aimX, 6, dt);
-    smooth.current.y = MathUtils.damp(smooth.current.y, aimY, 6, dt);
-    smooth.current.z = MathUtils.damp(
-      smooth.current.z,
-      still ? 0 : Math.sin(t * 0.9) * 0.06,
-      4,
-      dt,
-    );
-
-    // --- Idle glancing: look around on its own every few seconds ---
-    if (!glance.current.active && t > glance.current.next) {
-      glance.current.active = true;
-      glance.current.t = t;
-      glance.current.next = t + 2 + Math.random() * 3;
-      glance.current.targetX = (Math.random() - 0.5) * 1.4;
-      glance.current.targetY = (Math.random() - 0.5) * 0.8;
-    }
-    let glanceX = 0;
-    let glanceY = 0;
-    if (glance.current.active) {
-      const gt = t - glance.current.t;
-      if (gt < 1.2) {
-        const ease = 1 - Math.pow(1 - gt / 1.2, 3);
-        glanceX = glance.current.targetX * ease;
-        glanceY = glance.current.targetY * ease;
-      } else if (gt < 2.2) {
-        const ease = Math.pow(1 - (gt - 1.2) / 1, 3);
-        glanceX = glance.current.targetX * ease;
-        glanceY = glance.current.targetY * ease;
-      } else {
-        glance.current.active = false;
-      }
+    // Idle presentation cycle: every 8–12s the golem turns to one of the two
+    // CTAs, flexes and pulses its ring, alternating which button it presents.
+    if (!still && !g.hovered && g.buttons.length > 0 && now > g.next) {
+      const button = g.buttons[g.index % g.buttons.length];
+      g.index = (g.index + 1) % g.buttons.length;
+      g.cycleButton = button;
+      g.pointAt?.(button, false);
+      g.until = now + 2.6;
+      g.start = now;
+      g.next = now + 8 + Math.random() * 4;
+      hop.current = Math.max(hop.current, 0.055);
+      flexImpulse.current = Math.max(flexImpulse.current, 0.85);
     }
 
-    const lookX = smooth.current.x + glanceX;
-    const lookY = smooth.current.y + glanceY;
-    const roll = smooth.current.z;
-
-    // --- Head: strong toy-like reactions to cursor + idle glance ---
-    head.rotation.y = MathUtils.damp(
-      head.rotation.y,
-      lookX * 0.6 + (still ? 0 : Math.sin(t * 0.5) * 0.05),
-      5,
-      dt,
-    );
-    head.rotation.x = MathUtils.damp(
-      head.rotation.x,
-      -lookY * 0.45 + (still ? 0 : Math.cos(t * 0.7) * 0.03),
-      5,
-      dt,
-    );
-    head.rotation.z = MathUtils.damp(
-      head.rotation.z,
-      -lookX * 0.25 + roll,
-      5,
-      dt,
-    );
-
-    // --- Body: lean + bouncier bob ---
-    body.rotation.z = MathUtils.damp(
-      body.rotation.z,
-      -lookX * 0.12 + roll * 0.4,
-      4,
-      dt,
-    );
-    const bobAmplitude = hover.current ? 0.018 : 0.01;
-    body.position.y = still
-      ? 0
-      : Math.sin(t * 1.8) * bobAmplitude + Math.cos(t * 0.9) * 0.005;
-
-    // --- Breathing: gentle whole-character scale pulse ---
-    const breath = 1 + Math.sin(t * 2.2) * 0.006;
-
-    // --- Apply squash/stretch + puff + breath to whole character ---
-    const bodySx = sx * puff.current * breath;
-    const bodySy = sy * puff.current * breath;
-    const bodySz = sz * puff.current * breath;
-    head.scale.set(bodySx, bodySy, bodySz);
-    body.scale.set(bodySx, bodySy, bodySz);
-
-    // --- Headband tails: secondary motion following head turn ---
-    const tailTurn = head.rotation.y * 0.6;
-    const tailBounce = Math.sin(t * 3) * 0.08;
-    if (tailL) {
-      tailL.rotation.z = MathUtils.damp(tailL.rotation.z, tailTurn + tailBounce, 6, dt);
-    }
-    if (tailR) {
-      tailR.rotation.z = MathUtils.damp(tailR.rotation.z, -tailTurn - tailBounce, 6, dt);
+    // Explicit hover/focus is user intent, so it still guides under reduced
+    // motion; only the idle cycle and its looping flourishes are withheld.
+    const guiding = Boolean(g.hovered) || (!still && now < g.until);
+    const shownButton = g.hovered || (!still && now < g.until ? g.cycleButton : null);
+    if (g.activeButton !== shownButton) {
+      g.activeButton?.classList.remove("is-guided");
+      shownButton?.classList.add("is-guided");
+      g.activeButton = shownButton;
     }
 
-    // --- Eyes: track cursor + glance, blink, and squash with click ---
-    const eyeTargetX = lookX * 0.5 + glanceX * 0.5;
-    const eyeTargetY = lookY * 0.5 + glanceY * 0.5;
-    eyeAim.current.x = MathUtils.damp(eyeAim.current.x, eyeTargetX, 8, dt);
-    eyeAim.current.y = MathUtils.damp(eyeAim.current.y, eyeTargetY, 8, dt);
-    const eyeX = MathUtils.clamp(eyeAim.current.y * 0.25, -0.08, 0.08);
-    const eyeY = MathUtils.clamp(-eyeAim.current.x * 0.25, -0.08, 0.08);
-    [eyeL, eyeR].forEach((eye) => {
-      if (!eye) return;
-      eye.rotation.x = MathUtils.damp(eye.rotation.x, eyeX, 10, dt);
-      eye.rotation.y = MathUtils.damp(eye.rotation.y, eyeY, 10, dt);
-      // Eyes squash vertically when the character is squashed.
-      eye.scale.y = 1 * (1 - (1 - squash.current) * 0.5);
-    });
+    squash.current = MathUtils.damp(squash.current, 0, 7, dt);
+    hop.current = MathUtils.damp(hop.current, 0, 5, dt);
 
-    // --- Occasional blink: squash the eyes flat briefly ---
-    if (!blink.current.active && t > blink.current.next) {
-      blink.current.active = true;
-      blink.current.t = t;
-      blink.current.next = t + 3 + Math.random() * 4;
-    }
-    let blinkScale = 1;
-    if (blink.current.active) {
-      const bt = t - blink.current.t;
-      if (bt > 0.04 && bt < 0.12) blinkScale = 0.05;
-      else if (bt > 0.2) {
-        blink.current.active = false;
-        blinkScale = 1;
-      }
-    }
-    [eyeL, eyeR].forEach((eye) => {
-      if (!eye) return;
-      eye.scale.y *= blinkScale;
-    });
+    const aimX = guiding ? g.nx : still ? 0 : cursor.current.x;
+    const aimY = guiding ? g.ny : still ? 0 : cursor.current.y;
+    aim.current.x = MathUtils.damp(aim.current.x, aimX, guiding ? 6 : 4, dt);
+    aim.current.y = MathUtils.damp(aim.current.y, aimY, guiding ? 6 : 4, dt);
 
-    // --- Mouth: smile bigger when cursor near, open on click, idle talking ---
-    if (!mouthTalk.current.active && t > mouthTalk.current.next) {
-      mouthTalk.current.active = true;
-      mouthTalk.current.t = t;
-      mouthTalk.current.next = t + 2 + Math.random() * 3;
-    }
-    let talkScale = 1;
-    if (mouthTalk.current.active) {
-      const mt = t - mouthTalk.current.t;
-      if (mt < 0.35) {
-        const ease = Math.sin((mt / 0.35) * Math.PI);
-        talkScale = 1 + ease * 0.5; // open up while "talking"
-      } else if (mt > 0.7) {
-        mouthTalk.current.active = false;
-        talkScale = 1;
-      }
-    }
-    // Smile cuter (more closed/curved) when cursor is near, normal when far.
-    const cursorDist = Math.sqrt(cursor.current.x ** 2 + cursor.current.y ** 2);
-    const smileCute = cursorDist < 0.4 ? 0.85 : 1.0; // 0.85 = bigger smile
-    const targetOpen = Math.max(smileCute, mouthOpen.current);
-    mouthOpen.current = MathUtils.damp(mouthOpen.current, targetOpen, 6, dt);
-    const mouthScale = talkScale * mouthOpen.current;
-    if (mouth) mouth.scale.y = mouthScale;
-    if (tongue) tongue.scale.y = mouthScale > 1.1 ? 1 : 0; // show tongue when open
-    if (tooth) tooth.scale.y = mouthScale > 1.1 ? 1 : 0;
-
-    // --- Arm: enthusiastic wave on click, gentle idle sway ---
-    if (t - waveAt.current > 7) waveAt.current = t;
-    const waveTime = t - waveAt.current;
-    const wave =
-      still || waveTime >= 1.5
+    const targetFlex = guiding
+      ? g.hovered
+        ? still
+          ? 0.55
+          : 1
+        : still
+          ? 0.32
+          : 0.58 + Math.sin((now - g.start) * 9) * 0.14
+      : still
         ? 0
-        : Math.sin(waveTime * Math.PI * 4.2) *
-            0.35 *
-            (1 - waveTime / 1.5);
-    if (arm) {
-      arm.rotation.z = MathUtils.damp(
-        arm.rotation.z,
-        wave + (still ? 0 : Math.sin(t * 1.4) * 0.03),
-        10,
+        : hover * 0.12;
+    flexImpulse.current = MathUtils.damp(flexImpulse.current, 0, 4, dt);
+    flexValue.current = MathUtils.damp(
+      flexValue.current,
+      Math.max(targetFlex, still ? 0 : flexImpulse.current),
+      8,
+      dt,
+    );
+    flexUniform.value = flexValue.current;
+    timeUniform.value = t;
+
+    const flex = flexValue.current;
+    const breath = still ? 0 : Math.sin(t * 1.6) * 0.008 * (1 + hover * 0.5);
+    const scaleX =
+      (1 - breath * 0.4) *
+      (1 + squash.current * 0.045) *
+      (1 + hover * 0.015) *
+      (1 + flex * 0.012);
+    const scaleY =
+      (1 + breath) *
+      (1 - squash.current * 0.06) *
+      (1 + hover * 0.015) *
+      (1 - flex * 0.004);
+
+    if (rootRef.current) {
+      rootRef.current.scale.set(scaleX, scaleY, scaleX);
+      rootRef.current.position.x = still ? 0 : Math.sin(t * 0.5) * 0.014;
+      rootRef.current.position.y = hop.current + hover * 0.02;
+    }
+
+    if (turnRef.current) {
+      const idleSway = still
+        ? 0
+        : Math.sin(t * 0.6) * 0.04 + Math.sin(t * 0.23) * 0.02;
+      turnRef.current.rotation.y = MathUtils.damp(
+        turnRef.current.rotation.y,
+        aim.current.x * (guiding ? 0.52 : 0.34) + idleSway,
+        guiding ? 6 : 4,
         dt,
       );
     }
 
-    // --- Flex arm: flex up on click/hover ---
-    const flexTarget = hover.current ? 0.9 : (squash.current < 1 ? 1.4 : 0);
-    if (armFlex) {
-      armFlex.rotation.z = MathUtils.damp(
-        armFlex.rotation.z,
-        flexTarget,
-        8,
+    if (tiltRef.current) {
+      const nod = guiding && !still ? Math.sin((now - g.start) * 8.5) * 0.03 : 0;
+      tiltRef.current.rotation.x = MathUtils.damp(
+        tiltRef.current.rotation.x,
+        aim.current.y * 0.06 -
+          flex * 0.055 +
+          nod +
+          (still ? 0 : Math.cos(t * 0.8) * 0.012),
+        4,
+        dt,
+      );
+      tiltRef.current.rotation.z = MathUtils.damp(
+        tiltRef.current.rotation.z,
+        -aim.current.x * 0.028 +
+          (guiding && !still ? Math.sin(now * 18) * 0.012 * flex : 0),
+        4,
         dt,
       );
     }
+
+    // Guide arrow: sits at the card edge nearest the presented CTA and points
+    // at the button's real screen position.
+    const arrow = arrowRef.current;
+    if (arrow) {
+      arrow.visible = guiding;
+      if (guiding) {
+        // Sit over the shoulder nearest the CTA, not beyond the card edge:
+        // the arrow must stay inside the frustum while its tip points at the
+        // real button position.
+        const dirX = MathUtils.clamp(g.nx, -1, 1);
+        const dirY = MathUtils.clamp(g.ny, -1, 1);
+        const side = dirX >= 0 ? 1 : -1;
+        const vertical = Math.abs(dirY) > Math.abs(dirX) * 1.15;
+        const ax = vertical ? dirX * prepared.size.x * 0.26 : side * prepared.size.x * 0.34;
+        const ay = vertical
+          ? dirY < 0
+            ? prepared.height * 0.9
+            : prepared.height * 0.14
+          : prepared.height * 0.72;
+        arrow.position.set(ax, ay + (still ? 0 : Math.sin(now * 3.4) * 0.025), 0.55);
+        arrow.rotation.z = g.angle;
+        arrow.scale.setScalar(still ? 1 : 1 + Math.sin(now * 5) * 0.07);
+      }
+    }
+
+    const arrowOpacity = guiding
+      ? still
+        ? 0.9
+        : 0.6 + 0.35 * (0.5 + 0.5 * Math.sin(now * 5))
+      : 0;
+    arrowMats.current.forEach((material) => {
+      if (material) material.opacity = arrowOpacity;
+    });
   });
 
-  return <primitive object={scene} />;
+  if (!prepared) return null;
+
+  const { scene, box, size, center, height } = prepared;
+
+  return (
+    <>
+      <group ref={rootRef}>
+        <group ref={turnRef}>
+          <group ref={tiltRef} position={[0, height / 2, 0]}>
+            <group position={[0, -height / 2, 0]}>
+              <primitive object={scene} />
+            </group>
+          </group>
+        </group>
+      </group>
+
+      <group ref={arrowRef} visible={false} renderOrder={4}>
+        <mesh position={[0, 0.18, 0]}>
+          <coneGeometry args={[0.082, 0.18, 24]} />
+          <meshBasicMaterial
+            ref={(material) => {
+              arrowMats.current[0] = material;
+            }}
+            color="#f6e016"
+            toneMapped={false}
+            transparent
+            depthTest={false}
+            depthWrite={false}
+          />
+        </mesh>
+        <mesh position={[0, 0.02, 0]}>
+          <cylinderGeometry args={[0.024, 0.024, 0.18, 16]} />
+          <meshBasicMaterial
+            ref={(material) => {
+              arrowMats.current[1] = material;
+            }}
+            color="#f6e016"
+            toneMapped={false}
+            transparent
+            depthTest={false}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
+
+      <CameraFit box={box} controlsRef={controlsRef} />
+
+      {finePointer ? (
+        <OrbitControls
+          ref={controlsRef}
+          makeDefault
+          target={[center.x, center.y, center.z]}
+          enablePan={false}
+          enableZoom={false}
+          enableDamping
+          dampingFactor={0.08}
+          minPolarAngle={Math.PI / 2 - 0.3}
+          maxPolarAngle={Math.PI / 2 + 0.08}
+          minAzimuthAngle={-MAX_AZIMUTH}
+          maxAzimuthAngle={MAX_AZIMUTH}
+        />
+      ) : null}
+
+      <ContactShadows
+        position={[0, 0.002, 0]}
+        opacity={0.48}
+        scale={Math.max(2.4, size.x * 1.9)}
+        blur={2.4}
+        far={3.2}
+        resolution={512}
+        color="#07140e"
+        frames={1}
+      />
+    </>
+  );
 }
 
 function Scene({ onReady }) {
@@ -386,57 +838,44 @@ function Scene({ onReady }) {
 
   return (
     <>
-      <ambientLight intensity={0.28} />
+      <ambientLight intensity={0.18} />
+      <hemisphereLight args={["#dfe9ff", "#2b2a24", 0.32]} />
+
+      {/* Key, fill and rim: the studio HDR does the PBR lift, these shape it. */}
       <directionalLight
-        position={[2.6, 4.2, 3.2]}
-        intensity={2.1}
-        color="#fff4da"
+        position={[3.2, 5, 4.2]}
+        intensity={2.6}
+        color="#fff1d6"
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-left={-2.8}
+        shadow-camera-right={2.8}
+        shadow-camera-top={3.2}
+        shadow-camera-bottom={-1.4}
+        shadow-camera-near={0.5}
+        shadow-camera-far={16}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.02}
       />
       <directionalLight
-        position={[-3.4, 2.2, -2.6]}
-        intensity={0.85}
-        color="#c8e2ff"
+        position={[-3.6, 2.6, 2.4]}
+        intensity={0.95}
+        color="#bdd6ff"
       />
       <directionalLight
-        position={[0.4, 2.2, 4.2]}
-        intensity={0.5}
-        color="#fff7e6"
+        position={[-0.6, 3.4, -4.4]}
+        intensity={2}
+        color="#ffe0b0"
       />
 
-      <Suspense fallback={null}>
-        <Kettle onReady={onReady} />
-      </Suspense>
+      <StudioEnvironment intensity={0.95} />
 
       <SilentBoundary>
-        <Suspense fallback={null}>
-          <Environment files={CITY_HDR_URL} environmentIntensity={0.9} />
-        </Suspense>
+        <Golem onReady={onReady} finePointer={finePointer} />
       </SilentBoundary>
 
-      <ContactShadows
-        position={[0, 0.002, 0.08]}
-        opacity={0.42}
-        scale={3.4}
-        blur={2.4}
-        far={2.8}
-        resolution={512}
-        color="#07140e"
-      />
-
-      {finePointer ? (
-        <OrbitControls
-          makeDefault
-          target={[0, 0.94, 0]}
-          enablePan={false}
-          enableZoom={false}
-          enableDamping
-          dampingFactor={0.08}
-          minPolarAngle={Math.PI / 2 - 0.32}
-          maxPolarAngle={Math.PI / 2 + 0.08}
-          minAzimuthAngle={-0.42}
-          maxAzimuthAngle={0.42}
-        />
-      ) : null}
+      <RendererDisposer />
     </>
   );
 }
@@ -445,10 +884,19 @@ export default function Scene3D({ onReady }) {
   return (
     <Canvas
       dpr={[1, 2]}
+      shadows
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-      camera={{ position: [0, 1.1, 3.9], fov: 24, near: 0.1, far: 30 }}
+      camera={{ position: [0, 1, 6], fov: 24, near: 0.1, far: 40 }}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-      onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      onCreated={({ gl }) => {
+        gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        gl.outputColorSpace = SRGBColorSpace;
+        gl.toneMapping = ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.08;
+        gl.shadowMap.enabled = true;
+        gl.shadowMap.type = PCFShadowMap;
+        gl.setClearColor(0x000000, 0);
+      }}
     >
       <Scene onReady={onReady} />
     </Canvas>

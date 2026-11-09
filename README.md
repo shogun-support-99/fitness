@@ -175,30 +175,40 @@ hand-written design system.
 
 ## Building the hero 3D scene
 
-The landing hero's 3D spotter ("Kettle", a glossy yellow kettlebell buddy with
-mitten hands and chunky sneakers) is rendered with React Three Fiber from an
-original procedural GLB. Like the CSS, it is an authoring-time step whose output
-is committed, so GitHub Pages serves a plain static file with no runtime build:
+The landing hero renders the authored marble golem at `assets/models/golem.glb`
+with React Three Fiber. The scene is online-first: the 17 MB GLB, its embedded
+PBR textures and the studio HDR stream from the same origin and are preloaded
+from the document head. The page stays readable without JavaScript or WebGL —
+the card keeps its "IL" fallback — but the full experience is the live 3D one.
+
+Like the CSS, the scene bundle is an authoring-time step whose output is
+committed, so GitHub Pages serves a plain static file with no runtime build:
 
 ```sh
-npm run build:spotter   # regenerates assets/models/spotter.glb
-npm run build:scene     # rewrites assets/js/scene3d.js from src/scene + src/components
-npm run build           # runs both, then build:css
+npm run build:scene   # rewrites assets/js/scene3d.js from src/scene + src/components
+npm run build         # scene bundle, then build:css
 ```
 
-- `scripts/build-spotter-glb.mjs` draws the mascot from Three.js primitives
-  (lathe, capsule, sphere, rounded box) and rigs it into `Body`, `Head` and
-  `ArmWave` groups for mouse-tracking head/body rotation and an idle wave.
 - `scripts/build-scene.mjs` bundles `src/scene/mount.jsx` + `src/components/Scene3D.jsx`
   with esbuild into `assets/js/scene3d.js`, which the landing page mounts into
-  `[data-scene3d]` only when WebGL is available. The static "IL" fallback stays
-  otherwise.
-- The scene light comes from the vendored CC0 city HDR at
-  `assets/models/potsdamer_platz_1k.hdr`, loaded offline via
-  `<Environment files="...">`.
+  `[data-scene3d]` only when WebGL is available.
+- The GLB has no skeleton or animation clips, so `Scene3D.jsx` drives it with
+  wrapper-group motion: breathing, cursor look-at, hover lift, press squash, a
+  vertex-space chest flex and a periodic CTA guide that turns the golem toward
+  "Start logging" or "See how it works" and points a 3D arrow at the button.
+- PBR materials keep their authored maps, normal scales and roughness/metalness
+  values. Base colour and emissive maps use sRGB; data maps stay linear; every
+  texture gets the renderer's maximum anisotropy and every mesh casts/receives
+  shadows.
+- Lighting combines the PMREM-baked CC0 city HDR at
+  `assets/models/potsdamer_platz_1k.hdr` with key, fill and rim lights. If the
+  HDR cannot be fetched, the scene falls back to a procedural RoomEnvironment.
+- `Box3` framing and a bounding-sphere-derived near/far plane keep the golem
+  centred and unclipped at every card aspect ratio. Cursor tracking, CTA
+  hover/focus, canvas click-to-flex and OrbitControls (fine pointers only) make
+  the character reactive rather than a looping video.
 
-The mascot and HDR are not third-party character artwork; see [`NOTICE`](./NOTICE)
-for the CC0 HDR dedication and the original-model statement.
+See [`NOTICE`](./NOTICE) for the model provenance and the CC0 HDR dedication.
 
 ## Exercise catalogue
 

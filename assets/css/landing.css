@@ -305,6 +305,25 @@ svg.tick,
   transition-duration: 70ms;
 }
 
+/* The hero character presents a CTA: a soft signal ring echoes the gesture so
+   the guide reads even when the character is off to the side of the copy. */
+.hero-actions .btn.is-guided {
+  animation: cta-guided 1.6s var(--ease) infinite;
+}
+
+@keyframes cta-guided {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 0%, transparent);
+  }
+  40% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--signal) 42%, transparent);
+  }
+  72% {
+    box-shadow: 0 0 0 9px color-mix(in srgb, var(--signal) 0%, transparent);
+  }
+}
+
 .btn-signal {
   background: var(--signal);
   color: var(--signal-ink);
@@ -2604,7 +2623,7 @@ html.js.motion-ok [data-reveal].is-in {
 
 
 
-/* ── Hero spotter: R3F kettlebell character beside the "Start logging" CTA ─ */
+/* ── Hero character: reactive R3F golem beside the "Start logging" CTA ───── */
 
 .hero-copy {
   position: relative;
@@ -2636,6 +2655,16 @@ html.js.motion-ok [data-reveal].is-in {
     inset 0 1px 0 color-mix(in srgb, var(--paper) 12%, transparent),
     var(--shadow-float);
   will-change: transform;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .char-stage:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--paper) 14%, transparent),
+      0 22px 50px color-mix(in srgb, var(--ink) 24%, transparent);
+  }
 }
 
 .char-canvas {
@@ -2656,15 +2685,42 @@ html.js.motion-ok [data-reveal].is-in {
 .char-fallback {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
   font-family: var(--mono);
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
   color: var(--signal);
   opacity: 0.75;
   animation: char-pulse 2.1s ease-in-out infinite;
+}
+
+.char-fallback-mark {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+/* The model is a 17 MB online-first asset: show honest progress instead of a
+   dead monogram while the GLB streams in. */
+.char-fallback-track {
+  display: block;
+  width: 46px;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--signal) 22%, transparent);
+}
+
+.char-fallback-track i {
+  display: block;
+  width: 45%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--signal);
+  animation: char-load 1.15s var(--ease) infinite;
 }
 
 .char-stage.is-ready .char-fallback {
@@ -2672,9 +2728,22 @@ html.js.motion-ok [data-reveal].is-in {
   animation: none;
 }
 
+.char-stage.is-ready .char-fallback-track i {
+  animation: none;
+}
+
 @keyframes char-pulse {
   50% {
     opacity: 0.38;
+  }
+}
+
+@keyframes char-load {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(260%);
   }
 }
 
@@ -2692,8 +2761,19 @@ html.js.motion-ok [data-reveal].is-in {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .char-fallback {
+  .char-fallback,
+  .char-fallback-track i,
+  .hero-actions .btn.is-guided {
     animation: none;
+  }
+
+  .char-fallback-track i {
+    width: 100%;
+  }
+
+  /* Keep the guide legible without the looping pulse. */
+  .hero-actions .btn.is-guided {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 38%, transparent);
   }
 }
 

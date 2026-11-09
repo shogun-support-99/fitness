@@ -5,10 +5,9 @@
   "description": "A private, offline-first strength training log. Static site, no build required to serve; Tailwind is compiled ahead of time into committed CSS.",
   "type": "module",
   "scripts": {
-    "build": "npm run build:spotter && npm run build:scene && npm run build:css",
+    "build": "npm run build:scene && npm run build:css",
     "build:css": "tailwindcss -i ./src/tailwind.css -o ./assets/css/tailwind.css --minify",
     "build:scene": "node scripts/build-scene.mjs",
-    "build:spotter": "node scripts/build-spotter-glb.mjs",
     "test": "node --test \"tests/*.test.js\"",
     "check": "node scripts/check-links.mjs"
   },
