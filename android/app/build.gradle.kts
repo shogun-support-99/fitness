@@ -16,7 +16,7 @@ val appVersionName = providers.gradleProperty("ironlogVersionName").orNull ?: "1
 
 android {
     namespace = "com.ironlog.app"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.ironlog.app"
