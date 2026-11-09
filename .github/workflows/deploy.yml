@@ -121,6 +121,13 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Gradle
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.7.3-bin.zip
+          unzip -q gradle-8.7.3-bin.zip -d /opt
+          echo "GRADLE_HOME=/opt/gradle-8.7.3" >> $GITHUB_ENV
+          echo "/opt/gradle-8.7.3/bin" >> $GITHUB_PATH
+
       - name: Accept Android SDK licenses
         run: |
           yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
@@ -128,8 +135,7 @@ jobs:
       - name: Build release APK
         working-directory: android
         run: |
-          chmod +x gradlew
-          ./gradlew assembleRelease \
+          gradle assembleRelease \
             -PironlogVersionCode=${{ github.run_number }} \
             -PironlogVersionName=1.0.${{ github.run_number }}
 
