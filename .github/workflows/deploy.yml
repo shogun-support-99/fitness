@@ -120,6 +120,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          build-tools: 35.0.0
+          platforms: android-35
 
       - name: Install Gradle
         run: |
