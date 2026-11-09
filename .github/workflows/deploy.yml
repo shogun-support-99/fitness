@@ -104,13 +104,52 @@ jobs:
 
   android-build-release:
     name: Build & release Android APK
-    if: false
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - run: echo "Android build temporarily disabled for debugging"
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Verify JDK
+        run: java -version && javac -version
+
+      - name: Verify pre-installed Android SDK
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME}"
+          ls -la "${ANDROID_HOME}"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --list_installed | head -30 || true
+
+      - name: Install Gradle
+        run: |
+          set -euo pipefail
+          wget -q https://services.gradle.org/distributions/gradle-8.7.3-bin.zip
+          unzip -q gradle-8.7.3-bin.zip -d /opt
+          echo "GRADLE_HOME=/opt/gradle-8.7.3" >> $GITHUB_ENV
+          echo "/opt/gradle-8.7.3/bin" >> $GITHUB_PATH
+
+      - name: Verify Gradle
+        run: gradle --version
+
+      - name: Accept Android SDK licenses
+        run: |
+          set -euo pipefail
+          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          set -euo pipefail
+          gradle assembleRelease \
+            -PironlogVersionCode=${{ github.run_number }} \
+            -PironlogVersionName=1.0.${{ github.run_number }} --info
 
       - name: Stage release assets
         run: |
