@@ -121,38 +121,31 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Verify JDK
-        run: java -version && javac -version
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Verify pre-installed Android SDK
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7.3
+
+      - name: Show toolchain
         run: |
+          java -version
+          gradle --version
           echo "ANDROID_HOME=${ANDROID_HOME}"
-          ls -la "${ANDROID_HOME}"
-          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --list_installed | head -30 || true
-
-      - name: Install Gradle
-        run: |
-          set -euo pipefail
-          wget -q https://services.gradle.org/distributions/gradle-8.7.3-bin.zip
-          unzip -q gradle-8.7.3-bin.zip -d /opt
-          echo "GRADLE_HOME=/opt/gradle-8.7.3" >> $GITHUB_ENV
-          echo "/opt/gradle-8.7.3/bin" >> $GITHUB_PATH
-
-      - name: Verify Gradle
-        run: gradle --version
-
-      - name: Accept Android SDK licenses
-        run: |
-          set -euo pipefail
-          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --list_installed || true
 
       - name: Build release APK
         working-directory: android
         run: |
           set -euo pipefail
-          gradle assembleRelease \
+          gradle assembleRelease --no-daemon \
             -PironlogVersionCode=${{ github.run_number }} \
-            -PironlogVersionName=1.0.${{ github.run_number }} --info
+            -PironlogVersionName=1.0.${{ github.run_number }}
+
+      - name: List built APK
+        run: ls -la android/app/build/outputs/apk/release/
 
       - name: Stage release assets
         run: |

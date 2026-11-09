@@ -75,9 +75,17 @@ test("APK uses a stable signing config so updates install over existing installs
   );
 });
 
-test("Android manifest declares the app ID, offline-friendly permissions and launcher activity", async () => {
+test("Android manifest declares the launcher activity and offline-friendly permissions", async () => {
   const manifest = await read(MANIFEST);
-  assert.ok(manifest.includes('package="com.ironlog.app"'), "manifest must declare com.ironlog.app");
+  // AGP 8 forbids the package attribute in the source manifest; the app ID
+  // lives in the Gradle namespace/applicationId instead.
+  assert.ok(
+    !manifest.includes("package="),
+    "manifest must not set a package attribute (AGP 8 requires the namespace in build.gradle)",
+  );
+  const gradle = await read(APP_GRADLE);
+  assert.ok(gradle.includes('applicationId = "com.ironlog.app"'), "build.gradle must set applicationId com.ironlog.app");
+  assert.ok(gradle.includes('namespace = "com.ironlog.app"'), "build.gradle must set namespace com.ironlog.app");
   assert.ok(manifest.includes(".MainActivity"), "manifest must declare MainActivity");
   assert.ok(
     manifest.includes("android.permission.INTERNET"),

@@ -14,6 +14,37 @@ plugins {
 val appVersionCode = (providers.gradleProperty("ironlogVersionCode").orNull ?: "1").toInt()
 val appVersionName = providers.gradleProperty("ironlogVersionName").orNull ?: "1.0.0"
 
+/*
+ * Stage the web app into the APK assets.
+ *
+ * MainActivity serves the shell from https://appassets.androidplatform.net/app/
+ * and resolves the site's own relative references from there, so `./js/main.js`
+ * becomes `/app/js/main.js`, `../assets/css/tailwind.css` becomes
+ * `/assets/css/tailwind.css` and `../fonts/Geist-Variable.woff2` becomes
+ * `/fonts/...`. The three source trees therefore have to be staged under those
+ * exact prefix directories; pointing sourceSets straight at them would strip the
+ * prefixes and every CSS, font and image request would 404 inside the APK.
+ *
+ * Passing the task itself to `srcDir` makes AGP treat its output directory as an
+ * asset root and wires `mergeAssets` to depend on it, so the staging always runs
+ * before the APK is packaged. Declared before the `android` block because Kotlin
+ * DSL scripts initialise top-level properties in declaration order.
+ */
+val syncWebAssets = tasks.register<Sync>("syncWebAssets") {
+    description = "Stages the offline web app into the APK assets."
+    group = "build"
+    from(rootProject.file("../app")) {
+        into("app")
+    }
+    from(rootProject.file("../assets")) {
+        into("assets")
+    }
+    from(rootProject.file("../fonts")) {
+        into("fonts")
+    }
+    into(layout.buildDirectory.dir("appassets"))
+}
+
 android {
     namespace = "com.ironlog.app"
     compileSdk = 34
@@ -60,10 +91,7 @@ android {
     sourceSets {
         getByName("main") {
             assets {
-                srcDir(rootProject.file("../app"))
-                srcDir(rootProject.file("../assets/css"))
-                srcDir(rootProject.file("../assets/img"))
-                srcDir(rootProject.file("../fonts"))
+                srcDir(syncWebAssets)
             }
         }
     }
