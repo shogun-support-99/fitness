@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.Sync
-
 plugins {
     id("com.android.application")
 }
@@ -7,28 +5,14 @@ plugins {
 /*
  * IronLog Android shell.
  *
- * The web app is not fetched at runtime. Gradle copies the same `app/` tree the
- * browser uses into the APK, and MainActivity serves it from a stable HTTPS
- * origin backed by WebViewAssetLoader-style interception. That gives the app
+ * The web app is not fetched at runtime. The same `app/` tree the browser uses
+ * is bundled into the APK as assets, and MainActivity serves it from a stable
+ * HTTPS origin backed by WebViewClient interception. That gives the app
  * working ES modules, fetch() and localStorage with no server at all.
  */
 
 val appVersionCode = (providers.gradleProperty("ironlogVersionCode").orNull ?: "1").toInt()
 val appVersionName = providers.gradleProperty("ironlogVersionName").orNull ?: "1.0.0"
-
-val repoRoot = requireNotNull(rootProject.projectDir.parentFile) {
-    "The Android project must live in <repo>/android."
-}
-val webAssets = layout.buildDirectory.dir("generated/webassets")
-
-val syncWebAssets by tasks.registering(Sync::class) {
-    description = "Copies the offline IronLog web app into the APK asset tree."
-    from(repoRoot.resolve("app")) { into("app") }
-    from(repoRoot.resolve("assets/css")) { into("assets/css") }
-    from(repoRoot.resolve("assets/img/logo.svg")) { into("assets/img") }
-    from(repoRoot.resolve("fonts")) { into("fonts") }
-    into(webAssets)
-}
 
 android {
     namespace = "com.ironlog.app"
@@ -74,7 +58,14 @@ android {
     }
 
     sourceSets {
-        getByName("main").assets.srcDir(webAssets)
+        getByName("main") {
+            assets {
+                srcDir(rootProject.file("../app"))
+                srcDir(rootProject.file("../assets/css"))
+                srcDir(rootProject.file("../assets/img"))
+                srcDir(rootProject.file("../fonts"))
+            }
+        }
     }
 
     /*
@@ -86,8 +77,4 @@ android {
     androidResources {
         noCompress += listOf("woff2")
     }
-}
-
-tasks.named("preBuild") {
-    dependsOn(syncWebAssets)
 }
