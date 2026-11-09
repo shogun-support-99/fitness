@@ -31,6 +31,7 @@ jobs:
 
       - name: Verify every module parses
         run: |
+          set -x
           fail=0
           for f in $(find app assets scripts -name '*.js'); do
             if ! node --check "$f" 2>/tmp/err; then
@@ -40,7 +41,9 @@ jobs:
           exit $fail
 
       - name: Verify local asset links resolve
-        run: node scripts/check-links.mjs
+        run: |
+          set -x
+          node scripts/check-links.mjs
 
       # Gym Visual 180x180 GIFs/stills ship under a media licence held by the
       # app operator, with attribution retained on every record. They live only
@@ -48,7 +51,7 @@ jobs:
       # allowed anywhere.
       - name: Assert media licences and attribution
         run: |
-          set -euo pipefail
+          set -xeuo pipefail
           fail=0
 
           echo "-- scanning the dataset catalogue for remote or raw-upstream media fields --"
