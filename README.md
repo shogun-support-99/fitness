@@ -195,7 +195,9 @@ npm run build         # scene bundle, then build:css
 - The GLB has no skeleton or animation clips, so `Scene3D.jsx` drives it with
   wrapper-group motion: breathing, cursor look-at, hover lift, press squash, a
   vertex-space chest flex and a periodic CTA guide that turns the golem toward
-  "Start logging" or "See how it works" and points a 3D arrow at the button.
+  "Start logging" or "See how it works" and raises the arm nearest the button
+  to point at it. The gesture is a weighted shoulder rotation in the vertex
+  shader, with a soft joint mask so the deltoid stays attached.
 - PBR materials keep their authored maps, normal scales and roughness/metalness
   values. Base colour and emissive maps use sRGB; data maps stay linear; every
   texture gets the renderer's maximum anisotropy and every mesh casts/receives

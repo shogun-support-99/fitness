@@ -29,8 +29,9 @@ const HDR_URL = new URL("../models/potsdamer_platz_1k.hdr", import.meta.url).hre
 const TARGET_HEIGHT = 1.8;
 /** Orbit limit used when reserving horizontal room for the silhouette. */
 const MAX_AZIMUTH = 0.42;
-/** Breathing space around the model before the card edge. */
-const CAMERA_MARGIN = 1.06;
+/** Breathing space around the model before the card edge. The extra room on
+ *  top of the silhouette lets a raised pointing arm stay inside the card. */
+const CAMERA_MARGIN = 1.16;
 
 /** Keep a failed HDR / model from taking the whole hero down with it. */
 class SilentBoundary extends Component {
@@ -185,17 +186,43 @@ function applyMaterialPolicy(root, gl, uniforms) {
       linearMaps.forEach((key) => configure(material[key], LinearSRGBColorSpace));
 
       // The authored golem has no armature, so the flex is a vertex-space
-      // bulge around the chest/shoulder band. It widens the lats, pops the
-      // shoulders and adds a faint tension tremble without touching the
-      // authored transforms or the mesh topology.
+      // bulge around the chest/shoulder band and the point is a weighted
+      // shoulder rotation. Both leave the authored transforms and topology
+      // untouched, while the soft joint mask keeps the deltoid attached.
       if (uniforms && material.isMeshStandardMaterial) {
         material.onBeforeCompile = (shader) => {
           shader.uniforms.uFlex = uniforms.flex;
           shader.uniforms.uTime = uniforms.time;
+          shader.uniforms.uArmL = uniforms.armL;
+          shader.uniforms.uArmR = uniforms.armR;
+          shader.uniforms.uSwingL = uniforms.swingL;
+          shader.uniforms.uSwingR = uniforms.swingR;
           shader.vertexShader = shader.vertexShader
             .replace(
               "#include <common>",
-              "#include <common>\nuniform float uFlex;\nuniform float uTime;",
+              `#include <common>
+              uniform float uFlex;
+              uniform float uTime;
+              uniform float uArmL;
+              uniform float uArmR;
+              uniform float uSwingL;
+              uniform float uSwingR;
+
+              // Raise the arm in the frontal plane, then swing it forward so
+              // the hand points at the CTA without leaving the narrow card.
+              vec3 ironlogArm(vec3 p, float raiseAngle, float swingAngle, float side) {
+                vec3 pivot = vec3(side * 0.235, 0.19, 0.0);
+                vec3 d = p - pivot;
+                float a = side * raiseAngle;
+                float ca = cos(a);
+                float sa = sin(a);
+                vec3 r = vec3(d.x * ca - d.y * sa, d.x * sa + d.y * ca, d.z);
+                float b = -side * swingAngle;
+                float cb = cos(b);
+                float sb = sin(b);
+                r = vec3(r.x * cb + r.z * sb, r.y, -r.x * sb + r.z * cb);
+                return r + pivot;
+              }`,
             )
             .replace(
               "#include <begin_vertex>",
@@ -206,10 +233,19 @@ function applyMaterialPolicy(root, gl, uniforms) {
               transformed.x *= 1.0 + flexBulge;
               transformed.z *= 1.0 + flexBulge * 0.7;
               transformed.y += uFlex * 0.012 * flexChest;
-              transformed.x += sin(uTime * 46.0 + position.y * 24.0) * 0.0018 * uFlex * flexChest;`,
+              transformed.x += sin(uTime * 46.0 + position.y * 24.0) * 0.0018 * uFlex * flexChest;
+
+              float armSide = sign(transformed.x);
+              float armRaise = armSide > 0.0 ? uArmR : uArmL;
+              float armSwing = armSide > 0.0 ? uSwingR : uSwingL;
+              float armLateral = smoothstep(0.19, 0.28, abs(transformed.x));
+              float armVertical = smoothstep(-0.27, -0.20, transformed.y) * (1.0 - smoothstep(0.20, 0.29, transformed.y));
+              float armJoint = smoothstep(0.03, 0.15, length(vec2(abs(transformed.x) - 0.24, transformed.y - 0.19)));
+              float armWeight = armLateral * armVertical * armJoint * smoothstep(0.0, 0.10, armRaise);
+              transformed = mix(transformed, ironlogArm(transformed, armRaise, armSwing, armSide), armWeight);`,
             );
         };
-        material.customProgramCacheKey = () => "ironlog-golem-flex-v1";
+        material.customProgramCacheKey = () => "ironlog-golem-flex-v2";
       }
 
       material.needsUpdate = true;
@@ -354,6 +390,10 @@ function Golem({ onReady, finePointer }) {
   const controlsRef = useRef(null);
   const flexUniform = useMemo(() => ({ value: 0 }), []);
   const timeUniform = useMemo(() => ({ value: 0 }), []);
+  const armLUniform = useMemo(() => ({ value: 0 }), []);
+  const armRUniform = useMemo(() => ({ value: 0 }), []);
+  const swingLUniform = useMemo(() => ({ value: 0 }), []);
+  const swingRUniform = useMemo(() => ({ value: 0 }), []);
 
   const prepared = useMemo(() => prepareGolem(gltf), [gltf]);
 
@@ -362,8 +402,21 @@ function Golem({ onReady, finePointer }) {
     applyMaterialPolicy(prepared.scene, gl, {
       flex: flexUniform,
       time: timeUniform,
+      armL: armLUniform,
+      armR: armRUniform,
+      swingL: swingLUniform,
+      swingR: swingRUniform,
     });
-  }, [prepared, gl, flexUniform, timeUniform]);
+  }, [
+    prepared,
+    gl,
+    flexUniform,
+    timeUniform,
+    armLUniform,
+    armRUniform,
+    swingLUniform,
+    swingRUniform,
+  ]);
 
   // Clip support for rigged exports; the authored golem is a static mesh, so
   // this stays empty and the procedural layer below drives the motion.
@@ -427,12 +480,10 @@ function Golem({ onReady, finePointer }) {
   const timer = useMemo(() => new Timer(), []);
 
   // CTA guide: the character turns toward whichever button is being
-  // presented and the in-card arrow points at its screen position.
+  // presented and raises the arm on that side to point at it.
   const guide = useRef({
     nx: -0.6,
     ny: 0,
-    angle: Math.PI / 2,
-    horizontal: true,
     hovered: null,
     activeButton: null,
     cycleButton: null,
@@ -445,8 +496,6 @@ function Golem({ onReady, finePointer }) {
   });
   const flexValue = useRef(0);
   const flexImpulse = useRef(0);
-  const arrowRef = useRef(null);
-  const arrowMats = useRef([]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -500,9 +549,6 @@ function Golem({ onReady, finePointer }) {
 
       g.nx = MathUtils.clamp(dx / (window.innerWidth * 0.42), -1, 1);
       g.ny = MathUtils.clamp(dy / (window.innerHeight * 0.42), -1, 1);
-      // Cone points along +Y; rotate it toward the button in screen space.
-      g.angle = Math.atan2(-dx, -dy);
-      g.horizontal = Math.abs(dx) >= Math.abs(dy);
       g.until = hold ? Infinity : performance.now() / 1000 + 2.4;
     };
     g.pointAt = pointAt;
@@ -686,7 +732,7 @@ function Golem({ onReady, finePointer }) {
         : Math.sin(t * 0.6) * 0.04 + Math.sin(t * 0.23) * 0.02;
       turnRef.current.rotation.y = MathUtils.damp(
         turnRef.current.rotation.y,
-        aim.current.x * (guiding ? 0.52 : 0.34) + idleSway,
+        aim.current.x * (guiding ? 0.22 : 0.34) + idleSway,
         guiding ? 6 : 4,
         dt,
       );
@@ -712,39 +758,52 @@ function Golem({ onReady, finePointer }) {
       );
     }
 
-    // Guide arrow: sits at the card edge nearest the presented CTA and points
-    // at the button's real screen position.
-    const arrow = arrowRef.current;
-    if (arrow) {
-      arrow.visible = guiding;
-      if (guiding) {
-        // Sit over the shoulder nearest the CTA, not beyond the card edge:
-        // the arrow must stay inside the frustum while its tip points at the
-        // real button position.
-        const dirX = MathUtils.clamp(g.nx, -1, 1);
-        const dirY = MathUtils.clamp(g.ny, -1, 1);
-        const side = dirX >= 0 ? 1 : -1;
-        const vertical = Math.abs(dirY) > Math.abs(dirX) * 1.15;
-        const ax = vertical ? dirX * prepared.size.x * 0.26 : side * prepared.size.x * 0.34;
-        const ay = vertical
-          ? dirY < 0
-            ? prepared.height * 0.9
-            : prepared.height * 0.14
-          : prepared.height * 0.72;
-        arrow.position.set(ax, ay + (still ? 0 : Math.sin(now * 3.4) * 0.025), 0.55);
-        arrow.rotation.z = g.angle;
-        arrow.scale.setScalar(still ? 1 : 1 + Math.sin(now * 5) * 0.07);
-      }
-    }
-
-    const arrowOpacity = guiding
-      ? still
-        ? 0.9
-        : 0.6 + 0.35 * (0.5 + 0.5 * Math.sin(now * 5))
+    // Pointing gesture: the arm nearest the presented CTA lifts in the
+    // frontal plane and swings toward the button in depth. The forward swing
+    // uses the card's depth so the hand reaches the CTA without crossing the
+    // narrow card edge. Angles are damped so hover in/out is a real movement.
+    const pointUp = MathUtils.clamp(-g.ny, -1, 1);
+    const pointAcross = MathUtils.clamp(Math.abs(g.nx), 0, 1);
+    const gestureLive = !still && guiding ? Math.sin(now * 3.4) * 1.4 : 0;
+    const raiseDegrees = guiding
+      ? MathUtils.clamp(62 + pointUp * 34, 50, 100)
       : 0;
-    arrowMats.current.forEach((material) => {
-      if (material) material.opacity = arrowOpacity;
-    });
+    const raiseTarget = raiseDegrees * MathUtils.DEG2RAD;
+    const swingTarget = guiding
+      ? MathUtils.clamp(
+          54 +
+            pointAcross * 6 +
+            Math.max(0, raiseDegrees - 70) * 0.55 +
+            gestureLive,
+          45,
+          72,
+        ) * MathUtils.DEG2RAD
+      : 0;
+    const leftPoints = g.nx < 0;
+    armLUniform.value = MathUtils.damp(
+      armLUniform.value,
+      guiding && leftPoints ? raiseTarget : 0,
+      7,
+      dt,
+    );
+    armRUniform.value = MathUtils.damp(
+      armRUniform.value,
+      guiding && !leftPoints ? raiseTarget : 0,
+      7,
+      dt,
+    );
+    swingLUniform.value = MathUtils.damp(
+      swingLUniform.value,
+      guiding && leftPoints ? swingTarget : 0,
+      7,
+      dt,
+    );
+    swingRUniform.value = MathUtils.damp(
+      swingRUniform.value,
+      guiding && !leftPoints ? swingTarget : 0,
+      7,
+      dt,
+    );
   });
 
   if (!prepared) return null;
@@ -761,35 +820,6 @@ function Golem({ onReady, finePointer }) {
             </group>
           </group>
         </group>
-      </group>
-
-      <group ref={arrowRef} visible={false} renderOrder={4}>
-        <mesh position={[0, 0.18, 0]}>
-          <coneGeometry args={[0.082, 0.18, 24]} />
-          <meshBasicMaterial
-            ref={(material) => {
-              arrowMats.current[0] = material;
-            }}
-            color="#f6e016"
-            toneMapped={false}
-            transparent
-            depthTest={false}
-            depthWrite={false}
-          />
-        </mesh>
-        <mesh position={[0, 0.02, 0]}>
-          <cylinderGeometry args={[0.024, 0.024, 0.18, 16]} />
-          <meshBasicMaterial
-            ref={(material) => {
-              arrowMats.current[1] = material;
-            }}
-            color="#f6e016"
-            toneMapped={false}
-            transparent
-            depthTest={false}
-            depthWrite={false}
-          />
-        </mesh>
       </group>
 
       <CameraFit box={box} controlsRef={controlsRef} />
