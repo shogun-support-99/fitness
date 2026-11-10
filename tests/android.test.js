@@ -107,6 +107,24 @@ test("workflow builds, signs and releases the APK plus version.json", async () =
     workflow.includes("rm -rf android"),
     "Pages deploy must exclude android/ so the keystore is never staged",
   );
+  // setup-android (v3 and v4) crashes on the current ubuntu-latest runner
+  // image; the job must drive the preinstalled SDK in $ANDROID_HOME directly.
+  assert.ok(
+    !workflow.includes("android-actions/setup-android"),
+    "workflow must not use android-actions/setup-android; it fails on the current runner image",
+  );
+  assert.ok(
+    workflow.includes("sdkmanager") && workflow.includes("--licenses"),
+    "workflow must accept SDK licenses from the preinstalled $ANDROID_HOME",
+  );
+  assert.ok(
+    workflow.includes("platforms;android-34"),
+    "workflow must install the android-34 platform the build compiles against",
+  );
+  assert.ok(
+    /java-version: 17/.test(workflow),
+    "workflow must build on JDK 17",
+  );
 });
 
 test("workflow versions the APK from the CI run number", async () => {
