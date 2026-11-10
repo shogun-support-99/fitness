@@ -20,6 +20,7 @@ const APP_GRADLE = path.join(root, "android/app/build.gradle.kts");
 const KEYSTORE = path.join(root, "android/keystore/ironlog-release.p12");
 const KEYSTORE_README = path.join(root, "android/keystore/README.md");
 const WORKFLOW = path.join(root, ".github/workflows/deploy.yml");
+const GRADLE_WRAPPER = path.join(root, "android/gradle/wrapper/gradle-wrapper.properties");
 const APK_URL = "https://github.com/shogun-support-99/fitness/releases/latest/download/ironlog.apk";
 const VERSION_URL = "https://github.com/shogun-support-99/fitness/releases/latest/download/version.json";
 
@@ -128,6 +129,26 @@ test("workflow builds, signs and releases the APK plus version.json", async () =
   assert.ok(
     /java-version: 17/.test(workflow),
     "workflow must build on JDK 17",
+  );
+});
+
+test("workflow and wrapper agree on a Gradle version services.gradle.org still serves", async () => {
+  const workflow = await read(WORKFLOW);
+  const wrapper = await read(GRADLE_WRAPPER);
+  const workflowVersion = /GRADLE_VERSION=([0-9.]+)/.exec(workflow)?.[1];
+  const wrapperVersion = /gradle-([0-9.]+)-bin\.zip/.exec(wrapper)?.[1];
+  assert.ok(workflowVersion, "workflow must pin a Gradle version");
+  assert.ok(wrapperVersion, "wrapper must declare a Gradle distribution");
+  assert.equal(
+    workflowVersion,
+    wrapperVersion,
+    "workflow and wrapper must use the same Gradle version, or the two build paths diverge",
+  );
+  // Gradle withdrew 8.7.3 from services.gradle.org, which 404'd the CI download.
+  assert.notEqual(
+    wrapperVersion,
+    "8.7.3",
+    "Gradle 8.7.3 is no longer published; its distribution URL returns 404",
   );
 });
 

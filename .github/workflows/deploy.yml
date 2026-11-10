@@ -137,7 +137,7 @@ jobs:
           # forced onto Node 24 on the current runner image and crash instantly.
           # The runner may already ship a usable Gradle; otherwise install the
           # exact version the project's wrapper declares into a writable path.
-          GRADLE_VERSION=8.7.3
+          GRADLE_VERSION=8.14.6
           if command -v gradle >/dev/null 2>&1 \
              && gradle --version 2>/dev/null | grep -qx "Gradle ${GRADLE_VERSION}"; then
             echo "Using preinstalled Gradle ${GRADLE_VERSION}"
