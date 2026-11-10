@@ -31,7 +31,13 @@ const TARGET_HEIGHT = 1.8;
 const MAX_AZIMUTH = 0.42;
 /** Breathing space around the model before the card edge. The extra room on
  *  top of the silhouette lets a raised pointing arm stay inside the card. */
-const CAMERA_MARGIN = 1.16;
+const CAMERA_MARGIN = 1.22;
+/** How far above the model's centre the camera aims, in world units. The
+ *  character sits lower in the frame than a centred fit would put it, so the
+ *  head — and the pointing arm, and the breathing sway — keep clear of the top
+ *  edge of the canvas instead of grazing it. Applied in the camera aim rather
+ *  than on `model.position.y`, which the per-frame hop/hover springs own. */
+const AIM_LIFT = 0.09;
 
 /** Keep a failed HDR / model from taking the whole hero down with it. */
 class SilentBoundary extends Component {
@@ -349,6 +355,11 @@ function CameraFit({ box, controlsRef }) {
         apparentWidth / 2 / Math.tan(hFov / 2),
       ) * CAMERA_MARGIN;
 
+    // Aim above the model centre so the head keeps its clearance; the camera
+    // stays level, so this reads as the character standing slightly lower in
+    // the frame rather than as a tilted camera.
+    const aim = new Vector3(center.x, center.y + AIM_LIFT, center.z);
+
     camera.position.set(center.x, center.y, center.z + distance);
     // R3F can commit the size before it has refreshed the projection matrix;
     // pin the aspect explicitly or the first fit bakes a square frustum.
@@ -356,11 +367,11 @@ function CameraFit({ box, controlsRef }) {
     camera.near = Math.max(0.01, distance - radius * 2.5);
     camera.far = distance + radius * 3 + 1;
     camera.updateProjectionMatrix();
-    camera.lookAt(center);
+    camera.lookAt(aim);
 
     const controls = controlsRef.current;
     if (controls) {
-      controls.target.copy(center);
+      controls.target.copy(aim);
       controls.update();
     }
   }, [box, camera, controlsRef, width, height]);
@@ -828,7 +839,7 @@ function Golem({ onReady, finePointer }) {
         <OrbitControls
           ref={controlsRef}
           makeDefault
-          target={[center.x, center.y, center.z]}
+          target={[center.x, center.y + AIM_LIFT, center.z]}
           enablePan={false}
           enableZoom={false}
           enableDamping
@@ -855,6 +866,16 @@ function Golem({ onReady, finePointer }) {
 }
 
 function Scene({ onReady }) {
+  const scene = useThree((state) => state.scene);
+
+  // There is no card behind the character any more, so the clear colour is the
+  // only thing that can put one there. Alpha is already on and the clear
+  // colour is fully transparent; pin the background to null as well, or a
+  // stray scene background would paint an opaque rectangle behind the golem.
+  useEffect(() => {
+    scene.background = null;
+  }, [scene]);
+
   const [finePointer, setFinePointer] = useState(() =>
     window.matchMedia("(pointer: fine)").matches,
   );

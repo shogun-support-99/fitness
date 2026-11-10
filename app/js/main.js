@@ -25,8 +25,6 @@ import {
   initScrollMeter,
   initSpatialField,
   initSpotlight,
-  initMotionTrail,
-  initCursor,
   initMagnetic,
   initGyroTilt,
   initTapRipple,
@@ -1385,10 +1383,8 @@ function boot() {
   });
   initSpatialField(document);
   initSpotlight(document);
-  initMotionTrail(document);
   initAmbientLight(document);
   initScrollMeter(document);
-  initCursor(document);
   initMagnetic(document, { strength: 7 });
   initTapRipple(document);
   initGyroTilt(document, { max: 4.5 });

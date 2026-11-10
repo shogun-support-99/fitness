@@ -11,7 +11,7 @@
    Ground: stone paper (#f2f1ec). Ink: bottle green (#0f2a1d). Signal:
    yellow (#f6e016) — one notch in the logo, one tab on the front folder,
    the active nav marker, the final CTA action. Data green (#1f5c3f)
-   only for the "done" ticks in the mock log.
+   only for the "done" ticks in the hero folder.
 
    Faces: Figtree (self-hosted) for everything; Geist Mono (self-hosted)
    for figures, labels and the mono moments.
@@ -640,82 +640,6 @@ svg.tick,
 
 .hero-art.is-pressed {
   scale: 0.985;
-}
-
-/* Dual cursor: a tight core that tracks 1:1, and a heavier ring that springs
-   behind it. The OS pointer stays visible; this layer is extra weight. */
-.cursor-core,
-.cursor-orbit {
-  position: fixed;
-  z-index: 1000;
-  top: 0;
-  left: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  will-change: transform;
-}
-
-.cursor-core {
-  z-index: 1001;
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  background: var(--ink);
-  box-shadow: 0 0 0 2px var(--signal);
-  transition: width 180ms var(--ease), height 180ms var(--ease), margin 180ms var(--ease),
-    background-color 180ms var(--ease), opacity 180ms var(--ease), transform 80ms linear;
-}
-
-.cursor-orbit {
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border: 1.5px solid color-mix(in srgb, var(--ink) 55%, transparent);
-  background: color-mix(in srgb, var(--signal) 18%, transparent);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 10%, transparent);
-  opacity: 1;
-  transition: width 200ms var(--ease), height 200ms var(--ease), margin 200ms var(--ease),
-    background-color 180ms var(--ease), opacity 180ms var(--ease), box-shadow 180ms var(--ease),
-    border-color 180ms var(--ease);
-}
-
-.cursor-core.is-over-control {
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0 -6px;
-  background: var(--signal);
-  box-shadow: 0 0 0 2px var(--ink);
-}
-
-.cursor-orbit.is-over-control {
-  width: 56px;
-  height: 56px;
-  margin: -28px 0 0 -28px;
-  border-color: var(--ink);
-  background: color-mix(in srgb, var(--signal) 32%, transparent);
-  box-shadow: 0 0 0 10px color-mix(in srgb, var(--signal) 14%, transparent);
-}
-
-.cursor-core.is-down {
-  transform: scale(0.7);
-}
-
-.cursor-orbit.is-down {
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
-}
-
-.cursor-core.is-away,
-.cursor-orbit.is-away {
-  opacity: 0;
-}
-
-@media (hover: none), (pointer: coarse) {
-  .cursor-core,
-  .cursor-orbit {
-    display: none;
-  }
 }
 
 /* The one motif at the largest scale: a plate outline behind the folders. */
@@ -1952,226 +1876,6 @@ svg.tick,
   margin-top: 26px;
 }
 
-.ledger-mock {
-  border-radius: var(--r-xl);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: var(--shadow-float);
-  overflow: hidden;
-}
-
-.ledger-mock-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--line);
-  background: var(--paper);
-}
-
-.ledger-mock-mark {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-}
-
-.ledger-mock-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-2);
-}
-
-.ledger-mock-live {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.ledger-mock-live i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--data);
-  box-shadow: 0 0 0 3px var(--data-soft);
-}
-
-.ledger-mock-body {
-  padding: 18px;
-  display: grid;
-  gap: 16px;
-}
-
-.mock-totals {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.mock-totals div {
-  display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--sunken);
-}
-
-.mock-totals span {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  color: var(--faint);
-}
-
-.mock-totals strong {
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-.mock-list {
-  display: grid;
-  gap: 6px;
-}
-
-.mock-list-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding-bottom: 2px;
-}
-
-.mock-list-head strong {
-  font-size: 13.5px;
-  font-weight: 700;
-}
-
-.mock-list-head span {
-  font-size: 11px;
-  color: var(--faint);
-}
-
-.mock-set {
-  display: grid;
-  grid-template-columns: 20px 1fr 44px 22px;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  background: var(--sunken);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
-.mock-set > span:first-child {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  background: #dddcd2;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--ink-2);
-}
-
-.mock-set b {
-  font-weight: 700;
-}
-
-.mock-set > span:nth-child(3) {
-  color: var(--muted);
-}
-
-.mock-set i {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--data);
-}
-
-.mock-set i svg {
-  width: 11px;
-  height: 11px;
-  fill: none;
-  stroke: #fff;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.mock-set i.is-idle {
-  background: #d8d8ce;
-}
-
-.mock-set.is-done {
-  background: var(--data-soft);
-}
-
-.mock-set.is-done > span:first-child {
-  background: #c9e2cf;
-  color: var(--data-ink);
-}
-
-.mock-set.is-done b {
-  color: var(--data-ink);
-}
-
-.mock-rest {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 14px;
-  border-radius: 12px;
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 12px;
-}
-
-.mock-rest svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: #b9c9bd;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.mock-rest > span:first-of-type {
-  color: #b9c9bd;
-  font-weight: 600;
-}
-
-.mock-rest strong {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.mock-rest-bar {
-  position: relative;
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.18);
-  overflow: hidden;
-}
-
-.mock-rest-bar i {
-  position: absolute;
-  inset: 0 42% 0 0;
-  border-radius: 2px;
-  background: var(--signal);
-}
-
 .showcase-note {
   display: block;
   margin-top: 14px;
@@ -3040,29 +2744,20 @@ html.js.motion-ok [data-reveal].is-in {
   touch-action: pan-y;
 }
 
+/* The character floats directly on the page: no card fill, no border, no
+   shadow, and nothing clipped at the edges — the WebGL canvas below is fully
+   transparent, so any of those would draw a box around the golem. */
 .char-stage {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 26px;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--signal) 20%, var(--ink));
-  background:
-    radial-gradient(115% 72% at 50% 108%, color-mix(in srgb, var(--signal) 22%, transparent), transparent 62%),
-    var(--ink);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--paper) 12%, transparent),
-    var(--shadow-float);
   will-change: transform;
-  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+  transition: transform 0.35s var(--ease);
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .char-stage:hover {
     transform: translateY(-3px);
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--paper) 14%, transparent),
-      0 22px 50px color-mix(in srgb, var(--ink) 24%, transparent);
   }
 }
 
@@ -4038,158 +3733,9 @@ html.js.motion-ok [data-reveal].is-in {
   }
 }
 
-.showcase-stage .ledger-mock {
-  position: relative;
-  z-index: 2;
-}
-
 .showcase-stage .showcase-note {
   position: relative;
   z-index: 2;
-}
-
-/* Scenes inside the mock: the artefact follows the selected tab. */
-.mock-scene {
-  display: grid;
-  gap: 16px;
-  min-height: 286px;
-  align-content: start;
-}
-
-.mock-scene[hidden] {
-  display: none;
-}
-
-.mock-scene.is-switching {
-  animation: mock-scene-in 0.4s var(--ease) both;
-}
-
-@keyframes mock-scene-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 12px, -40px) rotateX(4deg);
-  }
-}
-
-.mock-rest-stage {
-  display: grid;
-  justify-items: center;
-  gap: 9px;
-  padding: 22px 18px 18px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background:
-    radial-gradient(220px circle at 50% 0%, color-mix(in srgb, var(--signal) 18%, transparent), transparent 70%),
-    var(--sunken);
-}
-
-.mock-rest-kicker {
-  font-family: var(--mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.mock-rest-clock {
-  font-family: var(--mono);
-  font-size: 44px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.mock-rest-meter {
-  position: relative;
-  width: 100%;
-  height: 5px;
-  margin-top: 4px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
-}
-
-.mock-rest-meter i {
-  display: block;
-  width: 62%;
-  height: 100%;
-  border-radius: 3px;
-  background: var(--signal);
-}
-
-.mock-rest-actions {
-  display: flex;
-  gap: 7px;
-  margin-top: 4px;
-}
-
-.mock-rest-actions b {
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--surface);
-  font-family: var(--mono);
-  font-size: 9.5px;
-  font-weight: 500;
-  color: var(--ink-2);
-}
-
-.mock-history-list {
-  list-style: none;
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-}
-
-.mock-history-list li {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--sunken);
-  font-size: 12px;
-}
-
-.mock-history-list span {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  color: var(--faint);
-}
-
-.mock-history-list strong {
-  font-weight: 650;
-  color: var(--ink);
-}
-
-.mock-history-list b {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.mock-rest-quiet {
-  background: var(--sunken);
-  color: var(--ink);
-}
-
-.mock-rest-quiet svg {
-  stroke: var(--data);
-}
-
-.mock-rest-quiet > span:first-of-type {
-  color: var(--muted);
-}
-
-.mock-rest-quiet strong {
-  margin-left: auto;
-  color: var(--ink-2);
 }
 
 /* ── Routine cards: a ghost numeral pressed behind the paper ──────────── */
@@ -4483,13 +4029,6 @@ html.js.motion-ok [data-reveal].is-in {
     justify-self: start;
   }
 
-  .mock-scene {
-    min-height: 250px;
-  }
-
-  .mock-rest-clock {
-    font-size: 38px;
-  }
 
   .routine-card > .routine-index {
     font-size: 56px;

@@ -18,7 +18,6 @@ import {
 } from "../../app/js/stats.js";
 import {
   clampUnit,
-  initCursor,
   initGyroTilt,
   initMagnetic,
   initTapRipple,
@@ -69,14 +68,6 @@ const tabList = doc.querySelector(".tabs");
 const tabs = [...doc.querySelectorAll("[data-tab]")];
 const panels = [...doc.querySelectorAll("[data-panel]")];
 const tabGlider = tabList?.querySelector(".tabs-glider");
-const mockScenes = [...doc.querySelectorAll("[data-mock-scene]")];
-const mockTitle = doc.querySelector("[data-mock-title]");
-const mockState = doc.querySelector("[data-mock-state]");
-const mockMeta = [
-  { title: "IronLog — live session", state: "Saved locally" },
-  { title: "IronLog — rest timer", state: "Countdown live" },
-  { title: "IronLog — session archive", state: "3 saved" },
-];
 
 if (tabList && tabs.length === panels.length) {
   let activeTab = Math.max(
@@ -119,22 +110,6 @@ if (tabList && tabs.length === panels.length) {
       panel.classList.add("is-switching");
     }
 
-    // The preview is a stage, not a screenshot: the ledger mock changes with
-    // the tab so the paragraph, the control and the artefact stay one story.
-    if (mockScenes.length === panels.length) {
-      mockScenes.forEach((scene, i) => {
-        const on = i === index;
-        scene.hidden = !on;
-        scene.classList.toggle("is-active", on);
-        if (on && !motionSuppressed) {
-          scene.classList.remove("is-switching");
-          void scene.offsetWidth;
-          scene.classList.add("is-switching");
-        }
-      });
-      if (mockTitle) mockTitle.textContent = mockMeta[index].title;
-      if (mockState) mockState.textContent = mockMeta[index].state;
-    }
 
     if (focus) tabs[index].focus();
   };
@@ -159,8 +134,6 @@ if (tabList && tabs.length === panels.length) {
 const heroArt = doc.querySelector(".hero-art");
 const heroStack = heroArt?.querySelector(".folder-stack");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
-
-initCursor(doc);
 
 if (heroArt && heroStack) {
   let frame = 0;

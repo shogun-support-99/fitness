@@ -32,7 +32,6 @@ import {
   revealVariant,
   spotlightPercent,
   springStep,
-  trailWidth,
   viewportNorm,
 } from "../app/js/motion.js";
 
@@ -663,24 +662,6 @@ describe("depthVector", () => {
   test("survives nonsense input", () => {
     assert.deepEqual(depthVector(NaN, NaN, NaN, NaN), { x: 0, y: 0 });
     assert.deepEqual(depthVector(9, -9, 0, 0), { x: 0, y: 0 });
-  });
-});
-
-describe("trailWidth", () => {
-  test("rests at the base width when the pointer is slow", () => {
-    assert.equal(trailWidth(0, 4), 4);
-  });
-
-  test("tapers as the pointer speeds up", () => {
-    assert.ok(trailWidth(0.8, 4) < trailWidth(0.2, 4));
-  });
-
-  test("never reaches zero, even at an absurd speed", () => {
-    assert.ok(trailWidth(100, 4) >= 4 * 0.32);
-  });
-
-  test("never produces NaN from missing input", () => {
-    assert.ok(Number.isFinite(trailWidth(undefined, undefined)));
   });
 });
 
