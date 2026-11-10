@@ -114,6 +114,10 @@ test("workflow builds, signs and releases the APK plus version.json", async () =
     "workflow must not use android-actions/setup-android; it fails on the current runner image",
   );
   assert.ok(
+    !workflow.includes("gradle/actions/setup-gradle"),
+    "workflow must not use gradle/actions/setup-gradle@v3; it is a Node 20 action that crashes on the current runner",
+  );
+  assert.ok(
     workflow.includes("sdkmanager") && workflow.includes("--licenses"),
     "workflow must accept SDK licenses from the preinstalled $ANDROID_HOME",
   );
