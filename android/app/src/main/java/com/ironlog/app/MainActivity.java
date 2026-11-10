@@ -334,7 +334,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void checkForUpdates() {
-            runOnUiThread(() -> checkForUpdates(true));
+            runOnUiThread(() -> MainActivity.this.checkForUpdates(true));
         }
 
         @JavascriptInterface
