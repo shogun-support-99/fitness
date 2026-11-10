@@ -22,6 +22,7 @@ Free · No account · No server · Works offline · MIT licensed
 | --- | --- |
 | 🏠 **Landing page** | https://shogun-support-99.github.io/fitness/ |
 | 🏋️ **The app** | https://shogun-support-99.github.io/fitness/app/ |
+| 📱 **Android APK** | https://github.com/shogun-support-99/fitness/releases/latest/download/ironlog.apk |
 
 Both are served from this repository by GitHub Pages. **Every push to `main` redeploys
 automatically** — see [Deployment](#deployment).
@@ -67,6 +68,9 @@ lives in your browser's local storage, and you can export all of it as JSON at a
   `IntersectionObserver` and yields entirely to `prefers-reduced-motion`.
 - **Installable PWA** — a manifest with 192/512 maskable icons and shortcuts to Workout
   and Library, plus a service worker that precaches the shell for offline use.
+- **A real Android app** — the same offline web app inside a native WebView shell,
+  published as a signed APK with on-device storage, in-app update notices and system-picker
+  backups. See [The Android app](#the-android-app).
 - **Export, import, erase** — your whole history is one JSON document.
 
 ## Try it
@@ -80,6 +84,62 @@ Open **[the app](https://shogun-support-99.github.io/fitness/app/)** and:
 5. Open **Profile** to see the records and weekly volume.
 
 Everything is written to local storage immediately, so a closed tab never costs a session.
+
+## The Android app
+
+IronLog also ships as a real installable APK. It is **not a separate codebase**: the
+same `app/`, `assets/` and `fonts/` trees the browser uses are staged into the APK at
+build time, and a native WebView shell serves them from a fake HTTPS origin
+(`https://appassets.androidplatform.net/app/`), so ES modules, `fetch()` and
+localStorage all work with no server on the phone.
+
+**Download:** [**`ironlog.apk` from the latest release**](https://github.com/shogun-support-99/fitness/releases/latest/download/ironlog.apk)
+— or open the [landing page](https://shogun-support-99.github.io/fitness/#android) and
+tap **Download the APK**. Android will ask to allow installing from your browser; that
+is expected for any app installed outside Play Store. It is signed with a release key
+held in this repository, so an update installs straight over the previous version and
+your log is kept.
+
+What the native layer adds over the PWA:
+
+- **Local storage that survives updates.** The WebView is pinned to one stable origin,
+  so the log lives on the device and is not reset when a new build is installed.
+- **Update popup.** On launch the app reads `version.json` from the latest release and,
+  when the published `versionCode` is newer than the installed one, offers the new
+  version with its release notes. *Later* dismisses it until the next build.
+- **Backups through the system picker.** Export writes wherever you choose, with no
+  storage permission, because the native shell hands the JSON to Android's document
+  picker instead of a download manager that cannot see a Blob URL.
+- **No service worker.** It is unregistered inside the shell, so a stale cache can never
+  sit between two APK versions.
+
+Every screen, routine, timer and record behaves exactly as it does in the browser build.
+The APK is large (about 145 MB) because it carries the whole offline library, including
+the licensed Gym Visual demonstrations for 1,316 exercises.
+
+### Building it
+
+The Android project lives in [`android/`](./android) and is built by CI, so no local
+Java, Gradle or SDK install is needed:
+
+```bash
+# locally, if you already have a JDK 17 and an Android SDK:
+cd android && ./gradlew assembleRelease
+```
+
+- `android/app/build.gradle.kts` declares a `syncWebAssets` Gradle task that copies the
+  three web roots into the main source set's assets directory, and hangs it off
+  `preBuild` so staging always precedes packaging. This wiring is the one thing that
+  quietly breaks the app if it regresses — a build that packages an empty asset tree
+  succeeds and ships an APK that opens to a blank screen — so a CI step asserts the
+  packaged APK really contains the shell, the stylesheet, the font and the exercise
+  media, and fails the release if it does not.
+- `versionCode` comes from the GitHub run number and `versionName` is `1.0.<run>`, so
+  every push to `main` produces a monotonically newer build the in-app checker can see.
+- The release key is committed at `android/keystore/ironlog-release.p12` (PKCS12) with
+  its rotation notes in [`android/keystore/README.md`](./android/keystore/README.md).
+  Set `IRONLOG_KEYSTORE`, `IRONLOG_STORE_PASSWORD`, `IRONLOG_KEY_ALIAS` and
+  `IRONLOG_KEY_PASSWORD` to override it with secrets instead.
 
 ## Running it locally
 
@@ -153,6 +213,10 @@ media.
 │   ├── check-links.mjs            # CI check: every local link resolves
 │   └── setup-github.sh            # One-shot repo/profile makeover
 ├── fonts/                     # Self-hosted Figtree + Geist Mono (SIL OFL) and their licences
+├── android/                   # Native WebView shell + CI build for the APK
+│   ├── app/build.gradle.kts   # Asset staging, signing, version properties
+│   ├── app/src/main/java/     # MainActivity: asset server, update dialog, backup bridge
+│   └── keystore/              # Release key and rotation notes
 ├── NOTICE                     # Third-party data/media attribution and exclusions
 ├── tests/                     # Node test-runner suites
 └── .github/workflows/deploy.yml
@@ -344,6 +408,9 @@ Pushes to `main` deploy automatically via GitHub Actions:
    links resolve.
 2. **`deploy`** — only on `main`, and only after `test` passes. Uploads the repository to
    GitHub Pages and publishes it.
+3. **`android-build-release`** — only on `main`, and only after `test` passes. Builds and
+   signs the APK, verifies it really contains the offline web app, and publishes a
+   GitHub Release with `ironlog.apk` and `version.json` attached.
 
 There is nothing to do manually. Commit to `main` and the site updates itself within a
 minute or two. Pull requests run the `test` job without deploying, so a broken change is
@@ -369,6 +436,11 @@ network request; all fonts, data and licensed illustrations are self-hosted. Wor
 stored under a single versioned local storage key and can be exported or erased from the
 app's settings screen. Full details, including routine hosting request logs, are on the
 [privacy and data page](https://shogun-support-99.github.io/fitness/privacy.html).
+
+This is equally true of the Android app: the bundled WebView holds the same single local
+storage key, so nothing is uploaded and no account exists. The one network request the
+native shell makes is the launch-time check of the published `version.json`, which is what
+drives the update popup.
 
 The trade-off is worth stating plainly: because storage is per-browser and per-origin,
 clearing site data removes your log, and it does not sync between devices. Export a backup
