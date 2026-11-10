@@ -1,0 +1,8 @@
+# Gradle build directories
+/build/
+/app/build/
+.gradle/
+
+# The web app is staged into app/assets by the syncWebAssets task at build time
+# from ../app, ../assets and ../fonts. It is generated, never hand-edited.
+/app/src/main/assets/

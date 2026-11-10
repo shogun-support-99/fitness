@@ -25,10 +25,24 @@ val appVersionName = providers.gradleProperty("ironlogVersionName").orNull ?: "1
  * exact prefix directories; pointing sourceSets straight at them would strip the
  * prefixes and every CSS, font and image request would 404 inside the APK.
  *
- * Passing the task itself to `srcDir` makes AGP treat its output directory as an
- * asset root and wires `mergeAssets` to depend on it, so the staging always runs
- * before the APK is packaged. Declared before the `android` block because Kotlin
- * DSL scripts initialise top-level properties in declaration order.
+ * The wiring has to satisfy two masters at once. AGP must treat the staged
+ * directory as an asset root, *and* the task that fills it has to run first.
+ * Handing AGP a task, a directory provider or a file collection does not do
+ * that: it flattens each one to a bare location, so a clean checkout packages a
+ * directory that does not exist yet and the build succeeds with an empty web
+ * app. Declaring the relationship by hand is no better either — Gradle rejects
+ * the build when an unowned output turns up, or drops the declaration on the
+ * floor.
+ *
+ * The way out is to stage into `src/main/assets`, the main source set's own
+ * assets directory, which AGP always reads and never has to be told about, and
+ * to hang the staging off `preBuild`, the one task every variant task depends
+ * on. Nothing here is inferred from the repository: the staged tree is
+ * generated at build time from ../app, ../assets and ../fonts, and it is
+ * gitignored, so a fresh clone has no `src/main/assets` at all.
+ *
+ * Declared before the `android` block because Kotlin DSL scripts initialise
+ * top-level properties in declaration order.
  */
 val syncWebAssets = tasks.register<Sync>("syncWebAssets") {
     description = "Stages the offline web app into the APK assets."
@@ -42,7 +56,15 @@ val syncWebAssets = tasks.register<Sync>("syncWebAssets") {
     from(rootProject.file("../fonts")) {
         into("fonts")
     }
-    into(layout.buildDirectory.dir("appassets"))
+    into(layout.projectDirectory.dir("src/main/assets"))
+}
+
+// preBuild is the ancestor of every task in every variant's chain, so the
+// staged tree is complete before anything merges, lints or packages assets.
+tasks.configureEach {
+    if (name == "preBuild") {
+        dependsOn(syncWebAssets)
+    }
 }
 
 android {
@@ -86,14 +108,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    sourceSets {
-        getByName("main") {
-            assets {
-                srcDir(syncWebAssets)
-            }
-        }
     }
 
     /*

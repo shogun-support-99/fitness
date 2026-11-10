@@ -13,13 +13,35 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const IGNORED = new Set([".git", "node_modules", "tests", "scripts", ".github"]);
 
-async function walk(dir) {
+/**
+ * Directories whose HTML is generated rather than authored. `android` holds the
+ * native shell plus Gradle's build output, and the Gradle `syncWebAssets` task
+ * copies the whole web app into `android/app/src/main/assets/` at build time —
+ * scanning those would report the same links twice and flag the deliberately
+ * external `../sitemap.xml` / `../` references in a copy nobody edits.
+ */
+const SKIP_DIRS = ["build", ".gradle", "intermediates", "generated", "reports", "outputs", "tmp"];
+const SKIP_PATHS = ["android/app/src/main/assets"];
+
+function skipPath(rel) {
+  const parts = rel.split("/");
+  if (SKIP_DIRS.some((part) => parts.includes(part))) return true;
+  return SKIP_PATHS.some((p) => rel === p || rel.startsWith(`${p}/`));
+}
+
+async function walk(dir, rel = "") {
   const out = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     if (IGNORED.has(entry.name)) continue;
     const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await walk(full)));
-    else if (entry.name.endsWith(".html")) out.push(full);
+    // Compared with forward slashes so the skip list is platform independent.
+    const relFull = rel ? `${rel}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      if (skipPath(relFull)) continue;
+      out.push(...(await walk(full, relFull)));
+    } else if (entry.name.endsWith(".html")) {
+      out.push(full);
+    }
   }
   return out;
 }

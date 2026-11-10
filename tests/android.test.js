@@ -51,6 +51,45 @@ test("Android section links releases listing and names the artifact", async () =
   assert.ok(css.includes(".android-section"), "landing CSS must style the Android section");
 });
 
+test("Gradle stages the web app into the APK and wires the preBuild dependency", async () => {
+  const gradle = await read(APP_GRADLE);
+  // The Sync task copies app/, assets/ and fonts/ under those exact prefixes.
+  assert.ok(gradle.includes('into("app")'), "asset staging must keep the app/ prefix");
+  assert.ok(gradle.includes('into("assets")'), "asset staging must keep the assets/ prefix");
+  assert.ok(gradle.includes('into("fonts")'), "asset staging must keep the fonts/ prefix");
+  // Staging into the main source set's own assets directory is what makes AGP
+  // read it at all: a generated source directory has to be paired with a task
+  // dependency, and handing that to AGP either fails the build or is dropped.
+  assert.ok(
+    /into\(layout\.projectDirectory\.dir\("src\/main\/assets"\)\)/.test(gradle),
+    "staging must write into the main source set's assets directory, which AGP always reads",
+  );
+  // Without this, a clean checkout runs the build with no src/main/assets at
+  // all and ships an APK whose shell opens blank — a failure nothing reports.
+  assert.ok(
+    /tasks\.named\("preBuild"\)|tasks\.configureEach/.test(gradle) && /dependsOn\(syncWebAssets\)/.test(gradle),
+    "preBuild must depend on syncWebAssets or the web app is never staged on a clean checkout",
+  );
+  assert.ok(
+    /from\(rootProject\.file\("\.\.\/app"\)\)/.test(gradle)
+      && /from\(rootProject\.file\("\.\.\/assets"\)\)/.test(gradle)
+      && /from\(rootProject\.file\("\.\.\/fonts"\)\)/.test(gradle),
+    "staging must read the three web roots that live outside the android/ module",
+  );
+});
+
+test("CI fails the build when the APK does not contain the bundled web app", async () => {
+  const workflow = await read(WORKFLOW);
+  assert.ok(
+    workflow.includes("APK is missing bundled asset"),
+    "workflow must fail loudly when a bundled asset is absent from the APK",
+  );
+  assert.ok(
+    workflow.includes("the exercise library and media did not ship"),
+    "workflow must fail when the APK is far too small to contain the library",
+  );
+});
+
 test("native update checker points at version.json release asset", async () => {
   const manifest = await read(MANIFEST);
   const main = await read(path.join(root, "android/app/src/main/java/com/ironlog/app/MainActivity.java"));

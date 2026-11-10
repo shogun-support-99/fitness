@@ -165,8 +165,52 @@ jobs:
             -PironlogVersionCode=${{ github.run_number }} \
             -PironlogVersionName=1.0.${{ github.run_number }}
 
-      - name: List built APK
-        run: ls -la android/app/build/outputs/apk/release/
+      - name: Verify the APK contains the whole offline web app
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -f "${APK}" || { echo "::error::release APK was not produced"; exit 1; }
+          # The shell is only useful if the bundled web app came with it. AGP
+          # accepts a staged directory as an asset source without inheriting the
+          # task that fills it, so a wiring regression ships an APK that opens to
+          # a blank WebView and fails nothing. Fail loudly instead.
+          #
+          # Every asset in an APK lives under the top-level assets/ directory, so
+          # src/main/assets/app/index.html is the member assets/app/index.html.
+          for required in assets/app/index.html assets/app/js/main.js \
+                          assets/app/css/app.css assets/assets/css/tailwind.css \
+                          assets/fonts/Geist-Variable.woff2; do
+            if ! python3 - "$APK" "$required" <<'PY'
+          import sys, zipfile
+          apk, member = sys.argv[1], sys.argv[2]
+          names = zipfile.ZipFile(apk).namelist()
+          sys.exit(0 if member in names else 1)
+          PY
+            then
+              echo "::error::APK is missing bundled asset '$required'"
+              exit 1
+            fi
+            echo "  present: $required"
+          done
+          # The exercise library and its licensed demonstration media are what
+          # make this build large; an APK without them is not the app.
+          MEDIA=$(python3 - "$APK" <<'PY'
+          import sys, zipfile
+          names = zipfile.ZipFile(sys.argv[1]).namelist()
+          print(sum(1 for n in names if n.startswith("assets/app/media/gymvisual/")))
+          PY
+          )
+          if [ "${MEDIA}" -lt 2000 ]; then
+            echo "::error::APK carries only ${MEDIA} gymvisual media files; the library did not ship"
+            exit 1
+          fi
+          echo "  present: ${MEDIA} gymvisual exercise media files"
+          BYTES=$(stat -c%s "${APK}")
+          if [ "${BYTES}" -lt $((50 * 1024 * 1024)) ]; then
+            echo "::error::APK is only ${BYTES} bytes; the exercise library and media did not ship"
+            exit 1
+          fi
+          echo "APK is $((BYTES / 1024 / 1024)) MB and contains the full web app."
 
       - name: Stage release assets
         run: |
