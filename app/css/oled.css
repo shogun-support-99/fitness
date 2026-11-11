@@ -1957,6 +1957,9 @@ textarea::placeholder {
   gap: 14px;
 }
 
+/* Full-bleed sticky header. The negative margin must track .main's real
+   gutter (16px on phones, 32px from 720px) or the head pokes past the shell
+   and adds a few pixels of horizontal scroll. */
 .logger-head {
   position: sticky;
   top: var(--topbar-h);
@@ -1965,8 +1968,8 @@ textarea::placeholder {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px 14px;
-  margin: -20px -20px 0;
-  padding: 14px 20px 12px;
+  margin: -20px -16px 0;
+  padding: 14px 16px 12px;
   background: rgba(0, 0, 0, 0.94);
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -2343,12 +2346,27 @@ textarea::placeholder {
   box-shadow: 0 0 14px -2px rgba(34, 197, 94, 0.6);
 }
 
+/* The glyph stays 24px so the set row keeps Hevy's tight density, but the
+   hit area is stretched to 44px with an invisible pseudo-element. It is
+   right-anchored, not centred: a centred 44px box pokes past the row's
+   trailing edge and adds phantom horizontal scroll to the outlet. */
 .set-delete {
+  position: relative;
   width: 24px;
   height: 24px;
   border-radius: 8px;
   color: #5d5d65;
   cursor: pointer;
+}
+
+.set-delete::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  transform: translateY(-50%);
 }
 
 .set-delete .icon {
@@ -3794,4 +3812,222 @@ textarea::placeholder {
 .mm-outline {
   fill: #1a1a1d;
   stroke: #2e2e34;
+}
+
+
+/* ==========================================================================
+   Hevy tab bar
+
+   The desktop rail is gone. IronLog is a phone app: one top bar, one
+   scrolling outlet, one fixed bottom tab bar (Home | Workout | History |
+   Profile), exactly the bar Hevy ships in
+   src_components_tabbar_assets_tabbar{home,workout,profile,coach}.png.
+
+   Everything below is an override of the rail rules above, so it has to come
+   after them in source order. The glider stays: main.js measures it from
+   layout (.nav .nav-item.is-active) and it paints the active tile.
+   ========================================================================== */
+
+.nav.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0;
+  flex: 0 0 auto;
+  height: var(--tabbar-h);
+  padding: 6px 6px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  background: rgba(0, 0, 0, 0.93);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.nav.tabbar .nav-item {
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px 2px;
+  border-radius: 12px;
+  color: #8b8b93;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.nav.tabbar .nav-item:hover {
+  background: none;
+  color: #d4d4d8;
+}
+
+/* The active tab is the only lit tile on the bar; no dot, no glow. */
+.nav.tabbar .nav-item.is-active {
+  color: var(--accent);
+  font-weight: 700;
+  background: none;
+}
+
+.nav.tabbar .nav-item.is-active::after {
+  display: none;
+}
+
+.nav.tabbar .nav-item:active {
+  transform: scale(0.94);
+}
+
+.nav.tabbar .nav-icon {
+  width: 46px;
+  height: 26px;
+  border-radius: 9px;
+  background: none;
+}
+
+.nav.tabbar .nav-icon svg,
+.nav.tabbar .nav-icon .icon {
+  width: 21px;
+  height: 21px;
+  stroke-width: 1.9;
+}
+
+.nav.tabbar .nav-item.is-active .nav-icon {
+  background: none;
+  color: var(--accent);
+  filter: none;
+}
+
+.nav.tabbar .nav-item.is-active .nav-icon svg,
+.nav.tabbar .nav-item.is-active .nav-icon .icon {
+  stroke-width: 2.2;
+}
+
+.nav.tabbar .nav-text {
+  display: inline;
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* The glider is the active tile's fill: a soft blue plate behind the icon. */
+.nav.tabbar .nav-glider,
+.nav.tabbar .nav[data-glider="icon"] .nav-glider,
+.nav[data-glider="icon"] .nav.tabbar .nav-glider {
+  border-radius: 10px;
+  background: rgba(33, 150, 243, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(33, 150, 243, 0.22);
+}
+
+.nav.tabbar .nav-glider::before {
+  display: none;
+}
+
+/* -- Top bar ------------------------------------------------------------- */
+
+.topbar-mark-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.topbar-title {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -- Outlet clearance for the fixed bar ---------------------------------- */
+
+.main {
+  padding-bottom: calc(var(--tabbar-h) + 28px);
+}
+
+/* The shell is a fixed-height column so the outlet scrolls, not the page:
+   the tab bar never scrolls away with the content. */
+.app-shell {
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
+.app-shell .main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* -- Tablet / desktop ---------------------------------------------------- */
+
+@media (min-width: 720px) {
+  .nav.tabbar .nav-item {
+    font-size: 11px;
+  }
+
+  .nav.tabbar .nav-icon {
+    width: 54px;
+  }
+
+  .app-topbar {
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 32px 14px;
+  }
+
+  .main {
+    padding: 24px 32px calc(var(--tabbar-h) + 36px);
+  }
+}
+
+@media (min-width: 1040px) {
+  .app-shell {
+    max-width: 560px;
+    margin: 0 auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .nav.tabbar {
+    left: 50%;
+    right: auto;
+    width: 560px;
+    transform: translateX(-50%);
+  }
+}
+
+
+/* -- Touch targets -------------------------------------------------------
+   Inline text links ("See all", "View all") measured 20-23px tall at
+   390x844, under any usable tap height. Padding, not font size, is what a
+   thumb hits, so the row keeps its type and gains a comfortable box. */
+.link {
+  min-height: 44px;
+  padding: 0 2px;
+  align-items: center;
+}
+
+.section-title-row .link,
+.panel-head .link {
+  min-height: 44px;
+  padding: 0 4px;
+}
+
+/* Decorative depth glows sit behind the hero copy; they must never widen the
+   document even when the panel is narrow. */
+.start-panel,
+.training-hero,
+.active-banner {
+  overflow: hidden;
 }

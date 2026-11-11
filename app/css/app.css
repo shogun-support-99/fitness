@@ -31,11 +31,26 @@
 
 /* ── Faces ─────────────────────────────────────────────────────────────── */
 
+/* Figtree is the face the Hevy APK ships in assets/fonts/ (Regular, Medium,
+   SemiBold, Bold under the SIL Open Font License), and IronLog already
+   self-hosts the variable build for the landing page, so the app borrows the
+   same copy instead of inventing a lookalike: one family, no third-party
+   request, no licence change. The latin-ext cut is declared as a separate
+   face so the browser can pick the smaller file for plain Latin text. */
 @font-face {
-  font-family: "Geist";
-  src: url("../../fonts/Geist-Variable.woff2") format("woff2");
+  font-family: "Figtree";
+  src: url("../../fonts/Figtree-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("../../fonts/Figtree-Variable-latinext.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
   font-display: swap;
 }
 
@@ -126,7 +141,7 @@
   --fs-small: 12px;
   --fs-meta: 11px;
 
-  --font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Shadows exist only for what floats. */

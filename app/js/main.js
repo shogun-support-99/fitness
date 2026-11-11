@@ -101,6 +101,17 @@ function startMotion(root) {
 }
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
+/** Tab-bar titles. One line per route so the bar and <title> never disagree. */
+const ROUTE_TITLES = {
+  home: "Home",
+  workout: "Workout",
+  "routine-editor": "Routine builder",
+  history: "History",
+  stats: "Profile",
+  library: "Exercises",
+  settings: "Settings",
+};
+
 /** The nav glider is measured from layout, so it must be re-placed on resize. */
 const desktopNav = window.matchMedia("(min-width: 720px)");
 let navGliderPlaced = false;
@@ -111,7 +122,7 @@ function layoutNavGlider({ animate = true } = {}) {
   const glider = $(".nav-glider");
   if (!nav || !glider) return;
 
-  const active = $$(".sidebar .nav-item.is-active").find(
+  const active = $$(".nav .nav-item.is-active").find(
     (item) => item.getClientRects().length > 0,
   );
   if (!active) {
@@ -276,6 +287,12 @@ function syncNav(route) {
     item.classList.toggle("is-active", isActive);
     item.setAttribute("aria-current", isActive ? "page" : "false");
   });
+  // The tab bar replaces the old rail, so the title and the document title both
+  // follow the active tab rather than a sidebar label.
+  const title = ROUTE_TITLES[route] ?? "IronLog";
+  const node = $("[data-topbar-title]");
+  if (node) node.textContent = title;
+  document.title = `${title} · IronLog`;
   layoutNavGlider({ animate: navGliderPlaced });
 }
 
@@ -476,23 +493,6 @@ function closeSheet(id) {
 // ── Actions ────────────────────────────────────────────────────────────────
 
 const actions = {
-  "toggle-sidebar": () => {
-    const shell = document.querySelector(".shell");
-    if (!shell) return;
-    const collapsed = shell.classList.toggle("sidebar-collapsed");
-    try {
-      localStorage.setItem("ironlog.sidebar", collapsed ? "collapsed" : "open");
-    } catch {
-      /* private mode: the toggle still works for this session */
-    }
-    const btn = document.querySelector('[data-action="toggle-sidebar"]');
-    if (btn) {
-      btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-      btn.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-      btn.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-    }
-  },
-
   "start-workout": () => {
     const result = store.startWorkout();
     if (!result.ok) return toast(result.error, { tone: "danger" });
@@ -1457,25 +1457,9 @@ store.subscribe((event) => {
 // ── Boot ───────────────────────────────────────────────────────────────────
 
 function boot() {
-  // Restore the sidebar width preference before the first render so the rail
-  // does not flash open and then collapse. On a narrow desktop or tablet there
-  // is no stored preference yet, so start as the icon rail to protect the
-  // workspace; the toggle then remembers whatever the user chooses.
-  try {
-    const savedSidebar = localStorage.getItem("ironlog.sidebar");
-    const compactDesktop = window.matchMedia("(min-width: 720px) and (max-width: 959px)");
-    if (savedSidebar === "collapsed" || (!savedSidebar && compactDesktop.matches)) {
-      document.querySelector(".shell")?.classList.add("sidebar-collapsed");
-      const toggle = document.querySelector('[data-action="toggle-sidebar"]');
-      if (toggle) {
-        toggle.setAttribute("aria-expanded", "false");
-        toggle.setAttribute("aria-label", "Expand sidebar");
-        toggle.title = "Expand sidebar";
-      }
-    }
-  } catch {
-    /* storage unavailable: keep the rail open */
-  }
+  // The shell is phone-first: there is no collapsible rail to restore, so boot
+  // goes straight to the first render. The tab bar and top bar are static
+  // markup in index.html and need no rehydrating.
   if (isNativeShell) {
     // The APK ships every asset, so a service worker would only add a second
     // cache that can go stale between APK updates. Remove any worker left by a
