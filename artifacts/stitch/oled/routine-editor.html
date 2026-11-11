@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronLog - Routine Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #000000;
+      color: #FFFFFF;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Hide scrollbar for neat preview */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    .card-surface {
+      background-color: #161618;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+    }
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-pill-active {
+      background: rgba(33, 150, 243, 0.15);
+      border: 1px solid rgba(33, 150, 243, 0.4);
+      color: #64B5F6;
+    }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-0 sm:p-6 antialiased selection:bg-blue-600/30 selection:text-blue-300">
+
+  <!-- iPhone 15 Pro Max Frame Container: 390x844 approx or responsive -->
+  <div class="w-full max-w-[390px] h-[844px] bg-black text-white flex flex-col relative overflow-hidden shadow-2xl border border-zinc-900 sm:rounded-[44px]">
+
+    <!-- Status Bar (iOS style) -->
+    <div class="h-11 pt-3 px-7 flex justify-between items-center z-30 shrink-0 text-xs font-semibold tracking-tight text-white select-none">
+      <span class="mono text-[13px] font-bold">9:41</span>
+      <div class="w-24 h-4 bg-zinc-950 rounded-full flex items-center justify-center border border-zinc-900/60 shadow-inner">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 mr-1.5 animate-pulse"></div>
+        <span class="text-[9px] text-zinc-400 font-mono tracking-wider">EDITING</span>
+      </div>
+      <div class="flex items-center space-x-1.5 text-zinc-300">
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
+        <div class="w-5 h-2.5 border border-zinc-400 rounded-sm p-0.5 flex items-center">
+          <div class="h-full w-full bg-white rounded-2xs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. TOP APP BAR -->
+    <header class="px-5 py-2.5 flex items-center justify-between border-b border-white/[0.04] shrink-0 z-20 bg-black/80 backdrop-blur-md">
+      <button class="text-[#9BA1A6] text-[15px] font-medium hover:text-white transition-colors active:scale-95">
+        Cancel
+      </button>
+      <h1 class="text-[17px] font-bold tracking-tight text-white">
+        Edit Routine
+      </h1>
+      <button class="bg-[#2196F3] hover:bg-[#1E88E5] text-white text-[14px] font-semibold px-4 py-1.5 rounded-full shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
+        Save
+      </button>
+    </header>
+
+    <!-- SCROLLABLE BODY AREA -->
+    <main class="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-12">
+
+      <!-- 2. ROUTINE DETAILS CARD -->
+      <section class="card-surface p-4 relative">
+        <div class="mb-3">
+          <label class="block text-[10px] font-bold tracking-wider uppercase text-zinc-500 mb-1">Routine Name</label>
+          <input 
+            type="text" 
+            value="Push Day A" 
+            placeholder="e.g. Upper Body Power" 
+            class="w-full bg-transparent text-[20px] font-bold text-white placeholder-zinc-600 border-b border-zinc-800 pb-2 focus:outline-none focus:border-[#2196F3] transition-colors"
+          />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold tracking-wider uppercase text-zinc-500 mb-1">Notes & Objectives</label>
+          <textarea 
+            rows="2" 
+            placeholder="Add routine notes or focus areas..." 
+            class="w-full bg-transparent text-[13px] text-[#9BA1A6] placeholder-zinc-600 resize-none focus:outline-none focus:text-zinc-200"
+          >Primary chest hypertrophy + front delt overload. Strict tempo on flat bench (3s eccentric).</textarea>
+        </div>
+        <div class="mt-2.5 pt-2.5 border-t border-white/[0.04] flex items-center justify-between text-xs text-zinc-400">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[11px] font-medium border border-blue-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+              Hypertrophy
+            </span>
+            <span class="text-zinc-500 text-[12px]">•</span>
+            <span class="text-zinc-400 text-[12px]">Est. 48 mins</span>
+          </div>
+          <button class="text-zinc-500 hover:text-zinc-300 text-[12px] flex items-center gap-1">
+            <span>Tags</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- 3. EXERCISES SECTION -->
+      <div>
+        <div class="flex items-center justify-between px-1 mb-2.5">
+          <div class="flex items-center gap-2">
+            <h2 class="text-[11px] font-bold tracking-widest uppercase text-zinc-400">EXERCISES (4)</h2>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono">14 sets total</span>
+          </div>
+          <button class="text-[#2196F3] hover:text-[#64B5F6] text-[12px] font-semibold flex items-center gap-1 active:opacity-80 transition-opacity">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add Exercise
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Exercise Item 1: Barbell Bench Press (Expanded with set targets) -->
+          <div class="card-surface p-3.5 border-l-2 border-l-[#2196F3] relative group">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <!-- Drag handle (six dots) -->
+                <div class="cursor-grab text-zinc-600 hover:text-zinc-400 active:cursor-grabbing p-1 -ml-1">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="8" cy="6" r="1.75"/>
+                    <circle cx="16" cy="6" r="1.75"/>
+                    <circle cx="8" cy="12" r="1.75"/>
+                    <circle cx="16" cy="12" r="1.75"/>
+                    <circle cx="8" cy="18" r="1.75"/>
+                    <circle cx="16" cy="18" r="1.75"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-[15px] text-white">Barbell Bench Press</h3>
+                    <span class="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">CHEST</span>
+                  </div>
+                  <p class="text-[12px] text-[#9BA1A6] mt-0.5">3 sets · 8-10 reps · 80kg</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1">
+                <!-- Rest timer chip -->
+                <span class="text-[11px] font-mono text-[#64B5F6] bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  90s
+                </span>
+                <!-- Remove trash icon button -->
+                <button class="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors" title="Remove exercise">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible Set Target Rows -->
+            <div class="mt-3 pt-3 border-t border-white/[0.05] space-y-2">
+              <div class="grid grid-cols-12 text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-2">
+                <span class="col-span-2">SET</span>
+                <span class="col-span-5 text-center">WEIGHT (KG)</span>
+                <span class="col-span-4 text-center">TARGET REPS</span>
+                <span class="col-span-1"></span>
+              </div>
+
+              <!-- Set 1 -->
+              <div class="grid grid-cols-12 items-center bg-black/40 rounded-xl px-2.5 py-1.5 border border-white/[0.03]">
+                <div class="col-span-2 font-mono text-[12px] font-bold text-zinc-400">1</div>
+                <div class="col-span-5 flex justify-center">
+                  <span class="font-mono text-[13px] font-semibold text-white bg-zinc-800/80 px-2.5 py-0.5 rounded-lg border border-zinc-700/50">80.0</span>
+                </div>
+                <div class="col-span-4 flex justify-center">
+                  <span class="font-mono text-[13px] font-semibold text-white bg-zinc-800/80 px-3 py-0.5 rounded-lg border border-zinc-700/50">10</span>
+                </div>
+                <div class="col-span-1 flex justify-end">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></span>
+                </div>
+              </div>
+
+              <!-- Set 2 -->
+              <div class="grid grid-cols-12 items-center bg-black/40 rounded-xl px-2.5 py-1.5 border border-white/[0.03]">
+                <div class="col-span-2 font-mono text-[12px] font-bold text-zinc-400">2</div>
+                <div class="col-span-5 flex justify-center">
+                  <span class="font-mono text-[13px] font-semibold text-white bg-zinc-800/80 px-2.5 py-0.5 rounded-lg border border-zinc-700/50">82.5</span>
+                </div>
+                <div class="col-span-4 flex justify-center">
+                  <span class="font-mono text-[13px] font-semibold text-white bg-zinc-800/80 px-3 py-0.5 rounded-lg border border-zinc-700/50">8</span>
+                </div>
+                <div class="col-span-1 flex justify-end">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></span>
+                </div>
+              </div>
+
+              <!-- Set 3 -->
+              <div class="grid grid-cols-12 items-center bg-black/40 rounded-xl px-2.5 py-1.5 border border-white/[0.03]">
+                <div class="col-span-2 font-mono text-[12px] font-bold text-zinc-400">3</div>
+                <div class="col-span-5 flex justify-center">
+                  <span class="font-mono text-[13px] font-semibold text-white bg-zinc-800/80 px-2.5 py-0.5 rounded-lg border border-zinc-700/50">85.0</span>
+                </div>
+                <div class="col-span-4 flex justify-center">
+                  <span class="font-mono text-[13px] font-semibold text-white bg-zinc-800/80 px-3 py-0.5 rounded-lg border border-zinc-700/50">6</span>
+                </div>
+                <div class="col-span-1 flex justify-end">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></span>
+                </div>
+              </div>
+
+              <!-- Add Set Button Row -->
+              <div class="pt-1 flex items-center justify-between text-[11px]">
+                <button class="text-[#2196F3] hover:text-[#64B5F6] font-medium flex items-center gap-1">
+                  <span>+ Add Target Set</span>
+                </button>
+                <span class="text-zinc-500">Auto-increment: +2.5kg</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Item 2: Incline Dumbbell Press -->
+          <div class="card-surface p-3.5 relative">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="cursor-grab text-zinc-600 hover:text-zinc-400 p-1 -ml-1">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="8" cy="6" r="1.75"/>
+                    <circle cx="16" cy="6" r="1.75"/>
+                    <circle cx="8" cy="12" r="1.75"/>
+                    <circle cx="16" cy="12" r="1.75"/>
+                    <circle cx="8" cy="18" r="1.75"/>
+                    <circle cx="16" cy="18" r="1.75"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-[15px] text-white">Incline Dumbbell Press</h3>
+                    <span class="text-[10px] font-semibold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">UPPER CHEST</span>
+                  </div>
+                  <p class="text-[12px] text-[#9BA1A6] mt-0.5">3 sets · 10-12 reps · 28kg</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-mono text-[#64B5F6] bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  60s
+                </span>
+                <button class="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Item 3: Overhead Press -->
+          <div class="card-surface p-3.5 relative">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="cursor-grab text-zinc-600 hover:text-zinc-400 p-1 -ml-1">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="8" cy="6" r="1.75"/>
+                    <circle cx="16" cy="6" r="1.75"/>
+                    <circle cx="8" cy="12" r="1.75"/>
+                    <circle cx="16" cy="12" r="1.75"/>
+                    <circle cx="8" cy="18" r="1.75"/>
+                    <circle cx="16" cy="18" r="1.75"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-[15px] text-white">Overhead Press</h3>
+                    <span class="text-[10px] font-semibold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">SHOULDERS</span>
+                  </div>
+                  <p class="text-[12px] text-[#9BA1A6] mt-0.5">3 sets · 8 reps · 50kg</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-mono text-zinc-400 bg-zinc-800/70 px-2 py-0.5 rounded-full border border-zinc-700/50 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  90s
+                </span>
+                <button class="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Item 4: Triceps Pushdown -->
+          <div class="card-surface p-3.5 relative">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="cursor-grab text-zinc-600 hover:text-zinc-400 p-1 -ml-1">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="8" cy="6" r="1.75"/>
+                    <circle cx="16" cy="6" r="1.75"/>
+                    <circle cx="8" cy="12" r="1.75"/>
+                    <circle cx="16" cy="12" r="1.75"/>
+                    <circle cx="8" cy="18" r="1.75"/>
+                    <circle cx="16" cy="18" r="1.75"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-[15px] text-white">Cable Tricep Pushdown</h3>
+                    <span class="text-[10px] font-semibold text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">ARMS</span>
+                  </div>
+                  <p class="text-[12px] text-[#9BA1A6] mt-0.5">3 sets · 12-15 reps · 32kg</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-mono text-zinc-400 bg-zinc-800/70 px-2 py-0.5 rounded-full border border-zinc-700/50 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  60s
+                </span>
+                <button class="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. "+ ADD EXERCISE" Large Button -->
+        <button class="w-full mt-3.5 border border-dashed border-zinc-700 hover:border-blue-500/70 bg-zinc-900/40 hover:bg-zinc-900/80 text-blue-400 py-3.5 rounded-xl font-medium text-[14px] flex items-center justify-center gap-2 transition-all active:scale-[0.99] group shadow-sm">
+          <div class="w-5 h-5 rounded-full bg-blue-500/15 group-hover:bg-blue-500/25 flex items-center justify-center text-blue-400">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <span>Add Exercise</span>
+        </button>
+      </div>
+
+      <!-- 5. DEFAULT REST TIMER SELECTOR -->
+      <section class="card-surface p-4">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-[#64B5F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="text-[12px] font-bold tracking-tight text-white">Default Rest Interval</span>
+          </div>
+          <span class="text-[11px] text-zinc-500 font-mono">Applies to new sets</span>
+        </div>
+        
+        <!-- Pill chips -->
+        <div class="grid grid-cols-5 gap-1.5">
+          <button class="glass-pill py-2 rounded-xl text-[12px] font-semibold text-zinc-400 hover:text-white transition-all text-center mono">
+            45s
+          </button>
+          <button class="glass-pill py-2 rounded-xl text-[12px] font-semibold text-zinc-400 hover:text-white transition-all text-center mono">
+            60s
+          </button>
+          <!-- Selected Chip -->
+          <button class="glass-pill-active py-2 rounded-xl text-[12px] font-bold shadow-md shadow-blue-500/10 transition-all text-center mono ring-1 ring-[#2196F3]/50">
+            90s
+          </button>
+          <button class="glass-pill py-2 rounded-xl text-[12px] font-semibold text-zinc-400 hover:text-white transition-all text-center mono">
+            2 min
+          </button>
+          <button class="glass-pill py-2 rounded-xl text-[12px] font-semibold text-zinc-400 hover:text-white transition-all text-center mono">
+            3 min
+          </button>
+        </div>
+      </section>
+
+      <!-- 6. BOTTOM ACTIONS: Delete Routine Danger Button -->
+      <div class="pt-2">
+        <button class="w-full text-red-500 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/25 border border-red-500/20 py-3 rounded-xl text-[14px] font-semibold transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Delete Routine</span>
+        </button>
+      </div>
+
+    </main>
+
+    <!-- Bottom Indicator / Safe area bar -->
+    <div class="h-6 pb-2 flex justify-center items-end bg-black shrink-0">
+      <div class="w-32 h-1 bg-zinc-800 rounded-full"></div>
+    </div>
+
+  </div>
+
+</body>
+</html>

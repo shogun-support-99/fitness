@@ -45,6 +45,9 @@ function emptyDocument() {
       // are equally supported and the choice is persisted per browser.
       theme: "light",
       instructionLanguage: "en",
+      // User-composed routines. Additive: older documents simply read as an
+      // empty list, and the five built-in splits stay available regardless.
+      routines: [],
       // Set when the user exports a backup; surfaced in Settings so a local-only
       // log never drifts for months without one.
       lastBackupAt: null,
@@ -123,6 +126,7 @@ function importEntry(raw, index, seenEntries) {
   return {
     id: importId(raw.id, "e_import", index, seenEntries),
     exerciseId: importString(raw.exerciseId, 160),
+    note: importString(raw.note, 120),
     sets,
   };
 }
@@ -192,6 +196,35 @@ function importCustomExercise(raw, index, seen) {
   };
 }
 
+function importRoutine(raw, index) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const name = importString(raw.name, 40).trim();
+  if (!name) return null;
+  const muscles = [...new Set(
+    (Array.isArray(raw.muscles) ? raw.muscles : [])
+      .slice(0, 20)
+      .map((muscle) => importString(muscle, 30).trim().toLowerCase())
+      .filter(Boolean),
+  )];
+  return {
+    id: importString(raw.id, 60).trim() || `r_import_${index}`,
+    name,
+    muscles,
+    restSeconds:
+      importNumber(raw.restSeconds, { min: 0, max: 3600, integer: true }) || 90,
+  };
+}
+
+function importRoutines(value, fallback = []) {
+  if (!Array.isArray(value)) {
+    return Array.isArray(fallback) ? fallback : [];
+  }
+  return value
+    .slice(0, 30)
+    .map((routine, index) => importRoutine(routine, index))
+    .filter(Boolean);
+}
+
 function importSettings(patch, fallback) {
   const merged = {
     ...fallback,
@@ -210,6 +243,7 @@ function importSettings(patch, fallback) {
     instructionLanguage: SETTING_LANGUAGES.has(merged.instructionLanguage)
       ? merged.instructionLanguage
       : fallback.instructionLanguage,
+    routines: importRoutines(merged.routines, fallback.routines),
     lastBackupAt:
       merged.lastBackupAt === null
         ? null
@@ -435,6 +469,45 @@ export class Store {
     return this.doc.settings;
   }
 
+  /**
+   * Create or update a user-composed routine.
+   *
+   * Routines are a small ordered list in settings; the sanitizer keeps a hostile
+   * import from smuggling markup or an unbounded list back in. A routine with no
+   * name is not saved: the editor's Save button is the only caller, and a blank
+   * card in the list would be impossible to identify.
+   */
+  saveRoutine({ id = "", name = "", muscles = [], restSeconds } = {}) {
+    const clean = importRoutine(
+      {
+        id: id || `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+        name,
+        muscles,
+        restSeconds,
+      },
+      this.doc.settings.routines.length,
+    );
+    if (!clean) return { ok: false, error: "Give the routine a name first." };
+
+    const routines = this.doc.settings.routines;
+    const index = routines.findIndex((routine) => routine.id === clean.id);
+    if (index >= 0) routines[index] = clean;
+    else routines.push(clean);
+
+    this.doc.settings = importSettings({ routines }, this.doc.settings);
+    this.#commit("routine:save");
+    return { ok: true, routine: clean };
+  }
+
+  deleteRoutine(id) {
+    const before = this.doc.settings.routines.length;
+    const routines = this.doc.settings.routines.filter((routine) => routine.id !== id);
+    if (routines.length === before) return false;
+    this.doc.settings = importSettings({ routines }, this.doc.settings);
+    this.#commit("routine:delete");
+    return true;
+  }
+
   // ── Workouts ──────────────────────────────────────────────────────────────
 
   /** Every workout, newest first. */
@@ -563,6 +636,15 @@ export class Store {
     const removed = entry.sets.length !== before;
     if (removed) this.#commit("set:remove");
     return removed;
+  }
+
+  /** Free-text note shown under one exercise block in the active logger. */
+  setExerciseNote(workoutId, entryId, note) {
+    const entry = this.getWorkout(workoutId)?.exercises.find((e) => e.id === entryId);
+    if (!entry) return false;
+    entry.note = importString(note, 120);
+    this.#commit("exercise:note");
+    return true;
   }
 
   /** Most recent completed set for an exercise, from this or earlier workouts. */
@@ -741,6 +823,7 @@ export function makeExerciseEntry(exerciseId, index) {
   return {
     id: `e_${Date.now().toString(36)}_${index}_${Math.random().toString(36).slice(2, 6)}`,
     exerciseId,
+    note: "",
     sets: [],
   };
 }

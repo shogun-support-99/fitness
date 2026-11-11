@@ -77,12 +77,15 @@ public class MainActivity extends Activity {
         prefs = getSharedPreferences("ironlog", MODE_PRIVATE);
 
         Window window = getWindow();
-        window.setStatusBarColor(Color.parseColor("#0F2A1D"));
-        window.setNavigationBarColor(Color.parseColor("#F2F1EC"));
-        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        window.setStatusBarColor(Color.parseColor("#000000"));
+        window.setNavigationBarColor(Color.parseColor("#000000"));
+        // OLED shell: keep the system bars dark with light icons. The web UI
+        // paints the same black behind the safe-area insets, so there is no
+        // seam between the WebView and the phone chrome.
+        window.getDecorView().setSystemUiVisibility(0);
 
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.parseColor("#F2F1EC"));
+        webView.setBackgroundColor(Color.parseColor("#000000"));
         configureWebView(webView);
         webView.addJavascriptInterface(new NativeBridge(), "IronLogNative");
         setContentView(webView);

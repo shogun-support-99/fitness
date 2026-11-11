@@ -1,6 +1,6 @@
 {
   "name": "ironlog",
-  "version": "1.0.0",
+  "version": "1.0.96",
   "private": true,
   "description": "A private, offline-first strength training log. Static site, no build required to serve; Tailwind is compiled ahead of time into committed CSS.",
   "type": "module",

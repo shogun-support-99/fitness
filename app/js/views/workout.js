@@ -19,25 +19,40 @@ export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
   const units = store.settings.units;
 
   if (!workout) {
+    const routines = store.settings.routines ?? [];
     return `
       <section class="view view-workout view-workout-hub">
         <header class="view-head">
-          <div><h1>Workout</h1><p class="view-subline">Build a session or start from a routine.</p></div>
+          <div><p class="home-kicker">Train</p><h1>Routines</h1><p class="view-subline">Build a session or start from a routine.</p></div>
+          <a class="icon-btn" href="#/library" aria-label="Explore exercises">${icon("search")}</a>
         </header>
-        <section class="quick-start-panel workout-launch" data-tilt data-tilt-glare data-tilt-max="2.2" data-reveal="rise">
-          <div class="quick-start-copy">
-            <span class="energy-badge">${icon("bolt")} Build your session</span>
-            <h2>What are we training today?</h2>
-            <p>Start with a blank log or jump into a routine below. Your previous numbers will be waiting.</p>
-          </div>
-          <button class="btn btn-primary btn-lg" data-action="start-workout" data-magnetic>${icon("plus")} Start empty workout ${icon("chevron")}</button>
-          <svg class="hero-plate" viewBox="0 0 64 64" aria-hidden="true">
-            <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
-          </svg>
-        </section>
+
+        <button class="hub-start" type="button" data-action="start-workout">
+          <span class="hub-start-mark" aria-hidden="true">${icon("plus")}</span>
+          <span class="hub-start-copy">
+            <strong>Start Empty Workout</strong>
+            <small>Small sets. Big momentum.</small>
+          </span>
+          <span class="hub-start-go" aria-hidden="true">${icon("play")}</span>
+        </button>
+
+        <div class="hub-actions">
+          <button class="hub-action" type="button" data-action="new-routine">
+            <span class="hub-action-icon">${icon("plus")}</span>
+            <span><strong>New Routine</strong><small>Custom workout</small></span>
+          </button>
+          <a class="hub-action" href="#/library">
+            <span class="hub-action-icon">${icon("library")}</span>
+            <span><strong>Explore</strong><small>${store.exercises().length} exercises</small></span>
+          </a>
+        </div>
+
         <section class="routine-section" aria-labelledby="workout-routines-title">
-          <div class="section-title-row"><h2 id="workout-routines-title">Routines</h2><a class="link" href="#/library">Explore exercises ${icon("chevron")}</a></div>
-          ${renderRoutineCards()}
+          <div class="section-title-row">
+            <h2 id="workout-routines-title">My Routines <span class="routine-total">(${routines.length + 5})</span></h2>
+            <a class="link" href="#/library">Explore ${icon("chevron")}</a>
+          </div>
+          ${renderRoutineCards(routines)}
         </section>
       </section>`;
   }
@@ -135,9 +150,14 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
         </button>
       </header>
 
-      <button class="exercise-rest" data-action="rest-now" aria-label="Start rest timer for ${esc(name)}">
-        ${icon("timer")} Rest timer: ${esc(store.settings.restSeconds)}s
-      </button>
+      <div class="exercise-sub-actions">
+        <button class="exercise-rest" data-action="rest-now" aria-label="Start rest timer for ${esc(name)}">
+          ${icon("timer")} Rest: ${esc(store.settings.restSeconds)}s
+        </button>
+        <input class="exercise-note-input" type="text" value="${esc(entry.note ?? "")}" placeholder="Note"
+               data-action="set-exercise-note" data-entry="${esc(entry.id)}"
+               aria-label="Note for ${esc(name)}" maxlength="120" />
+      </div>
 
       <div class="set-table" role="table" aria-label="${esc(name)} sets">
         <div class="set-row set-head" role="row">
@@ -145,8 +165,8 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
           <span role="columnheader">Previous</span>
           <span role="columnheader">${esc(units)}</span>
           <span role="columnheader">Reps</span>
-          <span role="columnheader">1RM</span>
           <span role="columnheader"><span class="sr-only">Done</span></span>
+          <span role="columnheader" aria-hidden="true"></span>
         </div>
 
         ${entry.sets.map((set, i) => renderSetRow(entry, set, i, previous, units)).join("")}
@@ -154,14 +174,13 @@ function renderExerciseCard(entry, index, store, units, exerciseIndex = 0) {
 
       <div class="exercise-foot">
         <button class="btn btn-small btn-sub btn-wide add-set-button" data-action="add-set" data-entry="${esc(entry.id)}" data-previous="true">
-          ${icon("plus")} Add set
+          ${icon("plus")} Add Set
         </button>
       </div>
     </article>`;
 }
 
 function renderSetRow(entry, set, index, previous, units) {
-  const oneRm = set.weight > 0 && set.reps > 0 ? estimatedOneRepMax(set.weight, set.reps) : 0;
   const eid = esc(entry.id);
   const sid = esc(set.id);
   return `
@@ -169,18 +188,17 @@ function renderSetRow(entry, set, index, previous, units) {
       <span class="set-number" role="cell">${index + 1}</span>
       <span class="set-previous" role="cell">${previous ? `${esc(previous.weight)}×${esc(previous.reps)}` : "—"}</span>
       <span role="cell">
-        <input class="set-input" type="number" inputmode="decimal" min="0" step="0.5"
+        <span class="set-input"><input type="number" inputmode="decimal" min="0" step="0.5"
                value="${esc(set.weight)}" placeholder="0"
                data-action="set-weight" data-entry="${eid}" data-set="${sid}"
-               aria-label="Set ${index + 1} weight" />
+               aria-label="Set ${index + 1} weight" /></span>
       </span>
       <span role="cell">
-        <input class="set-input" type="number" inputmode="numeric" min="0" step="1"
+        <span class="set-input"><input type="number" inputmode="numeric" min="0" step="1"
                value="${esc(set.reps)}" placeholder="0"
                data-action="set-reps" data-entry="${eid}" data-set="${sid}"
-               aria-label="Set ${index + 1} reps" />
+               aria-label="Set ${index + 1} reps" /></span>
       </span>
-      <span class="set-onerm" role="cell">${oneRm > 0 ? compactNumber(oneRm) : "—"}</span>
       <span role="cell">
         <button class="tick ${set.done ? "is-on" : ""}" role="checkbox" aria-checked="${set.done}"
                 data-action="toggle-set" data-entry="${eid}" data-set="${sid}" data-focus-key="tick-${sid}"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ironlog_forest">#0F2A1D</color>
-    <color name="ironlog_paper">#F2F1EC</color>
-    <color name="ironlog_signal">#F6E016</color>
+    <color name="ironlog_forest">#000000</color>
+    <color name="ironlog_paper">#000000</color>
+    <color name="ironlog_signal">#2196F3</color>
     <color name="launcher_background">#0F2A1D</color>
 </resources>

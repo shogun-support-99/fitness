@@ -19,17 +19,48 @@ const ROUTINES = [
    so any exercise can be added by hand. */
 export const CUSTOM_SPLIT = { label: "Custom workout", slug: "custom", detail: "Start empty, add any exercises", muscles: [], icon: "plus" };
 
-export function renderRoutineCards() {
-  return `<div class="routine-grid" data-reveal="rise">${ROUTINES.map((routine, index) => `
-    <button class="routine-card routine-${routine.slug} hover-lift animate-scale-in" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}" data-spotlight data-tilt data-tilt-glare data-tilt-max="5.2" data-tilt-parallax="26" aria-label="${routine.muscles.length ? `Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises` : `Start a custom workout and choose exercises`}">
-      <span class="routine-icon">${icon(routine.icon)}</span>
-      <span class="routine-copy">
-        <strong>${esc(routine.label)}</strong>
-        <small>${esc(routine.detail)}</small>
-        <span class="routine-count">${routine.muscles.length ? `${routine.muscles.length} exercises` : "Start empty"}</span>
-      </span>
-      <span class="routine-go">${icon("chevron")}</span>
-    </button>`).join("")}</div>`;
+export function renderRoutineCards(routines = []) {
+  const saved = routines
+    .filter((routine) => routine && routine.name && Array.isArray(routine.muscles))
+    .map((routine) => ({
+      label: routine.name,
+      slug: "saved",
+      detail: routine.muscles.length
+        ? `${routine.muscles.length} ${routine.muscles.length === 1 ? "exercise" : "exercises"} · ${routine.muscles.join(" · ")}`
+        : "No exercises yet — edit to add some",
+      muscles: routine.muscles,
+      icon: "dumbbell",
+      id: routine.id,
+      saved: true,
+      restSeconds: routine.restSeconds,
+    }));
+
+  return `<div class="routine-grid" data-reveal="rise">${[...saved, ...ROUTINES.map((routine) => ({ ...routine, saved: false }))]
+    .map(
+      (routine, index) => `
+    <article class="routine-card routine-${routine.slug} hover-lift animate-scale-in${routine.saved ? " routine-saved" : ""}" style="--routine-order:${index};animation-delay:calc(var(--routine-order) * 55ms)" data-spotlight data-tilt data-tilt-glare data-tilt-max="3.2" data-tilt-parallax="14">
+      <div class="routine-head">
+        <span class="routine-icon">${icon(routine.icon)}</span>
+        <span class="routine-copy">
+          <strong>${esc(routine.label)}</strong>
+          <small>${esc(routine.detail)}</small>
+          <span class="routine-count">${routine.muscles.length ? `${routine.muscles.length} exercise${routine.muscles.length === 1 ? "" : "s"}` : "Start empty"}</span>
+        </span>
+        ${routine.saved ? `<button class="icon-btn routine-edit" type="button" data-action="edit-routine" data-routine-id="${esc(routine.id)}" aria-label="Edit ${esc(routine.label)} routine">${icon("settings")}</button>` : ""}
+      </div>
+      ${
+        routine.muscles.length
+          ? `<div class="routine-chips">${routine.muscles
+              .map((muscle) => `<span class="routine-chip">${esc(muscle)}</span>`)
+              .join("")}</div>`
+          : ""
+      }
+      <button class="routine-start" data-action="start-split" data-split="${esc(routine.label)}" data-muscles="${esc(routine.muscles.join(","))}"${routine.saved && routine.restSeconds ? ` data-rest="${esc(routine.restSeconds)}"` : ""} aria-label="${routine.muscles.length ? `Start ${esc(routine.label)} routine, ${routine.muscles.length} exercises` : `Start a custom workout and choose exercises`}">
+        ${icon("play")} ${routine.slug === "custom" ? "Start Empty Workout" : "Start Routine"}
+      </button>
+    </article>`,
+    )
+    .join("")}</div>`;
 }
 
 /**

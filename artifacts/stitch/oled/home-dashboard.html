@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>IronLog - Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            oled: '#000000',
+            surface: '#161618',
+            'surface-subtle': '#1C1C1F',
+            'border-subtle': 'rgba(255, 255, 255, 0.06)',
+            'border-bright': 'rgba(255, 255, 255, 0.12)',
+            primary: '#2196F3',
+            'primary-hover': '#1E88E5',
+            'primary-dark': '#1565C0',
+            'primary-light': '#64B5F6',
+            textPrimary: '#FFFFFF',
+            textSecondary: '#9BA1A6',
+            textMuted: '#6B7280',
+            danger: '#FF5252',
+            success: '#4CAF50',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow-blue': '0 8px 24px -4px rgba(33, 150, 243, 0.35)',
+            'glow-sm': '0 4px 14px -2px rgba(33, 150, 243, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Micro-interactions & Mobile Optimizations */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      background-color: #000000;
+      color: #FFFFFF;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overscroll-behavior-y: none;
+    }
+    .touch-press {
+      transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 160ms ease, background-color 160ms ease;
+    }
+    .touch-press:active {
+      transform: scale(0.97);
+      opacity: 0.92;
+    }
+    /* Hide scrollbars for clean presentation */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    /* Safe-area padding support */
+    .pb-safe {
+      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 72px);
+    }
+    .pt-safe {
+      padding-top: max(env(safe-area-inset-top, 14px), 14px);
+    }
+    /* Heatmap cell transition */
+    .heatmap-cell {
+      transition: all 0.2s ease;
+    }
+    .heatmap-cell:hover {
+      transform: scale(1.15);
+      z-index: 10;
+    }
+    /* Pulse glow for in-progress indicator */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .animate-pulse-dot {
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-oled text-textPrimary antialiased selection:bg-primary selection:text-white flex justify-center min-h-screen">
+
+  <!-- iPhone 390px Viewport Shell -->
+  <div class="w-full max-w-[390px] min-h-screen flex flex-col bg-oled relative overflow-x-hidden border-x border-white/[0.04] shadow-2xl">
+
+    <!-- 1. STATUS BAR & TOP HEADER -->
+    <header class="pt-safe px-5 pb-3 bg-oled/90 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-border-subtle">
+      <!-- Wordmark -->
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-primary-dark to-primary flex items-center justify-center shadow-glow-sm">
+          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 5v14M18 5v14M3 8v8M21 8v8M6 12h12"/>
+          </svg>
+        </div>
+        <span class="text-[19px] font-black tracking-tight text-white uppercase italic">Iron<span class="text-primary font-bold">Log</span></span>
+      </div>
+
+      <!-- Right Badges / Actions -->
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#161618] border border-border-subtle">
+          <span class="w-2 h-2 rounded-full bg-primary animate-pulse-dot"></span>
+          <span class="text-[9.5px] font-bold tracking-wider text-textSecondary uppercase">Saved on Phone</span>
+        </div>
+        
+        <button class="w-9 h-9 rounded-full bg-[#161618] border border-border-subtle flex items-center justify-center touch-press text-textSecondary hover:text-white" aria-label="Settings">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <main class="flex-1 px-4 pt-4 pb-safe space-y-5">
+
+      <!-- 2. GREETING & STREAK BLOCK -->
+      <section class="flex items-end justify-between pt-1">
+        <div>
+          <div class="text-[11px] font-semibold uppercase tracking-[0.08em] text-textMuted mb-0.5">Good morning, Alex</div>
+          <h1 class="text-[27px] font-extrabold tracking-tight text-white leading-tight">Ready to train?</h1>
+          <p class="text-[13px] text-textSecondary font-medium mt-0.5">Wednesday, 11 November</p>
+        </div>
+
+        <!-- Flame Streak Chip -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface border border-border-subtle shadow-sm">
+          <svg class="w-4 h-4 text-amber-500 fill-amber-500/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+          <span class="text-[12px] font-bold text-white tracking-tight">1-day streak</span>
+        </div>
+      </section>
+
+      <!-- 3. QUICK-START BANNER -->
+      <section>
+        <button class="w-full text-left rounded-[22px] p-5 bg-gradient-to-r from-primary to-primary-dark shadow-glow-blue touch-press relative overflow-hidden group">
+          <!-- Background decorative glow pattern -->
+          <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+          
+          <div class="flex items-center justify-between relative z-10">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </span>
+                <span class="text-[18px] font-extrabold tracking-tight text-white leading-none">Start Empty Workout</span>
+              </div>
+              <p class="text-[13px] text-white/80 font-medium pl-9">Small sets. Big momentum.</p>
+            </div>
+
+            <div class="w-9 h-9 rounded-full bg-white text-primary flex items-center justify-center shadow-md">
+              <svg class="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+          </div>
+        </button>
+      </section>
+
+      <!-- 4. ACTIVE WORKOUT RESUME CARD -->
+      <section class="rounded-[22px] bg-surface border border-border-subtle p-4 relative overflow-hidden">
+        <!-- Blue Left Accent Stripe -->
+        <div class="absolute left-0 top-0 bottom-0 w-[4px] bg-primary"></div>
+
+        <div class="pl-2 space-y-3.5">
+          <!-- Header info -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              <span class="text-[10.5px] font-bold uppercase tracking-[0.08em] text-primary-light">Workout in progress</span>
+            </div>
+            <span class="text-[11px] font-medium text-textMuted">Started 10:14 AM</span>
+          </div>
+
+          <div>
+            <h2 class="text-[17px] font-bold text-white tracking-tight">Tuesday Pull</h2>
+            <p class="text-[12px] text-textSecondary mt-0.5">Lat Pulldown · Barbell Rows · Face Pulls</p>
+          </div>
+
+          <!-- Live stats row -->
+          <div class="grid grid-cols-3 gap-2 py-2 px-3 rounded-xl bg-surface-subtle border border-border-subtle/80">
+            <div>
+              <div class="text-[10px] uppercase font-semibold tracking-wider text-textMuted">Duration</div>
+              <div class="text-[15px] font-bold text-white font-mono mt-0.5">24:31</div>
+            </div>
+            <div class="border-x border-border-subtle px-2">
+              <div class="text-[10px] uppercase font-semibold tracking-wider text-textMuted">Volume</div>
+              <div class="text-[15px] font-bold text-white mt-0.5">1,240 <span class="text-[11px] font-normal text-textSecondary">kg</span></div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] uppercase font-semibold tracking-wider text-textMuted">Sets Done</div>
+              <div class="text-[15px] font-bold text-primary mt-0.5">6</div>
+            </div>
+          </div>
+
+          <!-- Full Width Resume Button -->
+          <button class="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-glow-sm touch-press">
+            <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span>Resume Workout</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 5. WEEKLY STATS -->
+      <section>
+        <div class="flex items-center justify-between mb-2.5 px-0.5">
+          <span class="text-[11px] font-bold uppercase tracking-[0.08em] text-textMuted">Weekly Overview</span>
+          <span class="text-[12px] font-medium text-textSecondary">Nov 9 – 15</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+          <!-- Stat 1 -->
+          <div class="rounded-[20px] bg-surface border border-border-subtle p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] font-medium text-textSecondary">Workouts</span>
+            <div class="my-1.5">
+              <div class="text-[22px] font-extrabold text-white tracking-tight leading-none">3<span class="text-[14px] text-textMuted font-semibold">/5</span></div>
+            </div>
+            <!-- Tiny Progress Bar -->
+            <div class="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden mt-1">
+              <div class="bg-primary h-full rounded-full" style="width: 60%"></div>
+            </div>
+          </div>
+
+          <!-- Stat 2 -->
+          <div class="rounded-[20px] bg-surface border border-border-subtle p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] font-medium text-textSecondary">Volume</span>
+            <div class="my-1.5">
+              <div class="text-[22px] font-extrabold text-white tracking-tight leading-none">12.4<span class="text-[13px] text-primary-light font-semibold">t</span></div>
+            </div>
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-success mt-1">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+              <span>+8.2%</span>
+            </div>
+          </div>
+
+          <!-- Stat 3 -->
+          <div class="rounded-[20px] bg-surface border border-border-subtle p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] font-medium text-textSecondary">Streak</span>
+            <div class="my-1.5">
+              <div class="text-[22px] font-extrabold text-white tracking-tight leading-none">1 <span class="text-[13px] text-textMuted font-semibold">day</span></div>
+            </div>
+            <div class="text-[11px] text-textSecondary font-medium mt-1 truncate">Best: 14 days</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. TRAINING HEATMAP CALENDAR -->
+      <section class="rounded-[22px] bg-surface border border-border-subtle p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-[0.08em] text-textMuted">Training Heatmap</div>
+            <div class="text-[13px] font-bold text-white mt-0.5">Last 12 Weeks</div>
+          </div>
+          <!-- Legend -->
+          <div class="flex items-center gap-1.5 text-[10px] text-textSecondary">
+            <span>Less</span>
+            <div class="flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded-sm bg-[#1C1C1F]"></span>
+              <span class="w-2.5 h-2.5 rounded-sm bg-[#1565C0]/60"></span>
+              <span class="w-2.5 h-2.5 rounded-sm bg-primary/80"></span>
+              <span class="w-2.5 h-2.5 rounded-sm bg-primary"></span>
+            </div>
+            <span>More</span>
+          </div>
+        </div>
+
+        <!-- Month Labels -->
+        <div class="flex justify-between text-[10px] font-semibold text-textMuted px-1 mb-1.5">
+          <span>Sep</span>
+          <span>Oct</span>
+          <span>Nov</span>
+        </div>
+
+        <!-- 12 Columns x 7 Days Grid -->
+        <div class="grid grid-flow-col grid-rows-7 gap-[4.5px] p-2 rounded-xl bg-surface-subtle/70 border border-border-subtle/50">
+          <!-- Col 1 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 2 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 3 -->
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 4 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 5 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 6 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 7 -->
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 8 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 9 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 10 -->
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary/80 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 11 -->
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1565C0]/60 heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+
+          <!-- Col 12 (Current Week with Today outlined) -->
+          <div class="w-full aspect-square rounded-[3px] bg-primary heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <!-- Today: outlined in bright white/blue -->
+          <div class="w-full aspect-square rounded-[3px] bg-primary ring-2 ring-white ring-offset-1 ring-offset-oled heatmap-cell relative shadow-glow-sm" title="Today"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+          <div class="w-full aspect-square rounded-[3px] bg-[#1C1C1F] heatmap-cell"></div>
+        </div>
+
+        <div class="flex items-center justify-between mt-3 text-[11px] text-textSecondary pt-1">
+          <span>Total: <strong class="text-white">38 workouts</strong> in 90 days</span>
+          <span class="text-primary-light font-medium">Top 5% consistency</span>
+        </div>
+      </section>
+
+      <!-- 7. YOUR ROUTINES -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[11px] font-bold uppercase tracking-[0.08em] text-textMuted">Your Routines</span>
+          <button class="text-[12px] font-semibold text-primary hover:text-primary-light flex items-center gap-1 touch-press">
+            <span>See all (8)</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Routine Card 1: Push Day A -->
+        <div class="rounded-[22px] bg-surface border border-border-subtle p-4 space-y-3.5 hover:border-white/10 transition-colors">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-[16px] font-bold text-white tracking-tight">Push Day A</h3>
+                <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary-light text-[10px] font-bold border border-primary/20">Hypertrophy</span>
+              </div>
+              <p class="text-[12px] text-textSecondary mt-0.5">6 exercises · ~45 min · Chest & Triceps</p>
+            </div>
+            
+            <button class="w-8 h-8 rounded-full bg-surface-subtle flex items-center justify-center text-textMuted hover:text-white touch-press" aria-label="More options">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="1.5"></circle>
+                <circle cx="6" cy="12" r="1.5"></circle>
+                <circle cx="18" cy="12" r="1.5"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Exercise preview chips -->
+          <div class="flex flex-wrap gap-1.5">
+            <span class="px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle text-[11px] font-medium text-textSecondary">
+              Incline DB Bench <strong class="text-white ml-0.5">3×8-10</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle text-[11px] font-medium text-textSecondary">
+              Dips (Weighted) <strong class="text-white ml-0.5">3×12</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle text-[11px] font-medium text-textSecondary">
+              Cable Flyes <strong class="text-white ml-0.5">3×15</strong>
+            </span>
+          </div>
+
+          <!-- Full Width Action Button -->
+          <button class="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-glow-sm touch-press">
+            <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span>Start Routine</span>
+          </button>
+        </div>
+
+        <!-- Routine Card 2: Leg Day & Core -->
+        <div class="rounded-[22px] bg-surface border border-border-subtle p-4 space-y-3.5 hover:border-white/10 transition-colors">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-[16px] font-bold text-white tracking-tight">Legs & Core B</h3>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">Strength</span>
+              </div>
+              <p class="text-[12px] text-textSecondary mt-0.5">5 exercises · ~50 min · Quads & Abs</p>
+            </div>
+
+            <button class="w-8 h-8 rounded-full bg-surface-subtle flex items-center justify-center text-textMuted hover:text-white touch-press" aria-label="More options">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="1.5"></circle>
+                <circle cx="6" cy="12" r="1.5"></circle>
+                <circle cx="18" cy="12" r="1.5"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Exercise preview chips -->
+          <div class="flex flex-wrap gap-1.5">
+            <span class="px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle text-[11px] font-medium text-textSecondary">
+              Barbell Back Squat <strong class="text-white ml-0.5">4×6</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle text-[11px] font-medium text-textSecondary">
+              Romanian Deadlift <strong class="text-white ml-0.5">3×10</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-surface-subtle border border-border-subtle text-[11px] font-medium text-textSecondary">
+              Hanging Leg Raise <strong class="text-white ml-0.5">3×15</strong>
+            </span>
+          </div>
+
+          <!-- Full Width Action Button -->
+          <button class="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-[14px] flex items-center justify-center gap-2 shadow-glow-sm touch-press">
+            <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span>Start Routine</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 8. FIXED BOTTOM TAB BAR (5 Tabs) -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-[#0A0A0B]/95 backdrop-blur-xl border-t border-border-subtle z-40 px-2 pt-2 pb-[max(env(safe-area-inset-bottom,12px),12px)]">
+      <div class="grid grid-cols-5 items-center">
+        
+        <!-- Tab 1: Home (Active) -->
+        <button class="flex flex-col items-center justify-center py-1 touch-press group" aria-label="Home">
+          <div class="relative flex items-center justify-center text-primary">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+          </div>
+          <span class="text-[10px] font-bold text-primary mt-1 tracking-tight">Home</span>
+          <span class="w-1 h-1 rounded-full bg-primary mt-0.5"></span>
+        </button>
+
+        <!-- Tab 2: Workout -->
+        <button class="flex flex-col items-center justify-center py-1 touch-press text-textMuted hover:text-textSecondary" aria-label="Workout">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 5v14M18 5v14M3 8v8M21 8v8M6 12h12"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-1 tracking-tight">Workout</span>
+          <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+        </button>
+
+        <!-- Tab 3: Exercises -->
+        <button class="flex flex-col items-center justify-center py-1 touch-press text-textMuted hover:text-textSecondary" aria-label="Exercises">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-1 tracking-tight">Exercises</span>
+          <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+        </button>
+
+        <!-- Tab 4: History -->
+        <button class="flex flex-col items-center justify-center py-1 touch-press text-textMuted hover:text-textSecondary" aria-label="History">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="text-[10px] font-medium mt-1 tracking-tight">History</span>
+          <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+        </button>
+
+        <!-- Tab 5: Profile -->
+        <button class="flex flex-col items-center justify-center py-1 touch-press text-textMuted hover:text-textSecondary" aria-label="Profile">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="text-[10px] font-medium mt-1 tracking-tight">Profile</span>
+          <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+        </button>
+
+      </div>
+    </nav>
+
+  </div>
+
+</body>
+</html>

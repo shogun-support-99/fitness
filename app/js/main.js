@@ -39,12 +39,20 @@ import { renderHistory } from "./views/history.js";
 import { renderStats } from "./views/stats.js";
 import { renderLibrary, renderLibraryRow, renderExerciseDetail, renderCustomSheet, RESULT_CAP } from "./views/library.js";
 import { renderSettings } from "./views/settings.js";
+import { renderRoutineEditor, blankRoutineDraft, routineDraft } from "./views/routine-editor.js";
 import { routineExerciseIds } from "./views/routines.js";
 
 const store = new Store();
 let elapsedTimer = null;
 let pickerState = { query: "", muscle: "all" };
 let libraryState = { query: "", muscle: "all" };
+
+/**
+ * The routine being edited. The editor is a route rather than a sheet, so this
+ * draft survives the re-renders that follow each muscle toggle without writing
+ * a half-finished routine to storage on every tap.
+ */
+let routineDraftState = null;
 
 /** The exercise whose detail sheet is open, plus its async instruction state. */
 let detailState = { exercise: null, stepsState: "idle", stepsResult: null };
@@ -174,6 +182,16 @@ const VIEWS = {
   stats: () => renderStats(store),
   library: () => renderLibrary(store, libraryState),
   settings: () => renderSettings(store),
+  "routine-editor": (params) => {
+    const id = params.get("id");
+    if (!routineDraftState) {
+      const existing = id ? store.settings.routines.find((routine) => routine.id === id) : null;
+      routineDraftState = existing
+        ? routineDraft(existing, store.settings.restSeconds)
+        : blankRoutineDraft(store.settings.restSeconds);
+    }
+    return renderRoutineEditor(store, routineDraftState);
+  },
 };
 
 function currentElapsed() {
@@ -214,6 +232,9 @@ function render(navigation = router.current) {
   if (routeChanged) {
     detailState = { exercise: null, stepsState: "idle", stepsResult: null };
     document.body.classList.remove("sheet-open");
+    // Leaving the routine editor abandons an unsaved draft; re-entering the
+    // route later starts from a clean card rather than the last edit.
+    if (lastRenderedRoute === "routine-editor") routineDraftState = null;
   }
 
   outlet.innerHTML = view(navigation.params);
@@ -236,6 +257,7 @@ function render(navigation = router.current) {
   syncNav(navigation.route);
   restoreFocus(focusKey);
   syncElapsedClock();
+  syncMiniPlayer();
 
   // Replacing the outlet rebuilds the sheet markup, which would silently close
   // an open exercise detail — for instance when the catalogue finishes loading
@@ -247,8 +269,10 @@ function render(navigation = router.current) {
 }
 
 function syncNav(route) {
+  // The routine editor is part of the Workout tab; keep the tab lit while it is open.
+  const navRoute = route === "routine-editor" ? "workout" : route;
   $$(".nav-item").forEach((item) => {
-    const isActive = item.dataset.route === route;
+    const isActive = item.dataset.route === navRoute;
     item.classList.toggle("is-active", isActive);
     item.setAttribute("aria-current", isActive ? "page" : "false");
   });
@@ -277,7 +301,34 @@ function syncElapsedClock() {
   elapsedTimer = setInterval(() => {
     const node = $('[data-role="elapsed"]');
     if (node) node.textContent = currentElapsed();
+    const miniElapsed = $("[data-mini-elapsed]");
+    if (miniElapsed) miniElapsed.textContent = currentElapsed();
   }, 1000);
+}
+
+/**
+ * The floating resume bar. It appears on every route except the logger itself,
+ * which is already showing the live workout, and disappears the moment the
+ * session is finished or discarded.
+ */
+function syncMiniPlayer() {
+  const player = $("#mini-player");
+  if (!player) return;
+  const active = store.activeWorkout();
+  const visible = Boolean(active) && router.current.route !== "workout";
+  player.hidden = !visible;
+  if (!active) return;
+
+  const name = $("[data-mini-name]", player);
+  const meta = $("[data-mini-meta]", player);
+  const elapsed = $("[data-mini-elapsed]", player);
+  const done = active.exercises.reduce(
+    (n, entry) => n + entry.sets.filter((set) => set.done).length,
+    0,
+  );
+  if (name) name.textContent = active.name;
+  if (meta) meta.textContent = `${done} set${done === 1 ? "" : "s"} logged`;
+  if (elapsed) elapsed.textContent = currentElapsed();
 }
 
 // ── Toasts ─────────────────────────────────────────────────────────────────
@@ -471,6 +522,9 @@ const actions = {
     const splitName = el.dataset.split || "Workout";
     // "Custom workout" already names the session; the presets need the suffix.
     const sessionName = / workout$/i.test(splitName) ? splitName : `${splitName} workout`;
+    if (store.activeWorkout()) return toast("A workout is already in progress.", { tone: "danger" });
+    const rest = Number(el.dataset.rest) || 0;
+    if (rest > 0) store.updateSettings({ restSeconds: rest });
     if (muscles.length === 0) return startEmpty(sessionName);
 
     // One familiar compound per requested muscle group, resolved from the
@@ -483,6 +537,90 @@ const actions = {
     seedPreviousSets(result.workout);
     router.go("workout");
     toast(`${splitName} session started with ${picks.length} exercises`);
+  },
+
+  // Routines
+  "new-routine": () => {
+    routineDraftState = blankRoutineDraft(store.settings.restSeconds);
+    router.go("routine-editor");
+  },
+
+  "edit-routine": (el) => {
+    const routine = store.settings.routines.find((item) => item.id === el.dataset.routineId);
+    if (!routine) return toast("Routine not found", { tone: "danger" });
+    routineDraftState = routineDraft(routine, store.settings.restSeconds);
+    router.go("routine-editor");
+  },
+
+  "routine-name": (el) => {
+    if (routineDraftState) routineDraftState.name = el.value;
+  },
+
+  "toggle-routine-muscle": (el) => {
+    if (!routineDraftState) return;
+    const muscle = el.dataset.muscle;
+    const index = routineDraftState.muscles.indexOf(muscle);
+    if (index >= 0) routineDraftState.muscles.splice(index, 1);
+    else routineDraftState.muscles.push(muscle);
+    el.dataset.focusKey = `muscle-${muscle}`;
+    render();
+  },
+
+  "set-editor-rest": (el) => {
+    if (!routineDraftState) return;
+    routineDraftState.restSeconds = Number(el.dataset.seconds) || 90;
+    el.dataset.focusKey = `rest-${el.dataset.seconds}`;
+    render();
+  },
+
+  "save-routine": () => {
+    if (!routineDraftState) return;
+    const result = store.saveRoutine(routineDraftState);
+    if (!result.ok) return toast(result.error, { tone: "danger" });
+    routineDraftState = null;
+    router.go("workout");
+    toast("Routine saved");
+  },
+
+  "start-editor-routine": () => {
+    if (!routineDraftState) return;
+    if (!routineDraftState.name.trim()) {
+      return toast("Give the routine a name first", { tone: "danger" });
+    }
+    if (store.activeWorkout()) return toast("A workout is already in progress.", { tone: "danger" });
+    const result = store.saveRoutine(routineDraftState);
+    if (!result.ok) return toast(result.error, { tone: "danger" });
+    const routine = result.routine;
+    const picks = routineExerciseIds(store.exercises(), routine.muscles);
+    const sessionName = / workout$/i.test(routine.name) ? routine.name : `${routine.name} workout`;
+    store.updateSettings({ restSeconds: routine.restSeconds });
+    routineDraftState = null;
+
+    if (picks.length === 0) {
+      startEmpty(sessionName);
+      return;
+    }
+    const started = store.startWorkout({ name: sessionName, exerciseIds: picks });
+    if (!started.ok) return toast(started.error, { tone: "danger" });
+    seedPreviousSets(started.workout);
+    router.go("workout");
+    toast(`${routine.name} session started with ${picks.length} exercises`);
+  },
+
+  "delete-routine": (el) => {
+    const id = el.dataset.routineId || routineDraftState?.id;
+    if (!id) return;
+    if (!window.confirm("Delete this routine? Workouts already logged are untouched.")) return;
+    store.deleteRoutine(id);
+    routineDraftState = null;
+    router.go("workout");
+    toast("Routine deleted");
+  },
+
+  "set-exercise-note": (el) => {
+    const active = store.activeWorkout();
+    if (!active) return;
+    store.setExerciseNote(active.id, el.dataset.entry, el.value);
   },
 
   "resume-workout": () => router.go("workout"),
@@ -1161,7 +1299,7 @@ document.addEventListener("input", (event) => {
     actions[action]?.(el, event);
     return;
   }
-  if (action === "rename-workout") {
+  if (action === "rename-workout" || action === "routine-name") {
     actions[action](el, event);
   }
 });
@@ -1170,7 +1308,12 @@ document.addEventListener("change", (event) => {
   const el = event.target.closest("[data-action]");
   if (!el) return;
   const action = el.dataset.action;
-  if (action === "toggle-autorest" || action === "import-file" || action === "set-instruction-language") {
+  if (
+    action === "toggle-autorest" ||
+    action === "import-file" ||
+    action === "set-instruction-language" ||
+    action === "set-exercise-note"
+  ) {
     actions[action]?.(el, event);
   }
 });

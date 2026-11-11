@@ -28,30 +28,24 @@ export function renderHome(store) {
 
   return `
     <section class="view view-home">
-      <header class="view-head animate-fade-down">
-        <div>
-          <h1>Home</h1>
-          <p class="view-subline">${esc(homeSubline(streak, completed))}</p>
-        </div>
-      </header>
-
-      ${renderTicker(store, completed)}
+      ${renderHomeHead(streak, completed, Boolean(active))}
 
       ${active ? renderActiveBanner(active, store.settings.units) : renderStartPanel(store, lastSevenDays.length)}
 
       ${!active && completed.length === 0 ? renderFirstRun() : ""}
 
-      <div class="tile-grid">
-        ${statTile({ label: "This week", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: `${lastSevenDays.length} session${lastSevenDays.length === 1 ? "" : "s"}`, tone: "tone-data" })}
-        ${statTile({ label: "Workouts", value: String(completed.length), countTo: completed.length, hint: "all time" })}
-        ${statTile({ label: "Best streak", value: `${streak.best}`, countTo: streak.best, unit: "d", hint: `${streak.activeDays} active days` })}
-      </div>
+      ${renderWeeklyStats(store, completed, lastSevenDays, weekVolume, streak)}
 
       ${renderTrainingYear(completed, store.settings.units)}
 
+      <section class="routine-section" aria-labelledby="home-routines-title">
+        <div class="section-title-row"><div><span class="section-label">Your routines</span><h2 id="home-routines-title">Ready when you are</h2></div><a class="link" href="#/workout">See all ${icon("chevron")}</a></div>
+        ${renderRoutineCards(store.settings.routines ?? [])}
+      </section>
+
       <section class="panel" data-reveal="rise">
         <div class="panel-head">
-          <h2>Recent sessions</h2>
+          <h2>Recent activity</h2>
           ${completed.length > 0 ? `<a class="link" href="#/history">View all ${icon("chevron")}</a>` : ""}
         </div>
         ${
@@ -64,6 +58,53 @@ export function renderHome(store) {
             : `<ul class="session-list">${recent.map((w) => renderSessionRow(w, index, store.settings.units)).join("")}</ul>`
         }
       </section>
+    </section>`;
+}
+
+function renderHomeHead(streak, completed, hasActive) {
+  const now = new Date();
+  const day = now.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return `
+    <header class="view-head home-head animate-fade-down">
+      <div>
+        <p class="home-kicker">${esc(greeting)} · ${esc(day)}</p>
+        <h1>${hasActive ? "Back to work" : "Ready to train?"}</h1>
+        <p class="view-subline">${esc(homeSubline(streak, completed, now))}</p>
+      </div>
+      <span class="streak-chip" title="Current training streak">${icon("flame")} ${streak.current} day${streak.current === 1 ? "" : "s"}</span>
+    </header>`;
+}
+
+/**
+ * The weekly overview: momentum against the five-session goal, the last seven
+ * days of volume, and the current streak. The momentum tile keeps the exact
+ * semantic summary the old goal ring carried, so the accessible reading did not
+ * regress when the ring was replaced by a card.
+ */
+function renderWeeklyStats(store, completed, lastSevenDays, weekVolume, streak) {
+  const shownCount = Math.min(lastSevenDays.length, MOMENTUM_GOAL);
+  const goalProgress = Math.min(100, Math.round((lastSevenDays.length / MOMENTUM_GOAL) * 100));
+  return `
+    <section class="weekly-overview" aria-labelledby="weekly-overview-title">
+      <div class="section-title-row">
+        <span class="section-label" id="weekly-overview-title">Weekly overview</span>
+        <span class="panel-note">${lastSevenDays.length}/5 sessions</span>
+      </div>
+      <div class="tile-grid">
+        <div class="tile stat-momentum hover-lift" data-spotlight data-tilt data-tilt-glare data-tilt-max="2.4" data-reveal="rise" role="img" aria-label="${shownCount} of ${MOMENTUM_GOAL} weekly momentum sessions completed">
+          <span class="tile-label">Workouts</span>
+          <span class="tile-value"><strong>${shownCount}<small>/${MOMENTUM_GOAL}</small></strong></span>
+          <span class="stat-progress" aria-hidden="true"><i style="width:${goalProgress}%"></i></span>
+          <div class="goal-dots" aria-hidden="true">
+            ${Array.from({ length: MOMENTUM_GOAL }, (_, i) => i + 1).map((n) => `<span class="${shownCount >= n ? "is-reached" : ""}">${shownCount >= n ? icon("check") : n}</span>`).join("")}
+          </div>
+          <span class="tile-hint">${shownCount >= MOMENTUM_GOAL ? "Goal complete — nice work" : `${MOMENTUM_GOAL}-session momentum goal`}</span>
+        </div>
+        ${statTile({ label: "Volume", value: compactNumber(weekVolume), unit: esc(store.settings.units), hint: "last 7 days", tone: "tone-data" })}
+        ${statTile({ label: "Streak", value: String(streak.current), unit: "days", hint: `Best ${streak.best} days` })}
+      </div>
     </section>`;
 }
 
@@ -158,51 +199,30 @@ function renderActiveBanner(workout, units) {
 
 function renderStartPanel(store, weekCount) {
   const template = store.lastWorkoutTemplate();
-  // More than five sessions in a week is a great week, not "7/5". The ring
-  // fills, the dots all tick, and the displayed count stops at the goal.
-  const shownCount = Math.min(weekCount, MOMENTUM_GOAL);
-  const goalProgress = Math.min(100, Math.round((weekCount / MOMENTUM_GOAL) * 100));
   return `
-    <div class="home-training-grid">
-      <section class="start-panel training-hero animate-fade-up" data-tilt data-tilt-glare data-tilt-max="4.8" data-tilt-parallax="30" data-depth-stage data-reveal="rise">
-        <div class="hero-depth" aria-hidden="true">
-          <span class="hero-depth-ring hero-depth-ring-a" data-depth="20"></span>
-          <span class="hero-depth-ring hero-depth-ring-b" data-depth="12"></span>
-          <span class="hero-depth-plate" data-depth="30"></span>
-          <span class="hero-depth-spark" data-depth="44"></span>
-          <span class="hero-depth-grid" data-depth="7"></span>
+    <section class="start-panel training-hero quick-start-panel animate-fade-up" data-tilt data-tilt-glare data-tilt-max="2.4" data-depth-stage data-reveal="rise">
+      <div class="hero-depth" aria-hidden="true">
+        <span class="hero-depth-ring hero-depth-ring-a" data-depth="20"></span>
+        <span class="hero-depth-ring hero-depth-ring-b" data-depth="12"></span>
+        <span class="hero-depth-plate" data-depth="30"></span>
+        <span class="hero-depth-spark" data-depth="44"></span>
+        <span class="hero-depth-grid" data-depth="7"></span>
+      </div>
+      <div class="start-panel-copy quick-start-copy">
+        <span class="energy-badge">${icon("bolt")} Training mode</span>
+        <h2>Start Empty Workout</h2>
+        <p>Small sets. Big momentum. Pick a routine or build today's session from the full library.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" data-action="start-workout" data-magnetic>
+            ${icon("plus")} Start Empty Workout
+          </button>
+          ${template ? `<button class="btn btn-sub" data-action="repeat-last">${icon("history")} Repeat last <span class="btn-sub-note">${esc(template.exercises.length)} ${template.exercises.length === 1 ? "exercise" : "exercises"}</span></button>` : ""}
         </div>
-        <div class="start-panel-copy">
-          <span class="energy-badge">${icon("bolt")} Training mode</span>
-          <h2>Small sets. <span class="text-gradient">Big momentum.</span></h2>
-          <p>Pick a routine, beat your previous numbers, and let every completed set move you forward.</p>
-          <div class="hero-actions">
-            <button class="btn btn-primary btn-lg" data-action="start-workout" data-magnetic>
-              ${icon("play")} Start empty workout ${icon("chevron")}
-            </button>
-            ${template ? `<button class="btn btn-sub" data-action="repeat-last">${icon("history")} Repeat last <span class="btn-sub-note">${esc(template.exercises.length)} ${template.exercises.length === 1 ? "exercise" : "exercises"}</span></button>` : ""}
-          </div>
-        </div>
-        <div class="hero-goal" style="--goal-offset:${100 - goalProgress}" data-depth="16">
-          <div class="goal-ring animate-breathe" role="img" aria-label="${shownCount} of ${MOMENTUM_GOAL} weekly momentum sessions completed">
-            <svg viewBox="0 0 120 120" aria-hidden="true">
-              <circle class="goal-ring-track" cx="60" cy="60" r="50" pathLength="100" />
-              <circle class="goal-ring-value" cx="60" cy="60" r="50" pathLength="100" />
-            </svg>
-            <span class="goal-value"><strong>${shownCount}<small>/${MOMENTUM_GOAL}</small></strong><span>this week</span></span>
-          </div>
-          <span class="goal-orbit" aria-hidden="true"><i></i></span>
-          <div class="goal-dots" aria-hidden="true">
-            ${Array.from({ length: MOMENTUM_GOAL }, (_, i) => i + 1).map((n) => `<span class="${shownCount >= n ? "is-reached" : ""}">${shownCount >= n ? icon("check") : n}</span>`).join("")}
-          </div>
-          <span class="goal-caption">${shownCount >= MOMENTUM_GOAL ? "Goal complete — nice work" : `${MOMENTUM_GOAL}-session momentum goal`}</span>
-        </div>
-      </section>
-      <section class="routine-section" aria-labelledby="home-routines-title">
-        <div class="section-title-row"><div><span class="section-label">Jump straight in</span><h2 id="home-routines-title">Choose your routine</h2></div><a class="link" href="#/workout">View all ${icon("chevron")}</a></div>
-        ${renderRoutineCards()}
-      </section>
-    </div>`;
+      </div>
+      <svg class="hero-plate" viewBox="0 0 64 64" aria-hidden="true">
+        <path fill="currentColor" fill-rule="evenodd" d="M58.31 22.42A28 28 0 1 1 41.58 5.69L58.31 22.42ZM41 32a9 9 0 1 1-18 0 9 9 0 1 1 18 0Z" />
+      </svg>
+    </section>`;
 }
 
 /**

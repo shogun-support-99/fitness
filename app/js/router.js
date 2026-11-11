@@ -6,7 +6,7 @@
  * rewrite rules.
  */
 
-export const ROUTES = ["home", "workout", "history", "stats", "library", "settings"];
+export const ROUTES = ["home", "workout", "history", "stats", "library", "settings", "routine-editor"];
 
 export function parseHash(hash) {
   const raw = String(hash ?? "").replace(/^#\/?/, "");
