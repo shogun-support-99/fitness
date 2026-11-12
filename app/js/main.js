@@ -48,6 +48,14 @@ let pickerState = { query: "", muscle: "all" };
 let libraryState = { query: "", muscle: "all" };
 
 /**
+ * Profile chart state: which window the muscle heatmap reads, which
+ * granularity the volume chart aggregates, and which personal-record
+ * category the board filters. View-local, like the library filters, so the
+ * segmented controls on the profile do not reset on every unrelated render.
+ */
+let statsState = { musclePeriod: "7d", volumePeriod: "week", prKind: "all" };
+
+/**
  * The routine being edited. The editor is a route rather than a sheet, so this
  * draft survives the re-renders that follow each muscle toggle without writing
  * a half-finished routine to storage on every tap.
@@ -190,7 +198,7 @@ const VIEWS = {
   home: () => renderHome(store),
   workout: () => renderWorkout(store, { elapsed: currentElapsed(), timer: restTimer.snapshot() }),
   history: (params) => renderHistory(store, { openId: params.get("id") }),
-  stats: () => renderStats(store),
+  stats: () => renderStats(store, statsState),
   library: () => renderLibrary(store, libraryState),
   settings: () => renderSettings(store),
   "routine-editor": (params) => {
@@ -1012,6 +1020,30 @@ const actions = {
   "view-stats-from-summary": () => {
     closeSheet("summary-modal");
     router.go("stats");
+  },
+
+  /**
+   * The Profile's segmented controls. One handler serves all three charts
+   * because each button carries its own kind, so a new period or granularity
+   * never needs a second action wired through the delegation map.
+   */
+  "set-stats-period": (el) => {
+    const kind = el.dataset.kind;
+    const period = el.dataset.period;
+    if (kind === "muscle") statsState.musclePeriod = period;
+    else if (kind === "volume") statsState.volumePeriod = period;
+    else if (kind === "pr") statsState.prKind = period;
+    else return;
+    // Only the one segment flips, so the rest of the row keeps its state.
+    const group = el.closest(".segmented");
+    if (group) {
+      $$(".segment", group).forEach((button) => {
+        const on = button === el;
+        button.classList.toggle("is-active", on);
+        button.setAttribute("aria-checked", String(on));
+      });
+    }
+    render();
   },
 };
 

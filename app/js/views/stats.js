@@ -2,9 +2,11 @@
  * IronLog — Stats view.
  *
  * The profile surface: a seven-day consistency strip, lifetime numbers, a
- * front/back muscle heatmap, sets per group, a six-axis balance radar and the
- * personal-record board. Everything is derived from the pure functions in
- * stats.js and the logged sets themselves.
+ * front/back muscle heatmap that can be switched between 7 days, 30 days and
+ * all time, sets per group, a six-axis balance radar, a volume chart that
+ * reads by week, month or year, the award board and the personal-record
+ * board. Everything is derived from the pure functions in stats.js and the
+ * logged sets themselves.
  */
 
 import {
@@ -12,14 +14,50 @@ import {
   dailyTraining,
   lifetimeStats,
   localDateKey,
+  monthlyVolume,
   relativeTime,
   streaks,
   weeklyVolume,
+  yearlyVolume,
 } from "../stats.js";
 import { barChart, distributionBars, emptyState, esc, icon, statTile } from "../ui.js";
-import { BODY_MUSCLES, normalizeMuscle, renderBodyMap, renderBodyPair } from "./body-map.js";
+import { BODY_MUSCLES, normalizeMuscle, renderBodyMap } from "./body-map.js";
 
 const DAY_MS = 86_400_000;
+
+/** Muscle-map windows, mirroring Hevy's "Last 7 days" default plus wider cuts. */
+export const MUSCLE_PERIODS = [
+  { key: "7d", label: "7 days", days: 7 },
+  { key: "30d", label: "30 days", days: 30 },
+  { key: "all", label: "All time", days: null },
+];
+
+/** Granularity of the volume chart, matching Hevy's Week / Month / Year tabs. */
+export const VOLUME_PERIODS = [
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "year", label: "Year" },
+];
+
+/** Personal-record filters. The record kinds come from stats.js. */
+export const PR_FILTERS = [
+  { key: "all", label: "All", kind: null },
+  { key: "weight", label: "Heaviest", kind: "weight" },
+  { key: "reps", label: "Reps", kind: "reps" },
+  { key: "oneRm", label: "1RM", kind: "oneRm" },
+];
+
+/** Awards are pure functions of the lifetime numbers, so they need no storage. */
+const AWARDS = [
+  { key: "first", icon: "bolt", title: "First session", detail: "Complete your first workout", earned: (life) => life.workouts >= 1 },
+  { key: "ten", icon: "dumbbell", title: "Ten workouts", detail: "10 logged workouts", earned: (life) => life.workouts >= 10 },
+  { key: "fifty", icon: "trophy", title: "Fifty workouts", detail: "50 logged workouts", earned: (life) => life.workouts >= 50 },
+  { key: "century", icon: "flame", title: "Century club", detail: "100 logged workouts", earned: (life) => life.workouts >= 100 },
+  { key: "streak7", icon: "flame", title: "Week streak", detail: "7 days in a row", earned: (life, streak) => streak.best >= 7 },
+  { key: "streak30", icon: "flame", title: "Month streak", detail: "30 days in a row", earned: (life, streak) => streak.best >= 30 },
+  { key: "volume100k", icon: "stats", title: "100k lifted", detail: "100,000 kg total volume", earned: (life) => life.volume >= 100_000 },
+  { key: "volume1m", icon: "stats", title: "Million club", detail: "1,000,000 kg total volume", earned: (life) => life.volume >= 1_000_000 },
+];
 
 function renderProfileHead(workoutCount) {
   return `
@@ -34,6 +72,21 @@ function renderProfileHead(workoutCount) {
       <a class="is-active" href="#/stats">${icon("stats")} Statistics</a>
       <a href="#/library">${icon("library")} Exercises</a>
     </nav>`;
+}
+
+/** A radiogroup of segmented buttons; every button is a 44px touch target. */
+function renderSegmented(options, active, { kind, label }) {
+  return `
+    <div class="segmented" role="radiogroup" aria-label="${esc(label)}">
+      ${options
+        .map(
+          (option) => `
+        <button role="radio" aria-checked="${option.key === active}"
+                class="segment ${option.key === active ? "is-active" : ""}"
+                data-action="set-stats-period" data-kind="${esc(kind)}" data-period="${esc(option.key)}">${esc(option.label)}</button>`,
+        )
+        .join("")}
+    </div>`;
 }
 
 /** Last seven local days, one column each, with a tick on trained days. */
@@ -77,8 +130,22 @@ function renderWeekStrip(completed, today = new Date()) {
     </section>`;
 }
 
-export function renderStats(store) {
+/** Completed workouts whose end date falls inside the muscle-map window. */
+function workoutsWithin(workouts, period) {
+  const option = MUSCLE_PERIODS.find((p) => p.key === period) ?? MUSCLE_PERIODS[0];
+  if (!option.days) return workouts;
+  const cutoff = Date.now() - option.days * DAY_MS;
+  return workouts.filter((workout) => {
+    const ended = new Date(workout.endedAt ?? workout.startedAt).getTime();
+    return Number.isFinite(ended) && ended >= cutoff;
+  });
+}
+
+export function renderStats(store, view = {}) {
   const completed = store.completedWorkouts();
+  const musclePeriod = view.musclePeriod ?? "7d";
+  const volumePeriod = view.volumePeriod ?? "week";
+  const prKind = view.prKind ?? "all";
 
   if (completed.length === 0) {
     return `
@@ -96,17 +163,18 @@ export function renderStats(store) {
   const units = store.settings.units;
   const life = lifetimeStats(completed);
   const streak = streaks(completed);
-  const weeks = weeklyVolume(completed).slice(-12);
-  const records = store.personalRecords();
+  const periodLabel = MUSCLE_PERIODS.find((p) => p.key === musclePeriod)?.label ?? "Last 7 days";
+  const windowed = workoutsWithin(completed, musclePeriod);
   const distribution = muscleDistribution(completed, index);
-  const recentDistribution = muscleDistribution(
-    completed.filter((workout) => {
-      const ended = new Date(workout.endedAt ?? workout.startedAt).getTime();
-      return Number.isFinite(ended) && Date.now() - ended <= 7 * DAY_MS;
-    }),
-    index,
-  );
   const counts = Object.fromEntries(distribution.map((row) => [row.label, row.value]));
+  const windowedDistribution = muscleDistribution(windowed, index);
+  const windowedCounts = Object.fromEntries(windowedDistribution.map((row) => [row.label, row.value]));
+  const records = store.personalRecords();
+  const prFilter = PR_FILTERS.find((f) => f.key === prKind) ?? PR_FILTERS[0];
+  const visibleRecords = [...records.values()]
+    .filter((record) => !prFilter.kind || record.history.some((entry) => entry.kinds.includes(prFilter.kind)))
+    .sort((a, b) => b.maxOneRm - a.maxOneRm)
+    .slice(0, 25);
 
   return `
     <section class="view view-stats">
@@ -121,7 +189,12 @@ export function renderStats(store) {
         ${statTile({ label: "Streak", value: String(streak.current), unit: "days", hint: `Best ${streak.best} days` })}
       </div>
 
-      ${renderMuscleCard(recentDistribution, counts)}
+      ${renderMuscleCard(windowedCounts, windowedDistribution, {
+        periodKey: musclePeriod,
+        periodLabel,
+      })}
+
+      ${renderAwards(life, streak)}
 
       <section class="panel" data-reveal="rise">
         <div class="panel-head"><h2>Sets per muscle group</h2><span class="panel-note">${life.sets} sets total</span></div>
@@ -131,59 +204,94 @@ export function renderStats(store) {
       ${renderRadar(counts)}
 
       <section class="panel" data-reveal="rise" data-tilt data-tilt-glare data-tilt-max="1.2">
-        <div class="panel-head"><h2>Weekly volume</h2><span class="panel-note">last ${weeks.length} ${weeks.length === 1 ? "week" : "weeks"}</span></div>
-        ${barChart(
-          weeks.map((w) => ({
-            value: w.volume,
-            label: `${w.week}: ${compactNumber(w.volume)} ${units} across ${w.workouts} ${w.workouts === 1 ? "session" : "sessions"}`,
-            display: `${compactNumber(w.volume)} ${units}`,
-            axis: w.week.replace(/^\d{4}-/, ""),
-          })),
-          { ariaLabel: "Weekly training volume" },
-        )}
+        <div class="panel-head">
+          <h2>Volume</h2>
+          ${renderSegmented(VOLUME_PERIODS, volumePeriod, { kind: "volume", label: "Volume chart period" })}
+        </div>
+        ${renderVolumeChart(completed, volumePeriod, units)}
       </section>
 
       <section class="panel" data-reveal="rise">
         <div class="panel-head">
           <h2>${icon("trophy")} Personal records</h2>
-          <span class="panel-note">${records.size} tracked</span>
+          ${renderSegmented(PR_FILTERS, prKind, { kind: "pr", label: "Personal record category" })}
         </div>
         ${records.size === 0
           ? `<p class="panel-empty">Complete a set with weight to start recording personal bests.</p>`
-          : `<ul class="pr-list">
-               ${[...records.values()]
-                 .sort((a, b) => b.maxOneRm - a.maxOneRm)
-                 .slice(0, 25)
-                 .map((r) => renderPrRow(r, units)).join("")}
-             </ul>`}
+          : visibleRecords.length === 0
+            ? `<p class="panel-empty">No ${esc(prFilter.label.toLowerCase())} records yet — keep training.</p>`
+            : `<ul class="pr-list">
+                 ${visibleRecords.map((r) => renderPrRow(r, units)).join("")}
+               </ul>`}
       </section>
     </section>`;
 }
 
-function renderMuscleCard(recentDistribution, counts) {
-  const recent = Object.fromEntries(recentDistribution.map((row) => [row.label, row.value]));
-  const max = Math.max(...BODY_MUSCLES.map((muscle) => recent[muscle] ?? 0), 1);
-  const mostTrained = recentDistribution[0];
+/**
+ * The volume chart's three granularities all reduce to a bar series, so one
+ * renderer takes whichever buckets the selected period produces.
+ */
+function renderVolumeChart(completed, period, units) {
+  const toPoints = (rows, axisOf, noteOf) =>
+    rows.map((row) => ({
+      value: row.volume,
+      label: `${row.label ?? row.key}: ${compactNumber(row.volume)} ${units} across ${row.workouts} ${row.workouts === 1 ? "session" : "sessions"}`,
+      display: `${compactNumber(row.volume)} ${units}`,
+      axis: axisOf(row),
+      note: noteOf(row),
+    }));
+
+  let points;
+  let note;
+  if (period === "month") {
+    const rows = monthlyVolume(completed).slice(-12);
+    points = toPoints(rows, (r) => r.key.split("-")[1], (r) => `${r.sets} sets · ${r.label ?? r.key}`);
+    note = `last ${rows.length} month${rows.length === 1 ? "" : "s"}`;
+  } else if (period === "year") {
+    const rows = yearlyVolume(completed);
+    points = toPoints(rows, (r) => r.key, (r) => `${r.sets} sets · ${r.workouts} sessions`);
+    note = `${rows.length} year${rows.length === 1 ? "" : "s"}`;
+  } else {
+    const rows = weeklyVolume(completed).slice(-12);
+    points = toPoints(
+      rows,
+      (r) => r.week.replace(/^\d{4}-/, ""),
+      (r) => `${r.sets} sets · week ${r.week}`,
+    );
+    note = `last ${rows.length} ${rows.length === 1 ? "week" : "weeks"}`;
+  }
+
+  return `
+    <div class="volume-chart">
+      ${barChart(points, { ariaLabel: `Training volume by ${period}` })}
+      <p class="chart-note">${esc(note)} · ${points.reduce((sum, p) => sum + p.value, 0) ? compactNumber(points.reduce((sum, p) => sum + p.value, 0)) : "0"} ${esc(units)} total</p>
+    </div>`;
+}
+
+function renderMuscleCard(counts, distribution, { periodKey, periodLabel }) {
+  const max = Math.max(...BODY_MUSCLES.map((muscle) => counts[muscle] ?? 0), 1);
+  const mostTrained = distribution[0];
+  const caption = periodKey === "all" ? "%m%s all time" : `%m%s in the last ${periodKey === "7d" ? "7" : "30"} days`;
   const summary = mostTrained
-    ? `${mostTrained.label} leads the last 7 days with ${mostTrained.value} sets.`
-    : "No sets logged in the last 7 days. The map fills as you train.";
+    ? `${mostTrained.label} leads ${periodLabel === "All time" ? "all time" : `the last ${periodKey === "7d" ? "7" : "30"} days`} with ${mostTrained.value} sets.`
+    : `No sets logged ${periodKey === "all" ? "yet" : `in the last ${periodKey === "7d" ? "7" : "30"} days`}. The map fills as you train.`;
 
   return `
     <section class="muscle-card" data-reveal="rise" aria-labelledby="muscle-card-title">
       <div class="muscle-card-head">
         <h2 id="muscle-card-title">Muscle impact</h2>
-        <span>Last 7 days</span>
+        ${renderSegmented(MUSCLE_PERIODS, periodKey, { kind: "muscle", label: "Muscle heatmap period" })}
       </div>
       <div class="muscle-body-wrap">
         <div class="muscle-body" role="img" aria-label="Front and back muscle heatmap. ${esc(summary)}">
           <div class="muscle-side">
             <span class="muscle-side-label">Front</span>
-            ${renderBodyMap("front", recent, max, "%m%s in the last 7 days")}
+            ${renderBodyMap("front", counts, max, caption)}
           </div>
           <span class="muscle-divider" aria-hidden="true"></span>
           <div class="muscle-side">
             <span class="muscle-side-label">Back</span>
-            ${renderBodyMap("back", recent, max, "%m%s in the last 7 days")}
+            ${renderBodyMap("back", counts, max, caption)}
           </div>
         </div>
         <div class="muscle-legend" aria-hidden="true">
@@ -193,6 +301,31 @@ function renderMuscleCard(recentDistribution, counts) {
           <span><i style="background:#2196f3"></i>High</span>
         </div>
       </div>
+    </section>`;
+}
+
+/**
+ * The award board. Earned tiles carry the accent hue, locked ones stay muted,
+ * so the grid reads as progress rather than as a second set of stats.
+ */
+function renderAwards(life, streak) {
+  return `
+    <section class="award-card" data-reveal="rise" aria-labelledby="award-title">
+      <div class="award-card-head">
+        <h2 id="award-title">Awards</h2>
+        <span>${AWARDS.filter((award) => award.earned(life, streak)).length}/${AWARDS.length} earned</span>
+      </div>
+      <ul class="award-grid">
+        ${AWARDS.map((award) => {
+          const unlocked = award.earned(life, streak);
+          return `
+            <li class="award ${unlocked ? "is-earned" : "is-locked"}" title="${esc(award.detail)}">
+              <span class="award-mark">${icon(unlocked ? award.icon : "info")}</span>
+              <span class="award-name">${esc(award.title)}</span>
+              <span class="award-state">${unlocked ? "Earned" : "Locked"}</span>
+            </li>`;
+        }).join("")}
+      </ul>
     </section>`;
 }
 

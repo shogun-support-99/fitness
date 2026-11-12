@@ -413,6 +413,42 @@ export function activityLevels(year) {
   return levels;
 }
 
+/** Bucket key for a calendar month, e.g. "2026-03". */
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Human label for a "YYYY-MM" key, e.g. "Mar '26". */
+function monthKeyLabel(key) {
+  const [year, month] = key.split("-");
+  const date = new Date(Number(year), Number(month) - 1, 1);
+  return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" }).replace(" ", " '");
+}
+
+/**
+ * Aggregate a list of workouts into `{key, label, workouts, volume, sets}`
+ * buckets. Sorted oldest first so charts read left-to-right in time.
+ *
+ * @param {object[]} workouts
+ * @param {(date: Date) => string} keyFn bucket key
+ * @param {(key: string) => string} labelFn bucket label
+ */
+function bucketVolume(workouts, keyFn, labelFn) {
+  const buckets = new Map();
+  for (const w of workouts ?? []) {
+    if (w?.status !== "completed") continue;
+    const date = new Date(w.endedAt ?? w.startedAt);
+    if (Number.isNaN(date.getTime())) continue;
+    const key = keyFn(date);
+    const b = buckets.get(key) ?? { key, label: labelFn(key), workouts: 0, volume: 0, sets: 0 };
+    b.workouts += 1;
+    b.volume += workoutVolume(w);
+    b.sets += workoutSetCount(w);
+    buckets.set(key, b);
+  }
+  return [...buckets.values()].sort((a, b) => (a.key < b.key ? -1 : 1));
+}
+
 /** Weekly aggregate: workouts, total volume and total sets per ISO week. */
 export function weeklyVolume(workouts) {
   const buckets = new Map();
@@ -427,6 +463,20 @@ export function weeklyVolume(workouts) {
     buckets.set(key, b);
   }
   return [...buckets.values()].sort((a, b) => (a.week < b.week ? -1 : 1));
+}
+
+/** Monthly aggregate: workouts, volume and sets per calendar month. */
+export function monthlyVolume(workouts) {
+  return bucketVolume(workouts, (d) => monthKey(d), monthKeyLabel);
+}
+
+/** Yearly aggregate: one bucket per calendar year that has completed work. */
+export function yearlyVolume(workouts) {
+  return bucketVolume(
+    workouts,
+    (d) => String(d.getFullYear()),
+    (key) => key,
+  );
 }
 
 /** Per-exercise volume progression across completed workouts, oldest first. */

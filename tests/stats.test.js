@@ -17,6 +17,7 @@ import {
   exerciseVolume,
   lifetimeStats,
   localDateKey,
+  monthlyVolume,
   personalRecords,
   recordsBrokenBy,
   relativeTime,
@@ -29,6 +30,7 @@ import {
   workoutDurationMinutes,
   workoutSetCount,
   workoutVolume,
+  yearlyVolume,
 } from "../app/js/stats.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -48,7 +50,82 @@ function workout({ id, exercises, startedAt, endedAt, status = "completed" }) {
 const DAY = 86_400_000;
 const iso = (offsetMs) => new Date(Date.UTC(2026, 9, 15) + offsetMs).toISOString();
 
-// ── estimatedOneRepMax (Epley) ───────────────────────────────────────────
+// ── weeklyVolume / monthlyVolume / yearlyVolume ────────────────────────────
+
+describe("monthlyVolume", () => {
+  test("buckets by calendar month and keeps only completed work", () => {
+    const rows = monthlyVolume([
+      workout({
+        id: "w1",
+        exercises: [entry("ds-bench", [set(80, 8)])],
+        startedAt: "2026-03-02T10:00:00.000Z",
+        endedAt: "2026-03-02T11:00:00.000Z",
+      }),
+      workout({
+        id: "w2",
+        exercises: [entry("ds-bench", [set(90, 5)])],
+        startedAt: "2026-03-20T10:00:00.000Z",
+        endedAt: "2026-03-20T11:00:00.000Z",
+      }),
+      workout({
+        id: "w3",
+        exercises: [entry("ds-bench", [set(100, 5)])],
+        startedAt: "2026-04-02T10:00:00.000Z",
+        endedAt: "2026-04-02T11:00:00.000Z",
+      }),
+      workout({
+        id: "w4",
+        exercises: [entry("ds-bench", [set(50, 5)])],
+        startedAt: "2026-04-09T10:00:00.000Z",
+        endedAt: "2026-04-09T11:00:00.000Z",
+        status: "active",
+      }),
+    ]);
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0].key, "2026-03");
+    assert.equal(rows[0].workouts, 2);
+    assert.equal(rows[1].key, "2026-04");
+    assert.equal(rows[1].workouts, 1, "an active workout is not completed work");
+    assert.ok(rows[0].volume > 0);
+  });
+
+  test("sorts oldest bucket first", () => {
+    const rows = monthlyVolume([
+      workout({ id: "b", exercises: [entry("ds-bench", [set(80, 8)])], startedAt: "2025-01-03T10:00:00.000Z", endedAt: "2026-05-03T11:00:00.000Z" }),
+      workout({ id: "a", exercises: [entry("ds-bench", [set(80, 8)])], startedAt: "2024-01-03T10:00:00.000Z", endedAt: "2024-01-03T11:00:00.000Z" }),
+    ]);
+    assert.deepEqual(rows.map((r) => r.key), ["2024-01", "2026-05"]);
+  });
+
+  test("labels the bucket for a human axis", () => {
+    const rows = monthlyVolume([
+      workout({ id: "m", exercises: [entry("ds-bench", [set(80, 8)])], startedAt: "2026-03-02T10:00:00.000Z", endedAt: "2026-03-02T11:00:00.000Z" }),
+    ]);
+    assert.match(rows[0].label, /Mar/);
+  });
+
+  test("returns an empty list with no data", () => {
+    assert.deepEqual(monthlyVolume([]), []);
+  });
+});
+
+describe("yearlyVolume", () => {
+  test("buckets by calendar year", () => {
+    const rows = yearlyVolume([
+      workout({ id: "y1", exercises: [entry("ds-bench", [set(80, 8)])], startedAt: "2024-06-02T10:00:00.000Z", endedAt: "2024-06-02T11:00:00.000Z" }),
+      workout({ id: "y2", exercises: [entry("ds-bench", [set(90, 8)])], startedAt: "2025-06-02T10:00:00.000Z", endedAt: "2025-06-02T11:00:00.000Z" }),
+      workout({ id: "y3", exercises: [entry("ds-bench", [set(95, 8)])], startedAt: "2025-08-02T10:00:00.000Z", endedAt: "2025-08-02T11:00:00.000Z" }),
+    ]);
+    assert.deepEqual(rows.map((r) => r.key), ["2024", "2025"]);
+    assert.equal(rows.find((r) => r.key === "2025").workouts, 2);
+    assert.equal(rows[0].label, "2024");
+  });
+
+  test("ignores undated workouts", () => {
+    const rows = yearlyVolume([workout({ id: "bad", exercises: [], startedAt: "not-a-date", endedAt: undefined })]);
+    assert.deepEqual(rows, []);
+  });
+});
 
 describe("estimatedOneRepMax", () => {
   test("returns the weight itself at one rep", () => {

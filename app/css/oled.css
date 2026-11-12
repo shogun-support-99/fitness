@@ -932,7 +932,7 @@ select,
 }
 
 .segmented button {
-  min-height: 38px;
+  min-height: 44px;
   border-radius: 10px;
   color: #8b8b93;
   font-size: 12px;
@@ -2258,9 +2258,15 @@ textarea::placeholder {
 }
 
 .set-head,
+/*
+ * The trailing two columns are 44px each, so the completion tick and the
+ * delete control both get a full 44px touch target. The flexible columns in
+ * between absorb the reclaimed width, so the row keeps its total width and
+ * the logger never gains phantom horizontal scroll.
+ */
 .set-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.85fr) 40px 24px;
+  grid-template-columns: 28px minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.85fr) 44px 44px;
   gap: 6px;
   align-items: center;
 }
@@ -2359,11 +2365,13 @@ textarea::placeholder {
   display: none;
 }
 
+/* A full 44px touch target: the row's trailing column is sized to match, so
+   the tick needs no pseudo-element band and cannot be overlapped. */
 .tick {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border: 2px solid #3a3a42;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
   color: transparent;
   cursor: pointer;
@@ -2383,12 +2391,16 @@ textarea::placeholder {
   box-shadow: 0 0 14px -2px rgba(34, 197, 94, 0.6);
 }
 
-/* The glyph stays 24px so the set row keeps Hevy's tight density, but the
-   hit area is stretched to 44px with an invisible pseudo-element. It is
-   right-anchored, not centred: a centred 44px box pokes past the row's
-   trailing edge and adds phantom horizontal scroll to the outlet. */
+/*
+ * The glyph stays 24px so the set row keeps Hevy's tight density, but the
+ * hit area is stretched to 44px with an invisible pseudo-element. The band
+ * fills the row's 44px trailing column rather than reaching leftwards under
+ * the tick: a leftward band overlaps the completion tick and steals a third
+ * of its own hit area, which is how both controls ended up under 44px.
+ */
 .set-delete {
   position: relative;
+  justify-self: center;
   width: 24px;
   height: 24px;
   border-radius: 8px;
@@ -2399,11 +2411,10 @@ textarea::placeholder {
 .set-delete::after {
   content: "";
   position: absolute;
-  top: 50%;
+  top: -10px;
   right: 0;
-  width: 44px;
-  height: 44px;
-  transform: translateY(-50%);
+  bottom: -10px;
+  left: 0;
 }
 
 .set-delete .icon {
@@ -3194,6 +3205,138 @@ textarea::placeholder {
   color: #8b8b93;
 }
 
+/* The volume panel wraps its tabs onto the next line at phone width. */
+.panel-head:has(.segmented),
+.muscle-card-head:has(.segmented) {
+  flex-wrap: wrap;
+}
+
+.panel-head .segmented,
+.muscle-card-head .segmented {
+  margin-left: auto;
+}
+
+.muscle-card-head .segmented {
+  /* Three periods need less room than the panel head's left label. */
+  margin-left: 0;
+}
+
+.chart-note {
+  margin: 8px 0 0;
+  color: #8b8b93;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Award board */
+.award-card {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  background: #161618;
+}
+
+.award-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.award-card-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.award-card-head h2::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f5c33b;
+  box-shadow: 0 0 6px rgba(245, 195, 59, 0.9);
+}
+
+.award-card-head span {
+  color: #6b6b73;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.award-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.award {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: #101012;
+  text-align: center;
+}
+
+.award-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: #8b8b93;
+}
+
+.award-mark .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.award-name {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.award-state {
+  color: #6b6b73;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.award.is-earned {
+  border-color: rgba(33, 150, 243, 0.35);
+  background: rgba(33, 150, 243, 0.08);
+}
+
+.award.is-earned .award-mark {
+  background: rgba(33, 150, 243, 0.2);
+  color: #64b5f6;
+}
+
+.award.is-earned .award-state {
+  color: #64b5f6;
+}
+
 /* PR board */
 .pr-row {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -3332,6 +3475,83 @@ textarea::placeholder {
   background: #161618;
   border-color: rgba(255, 255, 255, 0.06);
   border-radius: 16px;
+}
+
+/* "Your progress" panel in the exercise detail sheet. */
+.progress-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.progress-facts div {
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: #101012;
+  text-align: center;
+}
+
+.progress-facts dt {
+  color: #8b8b93;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.progress-facts dd {
+  margin: 2px 0 0;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.progress-chart {
+  margin-top: 12px;
+}
+
+.progress-chart svg {
+  display: block;
+  width: 100%;
+  height: 96px;
+  border-radius: 12px;
+  background: #101012;
+}
+
+.progress-line {
+  fill: none;
+  stroke: #2196f3;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.progress-chart circle {
+  fill: #2196f3;
+  stroke: #0a0a0b;
+  stroke-width: 1.5;
+}
+
+.progress-delta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.progress-delta.is-up {
+  color: #4ade80;
+}
+
+.progress-delta.is-down {
+  color: #fb7185;
+}
+
+.progress-delta.is-flat {
+  color: #8b8b93;
 }
 
 .detail-cta {

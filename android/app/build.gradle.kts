@@ -11,8 +11,8 @@ plugins {
  * working ES modules, fetch() and localStorage with no server at all.
  */
 
-val appVersionCode = (providers.gradleProperty("ironlogVersionCode").orNull ?: "97").toInt()
-val appVersionName = providers.gradleProperty("ironlogVersionName").orNull ?: "1.0.97"
+val appVersionCode = (providers.gradleProperty("ironlogVersionCode").orNull ?: "99").toInt()
+val appVersionName = providers.gradleProperty("ironlogVersionName").orNull ?: "1.0.99"
 
 /*
  * Stage the web app into the APK assets.

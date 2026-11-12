@@ -10,6 +10,7 @@
 
 import { EQUIPMENT, MUSCLE_GROUPS, searchExercises } from "../exercises.js";
 import { availableLanguages, hasInstructions } from "../catalogue.js";
+import { compactNumber, exerciseProgression } from "../stats.js";
 import { emptyState, esc, icon, muscleBadge } from "../ui.js";
 import { exerciseMedia, exerciseThumbnail, muscleDiagram, movementClass } from "../diagrams.js";
 
@@ -239,6 +240,8 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
         </div>
       </section>
 
+      ${renderYourProgress(exercise, store)}
+
       ${hasSteps ? renderInstructions(exercise, { languages, currentLang, stepsResult, stepsState }) : ""}
 
       ${isCustom
@@ -258,6 +261,83 @@ export function renderExerciseDetail(exercise, { store = null, stepsResult = nul
              ${icon("bolt")} Start a workout with this
            </button>`}
     </footer>`;
+}
+
+/**
+ * "Your progress" — this exercise's logged history, charted.
+ *
+ * exerciseProgression() existed in stats.js but no view consumed it, so the
+ * dataset's most useful derived signal was computed nowhere. Two or more
+ * sessions draw the estimated-1RM trend; a single session still earns its
+ * summary row so the panel never renders an empty frame.
+ */
+function renderYourProgress(exercise, store) {
+  if (!store) return "";
+  const points = exerciseProgression(store.completedWorkouts(), exercise.id);
+  if (points.length === 0) return "";
+  const units = store.settings.units;
+  const best = points.reduce((a, b) => (b.bestOneRm >= a.bestOneRm ? b : a));
+  const first = points[0];
+  const last = points[points.length - 1];
+  const delta = last.bestOneRm - first.bestOneRm;
+  const totalVolume = points.reduce((sum, p) => sum + p.volume, 0);
+
+  const width = 300;
+  const height = 96;
+  const pad = 10;
+  const max = Math.max(...points.map((p) => p.bestOneRm), 1);
+  const stepX = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0;
+  const xy = points.map((point, i) => [
+    pad + i * stepX,
+    height - pad - (point.bestOneRm / max) * (height - pad * 2),
+  ]);
+  const line = xy.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const dots = xy
+    .map(
+      ([x, y], i) =>
+        `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6"></circle>
+         <title>${esc(new Date(points[i].date).toLocaleDateString())} · ${compactNumber(points[i].bestOneRm)} ${esc(units)} est. 1RM</title>`,
+    )
+    .join("");
+
+  return `
+    <section class="detail-panel detail-progress">
+      <header class="detail-panel-head">
+        <div>
+          <span class="detail-panel-kicker">Your log</span>
+          <h3>Progress over time</h3>
+        </div>
+        <span class="detail-panel-count">${points.length} session${points.length === 1 ? "" : "s"}</span>
+      </header>
+
+      <dl class="progress-facts">
+        <div><dt>Sessions</dt><dd>${points.length}</dd></div>
+        <div><dt>Heaviest</dt><dd>${best.bestWeight} ${esc(units)}</dd></div>
+        <div><dt>Reps</dt><dd>${best.bestReps}</dd></div>
+        <div><dt>Est. 1RM</dt><dd>${compactNumber(best.bestOneRm)} ${esc(units)}</dd></div>
+        <div><dt>Volume</dt><dd>${compactNumber(totalVolume)} ${esc(units)}</dd></div>
+      </dl>
+
+      ${points.length > 1
+        ? `<div class="progress-chart">
+             <svg viewBox="0 0 ${width} ${height}" role="img" preserveAspectRatio="none"
+                  aria-label="Estimated one-rep max across ${points.length} sessions, from ${compactNumber(first.bestOneRm)} to ${compactNumber(last.bestOneRm)} ${esc(units)}.">
+               <defs>
+                 <linearGradient id="progressFill" x1="0" y1="0" x2="0" y2="1">
+                   <stop offset="0%" stop-color="rgba(33,150,243,0.34)"></stop>
+                   <stop offset="100%" stop-color="rgba(33,150,243,0)"></stop>
+                 </linearGradient>
+               </defs>
+               <path class="progress-area" d="${line} L${xy[xy.length - 1][0].toFixed(1)} ${height - pad} L${xy[0][0].toFixed(1)} ${height - pad} Z" fill="url(#progressFill)"></path>
+               <path class="progress-line" d="${line}"></path>
+               ${dots}
+             </svg>
+             <p class="progress-delta ${delta >= 0 ? "is-up" : "is-down"}">
+               ${delta >= 0 ? "▲" : "▼"} ${compactNumber(Math.abs(delta))} ${esc(units)} est. 1RM since your first session
+             </p>
+           </div>`
+        : `<p class="progress-delta is-flat">Log this exercise again to see a trend.</p>`}
+    </section>`;
 }
 
 function renderInstructions(exercise, { languages, currentLang, stepsResult, stepsState }) {
