@@ -359,8 +359,35 @@ describe("previousPerformance", () => {
     store.addSet(workout.id, entryId, { weight: 70, reps: 10 });
     const last = store.addSet(workout.id, entryId, { weight: 80, reps: 6 }).set;
     store.updateSet(workout.id, entryId, last.id, { done: true });
+    // Finish the session first: a live workout is not history yet.
+    store.completeWorkout(workout.id, { endedAt: new Date() });
 
     assert.deepEqual(store.previousPerformance("bench-press"), { weight: 80, reps: 6 });
+  });
+
+  test("never reports the session in progress as its own previous", () => {
+    const { workout } = store.startWorkout({ exerciseIds: ["bench-press"] });
+    const entryId = workout.exercises[0].id;
+    const last = store.addSet(workout.id, entryId, { weight: 80, reps: 6 }).set;
+    store.updateSet(workout.id, entryId, last.id, { done: true });
+
+    assert.equal(store.previousPerformance("bench-press"), null);
+  });
+
+  test("reports the earlier session once the newer one is finished", () => {
+    const first = store.startWorkout({ exerciseIds: ["bench-press"] });
+    const firstEntry = first.workout.exercises[0].id;
+    const firstSet = store.addSet(first.workout.id, firstEntry, { weight: 70, reps: 10 }).set;
+    store.updateSet(first.workout.id, firstEntry, firstSet.id, { done: true });
+    store.completeWorkout(first.workout.id, { endedAt: new Date() });
+
+    // A second, still-active session must not shadow the finished one.
+    const second = store.startWorkout({ exerciseIds: ["bench-press"] });
+    const secondEntry = second.workout.exercises[0].id;
+    const secondSet = store.addSet(second.workout.id, secondEntry, { weight: 80, reps: 6 }).set;
+    store.updateSet(second.workout.id, secondEntry, secondSet.id, { done: true });
+
+    assert.deepEqual(store.previousPerformance("bench-press"), { weight: 70, reps: 10 });
   });
 });
 

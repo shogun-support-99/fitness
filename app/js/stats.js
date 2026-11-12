@@ -57,6 +57,24 @@ export function workoutVolume(workout) {
   return workout.exercises.reduce((sum, e) => sum + exerciseVolume(e), 0);
 }
 
+/**
+ * Volume banked by a workout's completed sets only.
+ *
+ * A finished session reports every set it logged (see workoutVolume), but an
+ * in-progress one must agree with the logger's own Volume readout and with the
+ * set count beside it — counting unticked sets shows the trainer volume they
+ * have not actually lifted yet.
+ */
+export function completedWorkoutVolume(workout) {
+  if (!workout || !Array.isArray(workout.exercises)) return 0;
+  return workout.exercises.reduce(
+    (sum, e) =>
+      sum +
+      (e.sets ?? []).filter((s) => s.done).reduce((v, s) => v + setVolume(s.weight, s.reps), 0),
+    0,
+  );
+}
+
 /** Count of completed sets in a workout (only sets flagged done). */
 export function workoutSetCount(workout) {
   if (!workout || !Array.isArray(workout.exercises)) return 0;

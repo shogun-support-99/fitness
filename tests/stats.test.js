@@ -10,6 +10,7 @@ import {
   activityLevels,
   bestSet,
   compactNumber,
+  completedWorkoutVolume,
   dailyTraining,
   estimatedOneRepMax,
   exerciseProgression,
@@ -99,6 +100,24 @@ describe("volume", () => {
       exercises: [entry("bench", [set(100, 5)]), entry("squat", [set(120, 3)])],
     });
     assert.equal(workoutVolume(w), 500 + 360);
+  });
+
+  test("completedWorkoutVolume counts only ticked sets", () => {
+    const w = workout({
+      id: "w2",
+      startedAt: iso(0),
+      exercises: [entry("bench", [set(80, 8), set(85, 6), set(85, 5, false)])],
+    });
+    // An in-progress session must agree with the logger's Volume readout, which
+    // filters on done, and with the set count printed beside it.
+    assert.equal(completedWorkoutVolume(w), 80 * 8 + 85 * 6);
+    assert.equal(workoutVolume(w), 80 * 8 + 85 * 6 + 85 * 5);
+  });
+
+  test("completedWorkoutVolume handles missing or malformed structures", () => {
+    assert.equal(completedWorkoutVolume(null), 0);
+    assert.equal(completedWorkoutVolume({ exercises: "nope" }), 0);
+    assert.equal(completedWorkoutVolume(workout({ id: "w3", startedAt: iso(0), exercises: [] })), 0);
   });
 
   test("handles missing or malformed structures", () => {

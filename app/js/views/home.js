@@ -5,7 +5,16 @@
  * numbers, and the most recent workouts.
  */
 
-import { compactNumber, personalRecords, relativeTime, streaks, workoutDurationMinutes, workoutSetCount, workoutVolume } from "../stats.js";
+import {
+  compactNumber,
+  completedWorkoutVolume,
+  personalRecords,
+  relativeTime,
+  streaks,
+  workoutDurationMinutes,
+  workoutSetCount,
+  workoutVolume,
+} from "../stats.js";
 import { emptyState, esc, icon, statTile } from "../ui.js";
 import { renderTrainingYear } from "./heatmap.js";
 import { renderRoutineCards } from "./routines.js";
@@ -182,7 +191,9 @@ function renderTicker(store, completed) {
 
 function renderActiveBanner(workout, units) {
   const sets = workoutSetCount(workout);
-  const volume = workoutVolume(workout);
+  // Completed sets only: the banner sits next to the set count it reports, and
+  // it must match the logger's own Volume readout while the session is live.
+  const volume = completedWorkoutVolume(workout);
   const elapsed = Date.now() - new Date(workout.startedAt).getTime();
   return `
     <div class="active-banner" role="status" data-tilt data-tilt-glare data-tilt-max="2.2" data-reveal="rise">

@@ -127,14 +127,19 @@
       </nav>
     </div>
 
-    <a class="mini-player" id="mini-player" href="#/workout" hidden aria-label="Resume active workout">
-      <span class="mini-live" aria-hidden="true"></span>
-      <span class="mini-copy">
-        <span class="mini-name" data-mini-name>Workout in progress</span>
-        <span class="mini-meta"><span data-mini-meta>0 sets logged</span> · <span class="mini-elapsed" data-mini-elapsed>00:00</span></span>
-      </span>
-      <span class="mini-open">Resume</span>
-    </a>
+    <div class="mini-player" id="mini-player" hidden>
+      <a class="mini-resume" href="#/workout" aria-label="Resume active workout">
+        <span class="mini-live" aria-hidden="true"></span>
+        <span class="mini-copy">
+          <span class="mini-name" data-mini-name>Workout in progress</span>
+          <span class="mini-meta"><span data-mini-meta>0 sets logged</span> &middot; <span class="mini-elapsed" data-mini-elapsed>00:00</span></span>
+        </span>
+        <span class="mini-open">Resume</span>
+      </a>
+      <button class="mini-discard" data-action="discard-workout" aria-label="Discard workout">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
 
     <div id="toast-host" aria-live="polite"></div>
 

@@ -648,9 +648,24 @@ export class Store {
   }
 
   /** Most recent completed set for an exercise, from this or earlier workouts. */
+  /**
+   * The most recently completed set of an exercise, for the logger's Previous
+   * column and add-set hints.
+   *
+   * The session currently in progress is not history: its own sets must not be
+   * reported back as "previous" while the trainer is still logging them, or
+   * the column simply echoes what was typed a second ago. An explicit
+   * excludeWorkoutId overrides which session is skipped.
+   *
+   * @param {string} exerciseId
+   * @param {string|null} [excludeWorkoutId] workout to skip; defaults to the
+   *   active session.
+   */
   #lastLoggedSet(exerciseId, excludeWorkoutId = null) {
+    const skip = excludeWorkoutId ?? this.activeWorkout()?.id ?? null;
     const ordered = this.workouts();
     for (const w of ordered) {
+      if (w.id === skip) continue;
       for (const entry of w.exercises ?? []) {
         if (entry.exerciseId !== exerciseId) continue;
         const done = (entry.sets ?? []).filter((s) => s.done);

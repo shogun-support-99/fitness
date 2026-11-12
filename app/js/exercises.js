@@ -114,24 +114,28 @@ function matchRank(exercise, q) {
 
 /**
  * Case-insensitive, relevance-ranked search across name, target, muscle and
- * equipment.
+ * equipment. A multi-word query is matched token-by-token: "dumbbell curl"
+ * finds "Dumbbell Alternating Biceps Curl", the way Hevy's library behaves,
+ * instead of demanding the words appear as one contiguous phrase. Rank is the
+ * best-ranked token, so the strongest signal orders the list.
  * @param {Exercise[]} list
  * @param {string} query
  * @param {string} [muscle] optional muscle-group filter
  */
 export function searchExercises(list, query, muscle = "all") {
   const q = (query ?? "").trim().toLowerCase();
+  const tokens = q.split(/\s+/).filter(Boolean);
 
   const filtered = list.filter((e) => {
     if (muscle !== "all" && e.muscle !== muscle) return false;
-    if (q.length === 0) return true;
-    return matchRank(e, q) >= 0;
+    if (tokens.length === 0) return true;
+    return tokens.every((token) => matchRank(e, token) >= 0);
   });
 
-  if (q.length === 0) return filtered;
+  if (tokens.length === 0) return filtered;
 
   return filtered
-    .map((e) => ({ e, rank: matchRank(e, q) }))
+    .map((e) => ({ e, rank: Math.min(...tokens.map((token) => matchRank(e, token))) }))
     .sort((a, b) => a.rank - b.rank || a.e.name.localeCompare(b.e.name))
     .map(({ e }) => e);
 }

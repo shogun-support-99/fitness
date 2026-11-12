@@ -9,9 +9,63 @@ import { compactNumber, estimatedOneRepMax } from "../stats.js";
 import { emptyState, esc, icon } from "../ui.js";
 import { exerciseThumbnail } from "../diagrams.js";
 import { renderRoutineCards } from "./routines.js";
+import { BODY_MUSCLES, normalizeMuscle, renderBodyPair } from "./body-map.js";
 
 /** Rows built in the add-exercise sheet before search takes over. */
 export const PICKER_CAP = 80;
+
+/**
+ * The logger's live muscle silhouettes, as a self-contained block.
+ *
+ * Exported so the catalogue-arrival patch in main.js can swap this block
+ * without re-rendering the set inputs, and so the counts are computed in
+ * exactly one place. Contains no focusable element, so replacing it can never
+ * steal a caret.
+ */
+export function renderLoggerBody(workout, index) {
+  // A completed set credits its primary muscle fully and each secondary muscle
+  // half a set, so a bench press lights chest and part-lights triceps the way
+  // Hevy's map does. Secondary names are collapsed onto silhouette regions —
+  // the dataset says "quadriceps" and "rhomboids", the map paints Quads and
+  // Back.
+  const muscleCounts = {};
+  let doneSets = 0;
+  for (const entry of workout.exercises) {
+    const done = entry.sets.filter((s) => s.done).length;
+    doneSets += done;
+    if (!done) continue;
+    const exercise = index[entry.exerciseId];
+    const primary = normalizeMuscle(exercise?.muscle);
+    if (primary) muscleCounts[primary] = (muscleCounts[primary] ?? 0) + done;
+    for (const secondary of exercise?.secondaryMuscles ?? []) {
+      const key = normalizeMuscle(secondary);
+      if (key) muscleCounts[key] = (muscleCounts[key] ?? 0) + done * 0.5;
+    }
+  }
+  const workedGroups = BODY_MUSCLES.filter((muscle) => muscleCounts[muscle] > 0);
+  const muscleMax = Math.max(
+    1,
+    ...BODY_MUSCLES.map((muscle) => muscleCounts[muscle] ?? 0),
+    ...(workedGroups.length ? [doneSets] : [1]),
+  );
+
+  return `
+      <div class="logger-body">
+        <div class="logger-body-side">
+          ${renderBodyPair(muscleCounts, muscleMax, {
+            ariaLabel: doneSets
+              ? `Muscles worked this session. ${doneSets} set${doneSets === 1 ? "" : "s"} logged.`
+              : "Muscles worked this session. No sets logged yet.",
+            caption: "%m%s this session",
+          })}
+        </div>
+        <p class="logger-body-note">
+          ${doneSets
+            ? `${doneSets} set${doneSets === 1 ? "" : "s"} · ${workedGroups.length} muscle group${workedGroups.length === 1 ? "" : "s"} hit`
+            : "Tick a set to light up the muscles it works"}
+        </p>
+      </div>`;
+}
 
 export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
   const workout = store.activeWorkout();
@@ -79,6 +133,7 @@ export function renderWorkout(store, { elapsed = "00:00", timer = null } = {}) {
           <span><small>Volume</small><strong>${compactNumber(volume)} ${esc(units)}</strong></span>
           <span><small>Sets</small><strong>${doneSets}</strong></span>
         </div>
+        ${renderLoggerBody(workout, index)}
       </header>
 
       ${timer?.running ? renderTimerBar(timer) : ""}

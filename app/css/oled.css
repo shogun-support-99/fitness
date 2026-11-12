@@ -511,6 +511,8 @@ select,
 
 /* ── Floating mini player ─────────────────────────────────────────────── */
 
+/* The container is positioned chrome; the anchor inside is the resume hit
+   area and the sibling button discards, so neither is nested in the other. */
 .mini-player {
   position: fixed;
   left: 16px;
@@ -519,7 +521,7 @@ select,
   z-index: 38;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
@@ -531,12 +533,47 @@ select,
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   color: #fff;
-  text-decoration: none;
   animation: mini-rise 0.34s var(--ease) both;
 }
 
 .mini-player[hidden] {
   display: none;
+}
+
+.mini-resume {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* A comfortable touch target even though the glyph is small; the negative
+   margin keeps the icon optically flush while the hit area grows outward. */
+.mini-discard {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-right: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: #8b8b93;
+  cursor: pointer;
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.mini-discard:hover,
+.mini-discard:focus-visible {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 
 @keyframes mini-rise {
@@ -2904,6 +2941,59 @@ textarea::placeholder {
   align-self: stretch;
   margin: 14px 0;
   background: rgba(255, 255, 255, 0.07);
+}
+
+/* --- Active-workout logger silhouettes ------------------------------- */
+/* Shrunk copy of the profile body map so it fits the sticky header next to
+   the metrics row without pushing the 6-column set table sideways. */
+.logger-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.logger-body .muscle-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 6px;
+}
+
+.logger-body .muscle-side {
+  gap: 3px;
+}
+
+.logger-body .muscle-side-label {
+  font-size: 8px;
+  letter-spacing: 0.05em;
+}
+
+.logger-body .muscle-map {
+  width: 62px;
+  height: 104px;
+}
+
+.logger-body .muscle-divider {
+  margin: 4px 0;
+}
+
+.logger-body-note {
+  flex: 0 0 auto;
+  max-width: 96px;
+  color: #8b8b93;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: right;
+}
+
+/* The header is sticky: the silhouettes must never grow its height. */
+.logger-head {
+  overflow: hidden;
 }
 
 .muscle-legend {

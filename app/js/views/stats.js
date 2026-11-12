@@ -17,23 +17,9 @@ import {
   weeklyVolume,
 } from "../stats.js";
 import { barChart, distributionBars, emptyState, esc, icon, statTile } from "../ui.js";
+import { BODY_MUSCLES, normalizeMuscle, renderBodyMap, renderBodyPair } from "./body-map.js";
 
 const DAY_MS = 86_400_000;
-
-/** The muscles the body map knows how to paint. */
-const BODY_MUSCLES = [
-  "chest",
-  "back",
-  "shoulders",
-  "biceps",
-  "triceps",
-  "forearms",
-  "core",
-  "quads",
-  "hamstrings",
-  "glutes",
-  "calves",
-];
 
 function renderProfileHead(workoutCount) {
   return `
@@ -174,15 +160,6 @@ export function renderStats(store) {
     </section>`;
 }
 
-function levelFor(sets, max) {
-  if (!sets || !max) return 0;
-  const ratio = sets / max;
-  if (ratio >= 0.85) return 4;
-  if (ratio >= 0.6) return 3;
-  if (ratio >= 0.35) return 2;
-  return 1;
-}
-
 function renderMuscleCard(recentDistribution, counts) {
   const recent = Object.fromEntries(recentDistribution.map((row) => [row.label, row.value]));
   const max = Math.max(...BODY_MUSCLES.map((muscle) => recent[muscle] ?? 0), 1);
@@ -201,12 +178,12 @@ function renderMuscleCard(recentDistribution, counts) {
         <div class="muscle-body" role="img" aria-label="Front and back muscle heatmap. ${esc(summary)}">
           <div class="muscle-side">
             <span class="muscle-side-label">Front</span>
-            ${renderBodyMap("front", recent, max)}
+            ${renderBodyMap("front", recent, max, "%m%s in the last 7 days")}
           </div>
           <span class="muscle-divider" aria-hidden="true"></span>
           <div class="muscle-side">
             <span class="muscle-side-label">Back</span>
-            ${renderBodyMap("back", recent, max)}
+            ${renderBodyMap("back", recent, max, "%m%s in the last 7 days")}
           </div>
         </div>
         <div class="muscle-legend" aria-hidden="true">
@@ -217,53 +194,6 @@ function renderMuscleCard(recentDistribution, counts) {
         </div>
       </div>
     </section>`;
-}
-
-function musclePath(muscle, recent, max, shape) {
-  const sets = recent[muscle] ?? 0;
-  return `<path class="mm-muscle" data-level="${levelFor(sets, max)}" d="${shape}"><title>${esc(muscle)}: ${sets} set${sets === 1 ? "" : "s"} in the last 7 days</title></path>`;
-}
-
-function renderBodyMap(view, recent, max) {
-  const label = view === "front" ? "Front body map" : "Back body map";
-
-  // A deliberately simple figure: rounded volumes, no medical detail. Each
-  // coloured region is a real muscle group the log counts.
-  const outline = `
-    <circle class="mm-outline" cx="60" cy="15" r="9"></circle>
-    <rect class="mm-outline" x="56" y="23" width="8" height="6" rx="2"></rect>
-    <path class="mm-outline" d="M42 31c5-3 11-4 18-4s13 1 18 4l6 13-2 30c-1 10-4 18-7 23H45c-3-5-6-13-7-23l-2-30z"></path>
-    <rect class="mm-muscle" data-level="${levelFor(recent.forearms ?? 0, max)}" x="24" y="88" width="10" height="30" rx="5" transform="rotate(6 29 103)"></rect>
-    <rect class="mm-muscle" data-level="${levelFor(recent.forearms ?? 0, max)}" x="86" y="88" width="10" height="30" rx="5" transform="rotate(-6 91 103)"></rect>
-    <rect class="mm-outline" x="20" y="39" width="11" height="34" rx="5.5" transform="rotate(8 25.5 56)"></rect>
-    <rect class="mm-outline" x="89" y="39" width="11" height="34" rx="5.5" transform="rotate(-8 94.5 56)"></rect>
-    <rect class="mm-outline" x="46" y="104" width="12" height="46" rx="6"></rect>
-    <rect class="mm-outline" x="62" y="104" width="12" height="46" rx="6"></rect>
-    <rect class="mm-outline" x="47" y="152" width="9" height="30" rx="4.5"></rect>
-    <rect class="mm-outline" x="64" y="152" width="9" height="30" rx="4.5"></rect>
-    <ellipse class="mm-outline" cx="51" cy="188" rx="7" ry="4"></ellipse>
-    <ellipse class="mm-outline" cx="69" cy="188" rx="7" ry="4"></ellipse>`;
-
-  const front = `
-    ${musclePath("shoulders", recent, max, "M38 35c3-2 7-2 9 0l-1 8c-3 1-6 0-8-1z M82 35c-3-2-7-2-9 0l1 8c3 1 6 0 8-1z")}
-    ${musclePath("chest", recent, max, "M47 44c3-2 8-1 11 2l-1 11c-4 2-8 1-10-2z M73 44c-3-2-8-1-11 2l1 11c4 2 8 1 10-2z")}
-    ${musclePath("biceps", recent, max, "M27 47c3-1 6 0 7 2l-2 19c-2 1-4 0-5-2z M93 47c-3-1-6 0-7 2l2 19c2 1 4 0 5-2z")}
-    ${musclePath("core", recent, max, "M52 61h16l-1 27c-4 2-10 2-14 0z")}
-    ${musclePath("quads", recent, max, "M47 108h10l-1 38c-2 1-5 1-7 0z M63 108h10l-2 38c-2 1-5 1-7 0z")}
-    ${musclePath("calves", recent, max, "M48 155h7l-1 23c-1 1-3 1-4 0z M65 155h7l-2 23c-1 1-3 1-4 0z")}`;
-
-  const back = `
-    ${musclePath("back", recent, max, "M45 40c4-3 10-4 15-4s11 1 15 4l-2 23c-4 4-9 6-13 6s-9-2-13-6z M48 66c4 3 8 4 12 4s8-1 12-4l-2 16c-3 2-6 3-10 3s-7-1-10-3z")}
-    ${musclePath("shoulders", recent, max, "M38 35c3-2 7-2 9 0l-1 8c-3 1-6 0-8-1z M82 35c-3-2-7-2-9 0l1 8c3 1 6 0 8-1z")}
-    ${musclePath("triceps", recent, max, "M27 47c3-1 6 0 7 2l-2 19c-2 1-4 0-5-2z M93 47c-3-1-6 0-7 2l2 19c2 1 4 0 5-2z")}
-    ${musclePath("glutes", recent, max, "M47 93c3-3 8-3 11 0l-1 10c-3 2-7 2-9 0z M73 93c-3-3-8-3-11 0l1 10c3 2 7 2 9 0z")}
-    ${musclePath("hamstrings", recent, max, "M47 108h10l-1 38c-2 1-5 1-7 0z M63 108h10l-2 38c-2 1-5 1-7 0z")}
-    ${musclePath("calves", recent, max, "M48 155h7l-1 23c-1 1-3 1-4 0z M65 155h7l-2 23c-1 1-3 1-4 0z")}`;
-
-  return `<svg class="muscle-map" viewBox="0 0 120 200" role="img" aria-label="${esc(label)}">
-    ${outline}
-    ${view === "front" ? front : back}
-  </svg>`;
 }
 
 function renderRadar(counts) {
@@ -354,7 +284,10 @@ function muscleDistribution(workouts, index) {
   const counts = new Map();
   for (const w of workouts) {
     for (const entry of w.exercises ?? []) {
-      const muscle = index[entry.exerciseId]?.muscle ?? "other";
+      // Collapse the dataset's finer vocabulary ("lats", "quadriceps") onto the
+      // eleven silhouette groups so the map, the bars and the radar agree.
+      const raw = index[entry.exerciseId]?.muscle ?? "other";
+      const muscle = normalizeMuscle(raw) ?? raw;
       const done = (entry.sets ?? []).filter((s) => s.done).length;
       counts.set(muscle, (counts.get(muscle) ?? 0) + done);
     }

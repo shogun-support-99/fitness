@@ -377,6 +377,37 @@ describe("searchExercises", () => {
     assert.deepEqual(searchExercises(merged, "zzzznotreal"), []);
   });
 
+  test("matches multi-word queries token by token, not as a phrase", () => {
+    // The dataset names are "Dumbbell Alternating Biceps Curl", so a phrase
+    // match on "dumbbell curl" finds nothing. Hevy's search is token-based.
+    const library = [
+      { id: "ds-a", name: "Barbell Bench Press", muscle: "chest", equipment: "barbell", target: "pectorals" },
+      { id: "ds-b", name: "Dumbbell Alternating Biceps Curl", muscle: "biceps", equipment: "dumbbell", target: "biceps" },
+      { id: "ds-c", name: "Incline Dumbbell Press", muscle: "chest", equipment: "dumbbell", target: "pectorals" },
+    ];
+    const results = searchExercises(library, "dumbbell curl");
+    assert.deepEqual(results.map((e) => e.id), ["ds-b"]);
+  });
+
+  test("requires every token to match", () => {
+    const library = [
+      { id: "ds-a", name: "Barbell Bench Press", muscle: "chest", equipment: "barbell", target: "pectorals" },
+      { id: "ds-b", name: "Dumbbell Alternating Biceps Curl", muscle: "biceps", equipment: "dumbbell", target: "biceps" },
+    ];
+    assert.deepEqual(searchExercises(library, "dumbbell bench").map((e) => e.id), []);
+    assert.deepEqual(searchExercises(library, "barbell bench").map((e) => e.id), ["ds-a"]);
+  });
+
+  test("ranks a multi-word query by its strongest token", () => {
+    const library = [
+      { id: "ds-a", name: "Cable Hammer Curl", muscle: "biceps", equipment: "cable", target: "biceps" },
+      { id: "ds-b", name: "Dumbbell Alternating Biceps Curl", muscle: "biceps", equipment: "dumbbell", target: "biceps" },
+    ];
+    // "curl" starts a word in ds-b ("Curl"); in ds-a it only appears mid-name.
+    const results = searchExercises(library, "dumbbell curl");
+    assert.equal(results[0].id, "ds-b");
+  });
+
   test("does not mutate the input list", () => {
     const before = merged.length;
     searchExercises(merged, "press");

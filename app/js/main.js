@@ -34,7 +34,7 @@ import {
 } from "./motion.js";
 
 import { renderHome } from "./views/home.js";
-import { renderWorkout, renderPickerRow, PICKER_CAP } from "./views/workout.js";
+import { renderWorkout, renderPickerRow, renderLoggerBody, PICKER_CAP } from "./views/workout.js";
 import { renderHistory } from "./views/history.js";
 import { renderStats } from "./views/stats.js";
 import { renderLibrary, renderLibraryRow, renderExerciseDetail, renderCustomSheet, RESULT_CAP } from "./views/library.js";
@@ -1437,8 +1437,7 @@ store.subscribe((event) => {
     const route = parseHash(location.hash).route;
     // Home's ticker and routine counts, Settings' status line, History's exercise
     // names and the statistics board all resolve through the catalogue. Repaint
-    // whichever of them is visible when the fetch lands, but never a logger with
-    // a live session: that would pull the inputs out from under the user.
+    // whichever of them is visible when the fetch lands.
     const usesCatalogue =
       route === "library" ||
       route === "home" ||
@@ -1448,11 +1447,55 @@ store.subscribe((event) => {
       (route === "workout" && !store.activeWorkout());
     if (usesCatalogue) {
       render();
+    } else if (route === "workout") {
+      // A live logger keeps its set inputs, so patch only the parts that read
+      // the catalogue: exercise names and the muscle silhouettes. Both are
+      // text/aria-only, so no caret is at risk.
+      patchLoggerForCatalogue();
     } else if ($("#exercise-picker") && !$("#exercise-picker").hidden) {
       filterPicker();
     }
   }
 });
+
+/**
+ * Re-resolve a live logger's catalogue-dependent markup when the catalogue
+ * lands after the logger was painted.
+ *
+ * A full re-render would rebuild every weight/reps input and steal the caret
+ * mid-set, so this swaps the two blocks that only read the catalogue: each
+ * exercise card's identity line and the header's silhouettes.
+ */
+function patchLoggerForCatalogue() {
+  const active = store.activeWorkout();
+  if (!active) return;
+  const index = store.exerciseIndex();
+
+  const cards = $$("#view-outlet .exercise-card");
+  cards.forEach((card, i) => {
+    const entry = active.exercises[i];
+    if (!entry) return;
+    const exercise = index[entry.exerciseId];
+    if (!exercise) return;
+    card.dataset.muscle = exercise.muscle ?? "other";
+    const name = exercise.name ?? entry.exerciseId;
+    const heading = card.querySelector("h3");
+    if (heading) heading.textContent = name;
+    const sub = card.querySelector(".exercise-sub");
+    if (sub) sub.textContent = `${exercise.muscle ?? "other"} · ${exercise.equipment ?? ""}`.trim();
+    const remove = card.querySelector('[data-action="remove-exercise"]');
+    if (remove) remove.setAttribute("aria-label", `Remove ${name}`);
+  });
+
+  const head = $("#view-outlet .logger-head");
+  const body = $("#view-outlet .logger-body");
+  if (head && body) {
+    const template = document.createElement("template");
+    template.innerHTML = renderLoggerBody(active, index).trim();
+    const fresh = template.content.firstElementChild;
+    if (fresh) body.replaceWith(fresh);
+  }
+}
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 
