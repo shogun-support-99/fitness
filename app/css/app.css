@@ -1025,7 +1025,8 @@ table,
 }
 
 .btn-small {
-  height: 28px;
+  min-height: 44px;
+  height: auto;
   padding: 0 10px;
   font-size: var(--fs-small);
 }
@@ -1041,8 +1042,8 @@ table,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   padding: 0;
   border: 0;
@@ -1109,7 +1110,8 @@ table,
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 26px;
+  min-height: 44px;
+  height: auto;
   padding: 0 10px;
   border: 1px solid var(--border-control);
   border-radius: 999px;
@@ -4447,7 +4449,8 @@ select {
 }
 
 .chip {
-  height: 28px;
+  min-height: 44px;
+  height: auto;
   border-radius: 7px;
   font-size: 11.5px;
 }

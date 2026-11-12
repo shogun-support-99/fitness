@@ -852,7 +852,9 @@ select,
 }
 
 .btn-small {
-  min-height: 40px;
+  /* Hevy keeps every control on the 44px touch floor, so the small variant is
+     sized like the rest rather than shrinking below the minimum target. */
+  min-height: 44px;
   padding: 0 14px;
   border-radius: 12px;
   font-size: 13px;
@@ -876,8 +878,9 @@ select,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  /* Every control sits on the 44px touch floor, icon buttons included. */
+  width: 44px;
+  height: 44px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: #1f1f23;
@@ -900,7 +903,8 @@ select,
 }
 
 .chip {
-  height: 36px;
+  /* Chips are filter controls, so they sit on the 44px touch floor too. */
+  height: 44px;
   padding: 0 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
@@ -2686,8 +2690,8 @@ textarea::placeholder {
 }
 
 .profile-settings {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   margin-left: auto;
 }
@@ -2703,7 +2707,7 @@ textarea::placeholder {
 .profile-shortcuts a {
   flex: 1;
   justify-content: center;
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 10px;
   color: #8b8b93;
   font-size: 12px;
@@ -3634,8 +3638,8 @@ textarea::placeholder {
 }
 
 .editor-back {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   background: #1f1f23;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -3750,7 +3754,7 @@ textarea::placeholder {
 }
 
 .editor-rest button {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: #0a0a0b;
@@ -3759,7 +3763,6 @@ textarea::placeholder {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .editor-rest button.is-active {
